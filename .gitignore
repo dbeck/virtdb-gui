@@ -23,3 +23,8 @@
 # Node files
 npm-debug.log
 node_modules/*
+
+# Compiled files
+public/stylesheets/**/*.css
+public/javascripts/**/*.js
+s
