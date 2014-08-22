@@ -1,14 +1,19 @@
 extends layout
 
 block content
-    table
+    h1 Endpoints
+    table(class='virtdb-table', id='endpoints-table')
         tr
             th Name
             th SvcType
-            th Connections
+            th(colspan=2) Connections
+        tr
 
         each ep in endpoints.Endpoints
             tr
                 td #{ep.Name}
                 td #{ep.SvcType}
-                td #{ep.Connections}
+                - var connection_field = ''
+                each connection in ep.Connections
+                    - connection_field += connection.Type + ': ' + connection.Address + '<br/>'
+                td !{connection_field}
