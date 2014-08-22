@@ -1,0 +1,14 @@
+extends layout
+
+block content
+    table
+        tr
+            th Name
+            th SvcType
+            th Connections
+
+        each ep in endpoints.Endpoints
+            tr
+                td #{ep.Name}
+                td #{ep.SvcType}
+                td #{ep.Connections}

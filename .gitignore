@@ -27,4 +27,5 @@ node_modules/*
 # Compiled files
 public/stylesheets/**/*.css
 public/javascripts/**/*.js
-s
+logic/**/*.js
+logic/**/*.js.map
