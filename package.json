@@ -6,14 +6,17 @@
     "start": "node ./bin/www"
   },
   "dependencies": {
-    "express": "~4.2.0",
-    "static-favicon": "~1.0.0",
-    "morgan": "~1.0.0",
-    "cookie-parser": "~1.0.1",
     "body-parser": "~1.0.0",
+    "cookie-parser": "~1.0.1",
     "debug": "~0.7.4",
+    "express": "~4.2.0",
     "jade": "~1.3.0",
-    "stylus": "0.42.3"
+    "loglevel": "1.1.0",
+    "morgan": "~1.0.0",
+    "node-protobuf": "1.2.0",
+    "static-favicon": "~1.0.0",
+    "stylus": "0.42.3",
+    "zmq": "2.7.0"
   },
   "devDependencies": {
     "browser-sync": "^1.3.5",

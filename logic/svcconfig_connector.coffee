@@ -24,8 +24,12 @@ class ServiceConfigConnector
 
     getEndpoints: (onEndpointsReceived) =>
         @onEndpointsReceived = onEndpointsReceived
-        endpoint = {}
-        endpoint.Endpoints = []
+        endpoint =
+            Endpoints: [
+                Name: "csv-provider"
+                SvcType: 'NONE'
+            ]
+
         @socket.send proto_service_config.serialize endpoint, "virtdb.interface.pb.Endpoint"
 
 module.exports = ServiceConfigConnector
