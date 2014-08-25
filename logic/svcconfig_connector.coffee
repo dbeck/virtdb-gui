@@ -2,10 +2,9 @@ CONST = require("./config").Const
 zmq = require("zmq")
 fs = require("fs")
 protobuf = require("node-protobuf")
-proto_service_config = new protobuf(fs.readFileSync("/home/vagrant/src/virtdb-gui/proto/svc_config.pb.desc"))
+proto_service_config = new protobuf(fs.readFileSync("proto/svc_config.pb.desc"))
 log = require("loglevel")
 log.setLevel 'debug'
-
 
 class ServiceConfigConnector
     socket: null
