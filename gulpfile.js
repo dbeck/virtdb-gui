@@ -43,11 +43,7 @@ gulp.task('server-side-coffee', function() {
 
 gulp.task('start-dev-server', function () {
     nodemon({
-        script: './bin/www',
-        watch: './logic',
-        ext: 'coffee',
-        legacyWatch: true,
-        env: { 'NODE_ENV': 'development' }
+        'script': './bin/www',
     })
     .on('change', function () {
         gulp.start('server-side-coffee');
