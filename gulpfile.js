@@ -49,7 +49,9 @@ gulp.task('start-dev-server', function () {
         legacyWatch: true,
         env: { 'NODE_ENV': 'development' }
     })
-    .on('change', ['server-side-coffee'])
+    .on('change', function () {
+        gulp.start('server-side-coffee');
+    })
     .on('restart', function () {
         console.log('Express server restarted!')
     });

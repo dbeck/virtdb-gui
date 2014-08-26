@@ -26,7 +26,7 @@ class ServiceConfigConnector
         @onEndpointsReceived = onEndpointsReceived
         endpoint =
             Endpoints: [
-                Name: "csv-provider"
+                Name: "virtdb-gui"
                 SvcType: 'NONE'
             ]
 

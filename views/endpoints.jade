@@ -13,7 +13,11 @@ block content
             tr
                 td #{ep.Name}
                 td #{ep.SvcType}
-                - var connection_field = ''
-                each connection in ep.Connections
-                    - connection_field += connection.Type + ': ' + connection.Address + '<br/>'
-                td !{connection_field}
+                td
+                    each connection in ep.Connections
+                        div
+                            - connection_field = connection.Type + ': ' + connection.Address + '<br/>'
+                            if ep.SvcType == 'META_DATA'
+                                a(href="/metadata?url="+connection.Address) !{connection_field}
+                            else
+                                !{connection_field}
