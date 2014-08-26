@@ -22,6 +22,12 @@ app.use(cookieParser());
 app.use(require('stylus').middleware(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, 'public')));
 
+if (app.get('env') === 'development') {
+    app.use(require('connect-livereload')({
+    port: 3001
+  }));
+}
+
 app.use('/', routes);
 app.use('/users', users);
 
