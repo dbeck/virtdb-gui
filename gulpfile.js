@@ -2,8 +2,11 @@ var gulp = require('gulp');
 var coffee = require('gulp-coffee');
 var spawn = require('child_process').spawn;
 var sourcemaps = require('gulp-sourcemaps');
-var wait = require('gulp-wait')
 var nodemon = require('gulp-nodemon');
+var jade = require('gulp-jade');
+var stylus = require('gulp-stylus');
+var mainBowerFiles = require('main-bower-files');
+
 var node;
 var lr;
 
@@ -24,45 +27,76 @@ function notifyLivereload(event) {
   });
 }
 
-gulp.task('client-side-coffee', function() {
-    var scriptDir = './public/javascripts/';
-    gulp.src(scriptDir + '*.coffee')
-        .pipe(sourcemaps.init())
-        .pipe(coffee({bare: true}))
-        .pipe(sourcemaps.write(scriptDir))
-        .pipe(gulp.dest(scriptDir))
-});
+gulp.task('compile-stylus', function() {
+    gulp.src('./src/styles/*.styl')
+        .pipe(stylus())
+        .pipe(gulp.dest('./static/styles'));
+})
 
-gulp.task('server-side-coffee', function() {
-    gulp.src('logic/*.coffee')
+gulp.task('compile-jade', function() {
+    gulp.src('./src/templates/*.jade')
+        .pipe(jade())
+        .pipe(gulp.dest('./static/templates'));
+})
+
+gulp.task('compile-client-coffee', function() {
+    var sources = './src/scripts/client/*.coffee';
+    var destDir = './static/scripts/';
+    gulp.src(sources)
         .pipe(sourcemaps.init())
         .pipe(coffee({bare: true}))
         .pipe(sourcemaps.write('.'))
-        .pipe(gulp.dest('logic'))
+        .pipe(gulp.dest(destDir))
 });
+
+gulp.task('compile-server-coffee', function() {
+    var sources = './src/scripts/server/*.coffee';
+    var destDir = './src/scripts/server/out';
+    gulp.src(sources)
+        .pipe(sourcemaps.init())
+        .pipe(coffee({bare: true}))
+        .pipe(sourcemaps.write('.'))
+        .pipe(gulp.dest(destDir))
+})
 
 gulp.task('start-dev-server', function () {
     nodemon({
         'script': './bin/www',
+        'ext': 'js',
+        'watch': ['src/scripts/server/out/*.js']
     })
     .on('restart', function () {
-        console.log('Express server restarted!')
+        console.log('Server restarted!')
     });
 })
 
+gulp.task('collect-libs', function() {
+    gulp.src(mainBowerFiles({
+        paths: '.'
+    }))
+    .pipe(gulp.dest('static/libs'));
+});
+
 gulp.task('watch', function()
 {
+    //Reloader watch
+    gulp.watch(['static/**/*.*'], notifyLivereload);
+
     //Client side watch
-    gulp.watch(['views/*.jade'], notifyLivereload);
-    gulp.watch(['public/stylesheets/*.styl'], notifyLivereload);
-    gulp.watch(['public/javascripts/*.js'], notifyLivereload);
-    gulp.watch(['public/javascripts/*.coffee'], ['client-side-coffee']);
-    gulp.watch(['logic/*.coffee'], ['server-side-coffee']);
+    gulp.watch(['src/templates/**/*.jade'], ['compile-jade']);
+    gulp.watch(['src/styles/**/*.styl'], ['compile-stylus']);
+    gulp.watch(['src/scripts/client/**/*.coffee'], ['compile-client-coffee']);
+
+    //Server side watch
+    gulp.watch(['src/scripts/server/**/*.coffee'], ['compile-server-coffee']);
 });
 
 gulp.task('default', [
-    'server-side-coffee',
-    'client-side-coffee',
+    'collect-libs',
+    'compile-server-coffee',
+    'compile-client-coffee',
+    'compile-jade',
+    'compile-stylus',
     'watch',
     'start-dev-server',
     'start-livereload-server',
