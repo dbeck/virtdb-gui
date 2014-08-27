@@ -1,12 +1,10 @@
 {
-  "verbose": false,
   "watch": [
-    "logic/**/*.coffee",
+    "logic/**/*.js",
     "routes"
   ],
   "env": {
     "NODE_ENV": "development"
   },
-  "ext": "js coffee",
-  "legacyWatch": true
+  "ext": "js"
 }

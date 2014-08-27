@@ -45,9 +45,6 @@ gulp.task('start-dev-server', function () {
     nodemon({
         'script': './bin/www',
     })
-    .on('change', function () {
-        gulp.start('server-side-coffee');
-    })
     .on('restart', function () {
         console.log('Express server restarted!')
     });
@@ -60,6 +57,7 @@ gulp.task('watch', function()
     gulp.watch(['public/stylesheets/*.styl'], notifyLivereload);
     gulp.watch(['public/javascripts/*.js'], notifyLivereload);
     gulp.watch(['public/javascripts/*.coffee'], ['client-side-coffee']);
+    gulp.watch(['logic/*.coffee'], ['server-side-coffee']);
 });
 
 gulp.task('default', [
