@@ -20,12 +20,11 @@
 *.out
 *.app
 
-# Node files
+# Dependencies
 npm-debug.log
-node_modules/*
+node_modules
+bower_components
 
 # Compiled files
-public/stylesheets/**/*.css
-public/javascripts/**/*.js
-logic/**/*.js
-logic/**/*.js.map
+static/**/*.*
+src/scripts/server/out/*
