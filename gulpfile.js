@@ -34,10 +34,15 @@ gulp.task('compile-stylus', function() {
 })
 
 gulp.task('compile-jade', function() {
-    gulp.src('./src/templates/*.jade')
-        .pipe(jade())
-        .pipe(gulp.dest('./static/templates'));
+    gulp.src(['./src/pages/*.jade', '!./src/pages/index.jade'])
+        .pipe(jade({pretty: true}))
+        .pipe(gulp.dest('./static/pages'));
 })
+
+gulp.task('copy-index-to-static', function(){
+    gulp.src('./src/pages/index.jade')
+        .pipe(gulp.dest('./static/pages'));
+});
 
 gulp.task('compile-client-coffee', function() {
     var sources = './src/scripts/client/*.coffee';
@@ -62,8 +67,8 @@ gulp.task('compile-server-coffee', function() {
 gulp.task('start-dev-server', function () {
     nodemon({
         'script': './bin/www',
-        'ext': 'js',
-        'watch': ['src/scripts/server/out/*.js']
+        'ext': 'yyy',
+        'watch': ['src/scripts/server/out']
     })
     .on('restart', function () {
         console.log('Server restarted!')
@@ -71,10 +76,9 @@ gulp.task('start-dev-server', function () {
 })
 
 gulp.task('collect-libs', function() {
-    gulp.src(mainBowerFiles({
-        paths: '.'
-    }))
-    .pipe(gulp.dest('static/libs'));
+    var files = mainBowerFiles();
+    gulp.src(files)
+        .pipe(gulp.dest('static/libs'));
 });
 
 gulp.task('watch', function()
@@ -82,13 +86,18 @@ gulp.task('watch', function()
     //Reloader watch
     gulp.watch(['static/**/*.*'], notifyLivereload);
 
+
     //Client side watch
-    gulp.watch(['src/templates/**/*.jade'], ['compile-jade']);
+    gulp.watch(['src/pages/**/*.jade'], ['compile-jade']);
     gulp.watch(['src/styles/**/*.styl'], ['compile-stylus']);
     gulp.watch(['src/scripts/client/**/*.coffee'], ['compile-client-coffee']);
+    gulp.watch(['src/pages/index.jade'], ['copy-index-to-static']);
 
     //Server side watch
     gulp.watch(['src/scripts/server/**/*.coffee'], ['compile-server-coffee']);
+
+    //Third-party watch
+    gulp.watch(['bower.json'], ['collect-libs']);
 });
 
 gulp.task('default', [

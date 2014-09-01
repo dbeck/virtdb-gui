@@ -26,5 +26,5 @@ node_modules
 bower_components
 
 # Compiled files
-static/**/*.*
-src/scripts/server/out/*
+static
+src/scripts/server/out

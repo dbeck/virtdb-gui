@@ -1,0 +1,16 @@
+div.container
+    div(ng-repeat="table in dataProvider.metaData.Tables")
+        h2 {{table.Name}}
+        h3 Properties: {{table.Properties}}
+        h3 Comments: {{table.Comments}}
+        table.table
+            tr
+                th Name
+                th Description
+                th Properties
+                th Comments
+            tr(ng-repeat="field in table.Fields")
+                td {{field.Name}}
+                td {{field.Desc}}
+                td {{field.Properties}}
+                td {{field.Comments}}

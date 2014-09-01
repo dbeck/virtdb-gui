@@ -1,0 +1,17 @@
+div.container
+    //- {{endpoint.endpoints}}
+    div.panel.panel-default
+        div.panel-heading
+            h3.panel-title Endpoints
+        div.panelbody
+            table.table
+                tr
+                    th Name
+                    th Service Type
+                    th Connections
+                tr(ng-repeat='ep in endpoint.endpoints.Endpoints')
+                    td {{ep.Name}}
+                    td {{ep.SvcType}}
+                    td
+                        div(ng-repeat='conn in ep.Connections')
+                            {{conn.Type}}: {{conn.Address}}

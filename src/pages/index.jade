@@ -1,0 +1,22 @@
+doctype html
+html(ng-app='virtdb')
+  head
+    title= title
+    link(rel='stylesheet', href='../libs/bootstrap.css')
+    script(type='text/javascript' src='../libs/angular.js')
+    script(type='text/javascript' src='../libs/angular-route.js')
+    script(type='text/javascript' src='../scripts/virtdb-app.js')
+  body
+    div.navbar.navbar-inverse
+        div.container
+            div.navbar-header
+                a.navbar-brand VirtDB
+            div.collaps.navbar-collapse
+                ul.nav.navbar-nav
+                    li
+                        a(href='#data-providers') Data providers
+                    li
+                        a(href='#diagnostics') Diagnostics
+                    li
+                        a(href='#endpoints') Endpoints
+    div.container(ng-View)
