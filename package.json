@@ -14,6 +14,7 @@
     "loglevel": "1.1.0",
     "morgan": "~1.0.0",
     "node-protobuf": "1.2.0",
+    "source-map-support": "^0.2.7",
     "static-favicon": "~1.0.0",
     "stylus": "0.42.3",
     "zmq": "2.7.0"
@@ -23,6 +24,7 @@
     "connect-livereload": "^0.4.0",
     "gulp": "^3.8.7",
     "gulp-coffee": "^2.1.1",
+    "gulp-express": "0.0.9",
     "gulp-jade": "^0.7.0",
     "gulp-nodemon": "^1.0.4",
     "gulp-sourcemaps": "^1.1.1",
