@@ -37,6 +37,7 @@ class ServiceConfig
         _onMessage: (reply) =>
             @endpoints = (proto_service_config.parse reply, 'virtdb.interface.pb.Endpoint').Endpoints
             @serviceConfigConnections = endpoint.Connections for endpoint in @endpoints when endpoint.Name is "svc_config"
+            @_subscribeEndpoints() unless @pubsubSocket
             return
 
         _connect: =>
@@ -52,5 +53,22 @@ class ServiceConfig
 
             @reqrepSocket.send proto_service_config.serialize endpointMessage, "virtdb.interface.pb.Endpoint"
             return
+
+        _onMessageSub: (channelId, message) =>
+            data = (proto_service_config.parse message, 'virtdb.interface.pb.Endpoint')
+            @endpoints = @endpoints.concat data.Endpoints
+
+        _subscribeEndpoints: () =>
+            console.log 'subscribing'
+            @pubsubSocket = zmq.socket('sub')
+            @pubsubSocket.on "message", @_onMessageSub
+            for connection in @serviceConfigConnections when connection.Type is 'PUB_SUB'
+                for address in connection.Address
+                    try
+                        @pubsubSocket.connect address
+                    catch ex
+                        continue
+                    @pubsubSocket.subscribe ''
+                    break
 
 module.exports = ServiceConfig
