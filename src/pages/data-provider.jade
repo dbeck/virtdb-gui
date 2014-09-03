@@ -1,16 +1,22 @@
 div.container
-    div(ng-repeat="table in dataProvider.metaData.Tables")
-        h2 {{table.Name}}
-        h3 Properties: {{table.Properties}}
-        h3 Comments: {{table.Comments}}
-        table.table
-            tr
-                th Name
-                th Description
-                th Properties
-                th Comments
-            tr(ng-repeat="field in table.Fields")
-                td {{field.Name}}
-                td {{field.Desc}}
-                td {{field.Properties}}
-                td {{field.Comments}}
+    div.row
+        div.col-md-3
+            h3 Tables
+            div.list-group
+                a.list-group-item(
+                    ng-repeat='table in dataProvider.metaData.Tables',
+                    ng-click='dataProvider.selectTable(table.Name)'
+                ) {{table.Name}}
+        div.col-md-6
+            h3 Data
+            table.table(ng-repeat='table in dataProvider.metaData.Tables | filter:dataProvider.selectedTableFilter')
+                tr
+                    th(ng-repeat='field in table.Fields') {{field.Name}}
+        div.col-md-3
+            h3 Meta data
+                h4 Properties
+                div.container(ng-repeat='(key, value) in table.Properties')
+                    span {{key}}:{{value}}
+                h4 Comments
+                div.container(ng-repeat='comment in table.Comments')
+                    div {{comment.Text}}

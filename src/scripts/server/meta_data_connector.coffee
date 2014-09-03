@@ -4,6 +4,7 @@ fs = require("fs")
 protobuf = require("node-protobuf")
 proto_metadata = new protobuf(fs.readFileSync("proto/meta_data.pb.desc"))
 log = require("loglevel")
+require('source-map-support').install()
 log.setLevel 'debug'
 
 class MetadataConnector

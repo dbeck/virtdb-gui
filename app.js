@@ -8,10 +8,6 @@ var bodyParser = require('body-parser');
 var EXPRESS_PORT = 3000;
 var LIVERELOAD_PORT = 3001;
 
-
-var index = require('./src/scripts/server/out/index_route');
-var api = require('./src/scripts/server/out/api_route');
-
 var app = module.exports.app = exports.app = express();
 
 app.set('view engine', 'jade');
@@ -30,6 +26,8 @@ if (app.get('env') === 'development') {
   }));
 }
 
+var index = require('./src/scripts/server/out/index_route');
+var api = require('./src/scripts/server/out/api_route');
 app.use('/api', api);
 app.use('/', index);
 
