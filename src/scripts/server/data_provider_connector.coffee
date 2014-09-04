@@ -7,20 +7,13 @@ log = require("loglevel")
 require('source-map-support').install()
 log.setLevel 'debug'
 
-class MetadataConnector
+class DataProviderConnector
     socket: null
     onMetadata: null
 
-    onMessage: (data) =>
-        metadata = proto_metadata.parse data, 'virtdb.interface.pb.MetaData'
-        @onMetadata metadata
-        return
-
-    constructor: () ->
+    constructor: (address) ->
         @socket = zmq.socket('req')
-        @socket.on "message", @onMessage
-
-    connect: (address) =>
+        @socket.on "message", @_onMessage
         @socket.connect(address)
 
     getMetadata: (schema, regexp, @onMetadata) =>
@@ -29,4 +22,10 @@ class MetadataConnector
             Schema: schema
         @socket.send proto_metadata.serialize request, "virtdb.interface.pb.MetaDataRequest"
 
-module.exports = MetadataConnector
+    _onMessage: (data) =>
+        metadata = proto_metadata.parse data, 'virtdb.interface.pb.MetaData'
+        @onMetadata metadata
+        return
+
+
+module.exports = DataProviderConnector

@@ -1,6 +1,6 @@
 express = require("express")
 router = express.Router()
-MetadataConnector = require("./meta_data_connector")
+DataProviderConnector = require("./data_provider_connector")
 ServiceConfig = require('./svcconfig_connector')
 
 require('source-map-support').install()
@@ -24,8 +24,7 @@ router.get "/data_providers/:provider_id/meta_data", (req, res) ->
       res.json metaData
       return
 
-    dataProvider = new MetadataConnector()
-    dataProvider.connect(adresses[0])
+    dataProvider = new DataProviderConnector(adresses[0])
     dataProvider.getMetadata "data", ".*", onMetaDataReceived
     return
 
