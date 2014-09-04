@@ -5,10 +5,10 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 
-var index = require('./src/scripts/server/out/index_route');
-var api = require('./src/scripts/server/out/api_route');
+var EXPRESS_PORT = 3000;
+var LIVERELOAD_PORT = 3001;
 
-var app = express();
+var app = module.exports.app = exports.app = express();
 
 app.set('view engine', 'jade');
 app.set('views', path.join(__dirname, 'static/pages'));
@@ -22,11 +22,15 @@ app.use(express.static(path.join(__dirname, 'static')));
 
 if (app.get('env') === 'development') {
     app.use(require('connect-livereload')({
-    port: 3001
+    port: LIVERELOAD_PORT
   }));
 }
 
+var index = require('./src/scripts/server/out/index_route');
+var api = require('./src/scripts/server/out/api_route');
 app.use('/api', api);
 app.use('/', index);
 
-module.exports = app;
+var server = app.listen(EXPRESS_PORT, function() {
+    console.log('Listening on port %d', server.address().port);
+});

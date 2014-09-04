@@ -23,12 +23,29 @@ app.controller 'DataProviderController', ['$scope', '$http', ($scope, $http) ->
     @endpoint = 'csv-provider'
     @metaData = []
     @data = []
+    @selectedTable = ''
+    @selectedField = ''
     _this = this
 
     @getMetaData = () ->
         $http.get("/api/data_providers/" + _this.endpoint + "/meta_data").success (data) ->
             _this.metaData = data
         return
+
+    @selectTable = (table) ->
+        _this.selectedTable = table
+        return
+
+    @selectField = (field) ->
+        _this.selectedField = field
+        return
+
+    @getSelectedTableFields = () ->
+        return table.Fields for table in _this.metaData.Tables when table.Names is _this.selectedTable
+
+    @selectedTableFilter = (table) ->
+            return table.Name is _this.selectedTable
+
     @getMetaData()
     return
 ]
