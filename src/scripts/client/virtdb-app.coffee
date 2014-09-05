@@ -20,24 +20,41 @@ app.config ($routeProvider) ->
     return
 
 app.controller 'DataProviderController', ['$scope', '$http', ($scope, $http) ->
-    @endpoint = 'csv-provider'
+    @selectedProvider = ''
+    @providers = []
+
     @metaData = []
     @data = []
-    @selectedTable = ''
-    @selectedField = ''
+    @currentTable = ''
+    @currentField = ''
     _this = this
 
+    @onProviderChange = () ->
+        if @selectedProvider
+            @getMetaData()
+
     @getMetaData = () ->
-        $http.get("/api/data_providers/" + _this.endpoint + "/meta_data").success (data) ->
+        $http.get("/api/data_providers/" + @selectedProvider + "/meta_data").success (data) ->
             _this.metaData = data
         return
 
+    @getDataProviders = () ->
+        $http.get("/api/endpoints").success (data) ->
+            services = {}
+            for endpoint in data
+                services[endpoint.Name] = [] unless services.hasOwnProperty endpoint.Name
+                services[endpoint.Name].push(endpoint.SvcType)
+            for endpointName, serviceTypes of services
+                if "META_DATA" in serviceTypes and "QUERY" in serviceTypes and "COLUMN" in serviceTypes
+                    _this.providers.push endpointName
+        return
+
     @selectTable = (table) ->
-        _this.selectedTable = table
+        _this.currentTable = table
         return
 
     @selectField = (field) ->
-        _this.selectedField = field
+        _this.currentField = field
         return
 
     @getSelectedTableFields = () ->
@@ -46,7 +63,8 @@ app.controller 'DataProviderController', ['$scope', '$http', ($scope, $http) ->
     @selectedTableFilter = (table) ->
             return table.Name is _this.selectedTable
 
-    @getMetaData()
+    @getDataProviders()
+
     return
 ]
 
