@@ -3,6 +3,7 @@ html(ng-app='virtdb')
   head
     title= title
     link(rel='stylesheet', href='../libs/bootstrap.css')
+    link(rel='stylesheet', href='../styles/style.css')
     script(type='text/javascript' src='../libs/angular.js')
     script(type='text/javascript' src='../libs/angular-route.js')
     script(type='text/javascript' src='../scripts/virtdb-app.js')
@@ -19,4 +20,4 @@ html(ng-app='virtdb')
                         a(href='#diagnostics') Diagnostics
                     li
                         a(href='#endpoints') Endpoints
-    div.container(ng-View)
+    div.container-fluid(ng-View)

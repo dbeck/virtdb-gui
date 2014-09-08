@@ -20,48 +20,55 @@ app.config ($routeProvider) ->
     return
 
 app.controller 'DataProviderController', ['$scope', '$http', ($scope, $http) ->
-    @selectedProvider = ''
+    @currentProvider = ''
     @providers = []
 
     @metaData = []
-    @data = []
-    @currentTable = ''
+    @data = {}
+    @currentTable = {}
     @currentField = ''
-    _this = this
+    @limit = 10
+    @rowIndexes = [0..@limit-1]
 
     @onProviderChange = () ->
-        if @selectedProvider
+        if @currentProvider
             @getMetaData()
 
-    @getMetaData = () ->
-        $http.get("/api/data_providers/" + @selectedProvider + "/meta_data").success (data) ->
-            _this.metaData = data
+    @getMetaData = () =>
+        $http.get("/api/data_providers/" + @currentProvider + "/meta_data").success (data) =>
+            @metaData = data
+        return
+
+    @getData = () =>
+        fields = (field.Name for field in @currentTable.Fields).join()
+        $http.get(
+            "/api/data_providers/" + @currentProvider + "/data/table/" + @currentTable.Name + "/fields/" + fields + "/count/" + @limit
+            ).success (data) =>
+                @data = data
         return
 
     @getDataProviders = () ->
-        $http.get("/api/endpoints").success (data) ->
+        $http.get("/api/endpoints").success (data) =>
             services = {}
             for endpoint in data
-                services[endpoint.Name] = [] unless services.hasOwnProperty endpoint.Name
+                services[endpoint.Name] ?= []
                 services[endpoint.Name].push(endpoint.SvcType)
             for endpointName, serviceTypes of services
                 if "META_DATA" in serviceTypes and "QUERY" in serviceTypes and "COLUMN" in serviceTypes
-                    _this.providers.push endpointName
+                    @providers.push endpointName
         return
 
-    @selectTable = (table) ->
-        _this.currentTable = table
+    @selectTable = (selectedTable) ->
+        @currentTable = (table for table in @metaData.Tables when table.Name is selectedTable)[0]
+        @getData()
         return
 
     @selectField = (field) ->
-        _this.currentField = field
+        @currentField = field
         return
 
-    @getSelectedTableFields = () ->
-        return table.Fields for table in _this.metaData.Tables when table.Names is _this.selectedTable
-
-    @selectedTableFilter = (table) ->
-            return table.Name is _this.selectedTable
+    @selectedTableFilter = (table) =>
+        return table.Name is @selectedTable
 
     @getDataProviders()
 
@@ -74,8 +81,7 @@ app.controller 'DiagnosticsController', ($scope) ->
 
 app.controller 'EndpointController', ['$scope', '$http', ($scope, $http) ->
     @endpoints = ''
-    _this = this
-    $http.get("/api/endpoints").success (data) ->
-        _this.endpoints = data
+    $http.get("/api/endpoints").success (data) =>
+        @endpoints = data
     return
 ]

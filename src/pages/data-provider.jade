@@ -1,32 +1,35 @@
-div.container
+div
     div.panel.panel-default
         div.panel-heading
             div.panel-title Data provider
         div.panel-body
             h4 Provider:
             select(
-                ng-model='dataProvider.selectedProvider',
+                ng-model='dataProvider.currentProvider',
                 ng-options='provider for provider in dataProvider.providers',
                 ng-change='dataProvider.onProviderChange()')
                 option(value='') Select provider
     div.row
-        div.col-md-3
+        div.col-lg-3
             h3 Tables
             div.list-group
                 a.list-group-item(
                     ng-repeat='table in dataProvider.metaData.Tables',
                     ng-click='dataProvider.selectTable(table.Name)'
                 ) {{table.Name}}
-        div.col-md-6
+        div.col-lg-6
             h3 Data
-            table.table(ng-repeat='table in dataProvider.metaData.Tables | filter:dataProvider.selectedTableFilter')
-                tr
-                    th(ng-repeat='field in table.Fields') {{field.Name}}
-        div.col-md-3
+            div.data-table
+                table.table.table-bordered
+                    tr
+                        th(ng-repeat='field in dataProvider.currentTable.Fields') {{field.Name}}
+                    tr(ng-repeat='index in dataProvider.rowIndexes')
+                        td(ng-repeat='field in dataProvider.currentTable.Fields') {{dataProvider.data[field.Name][index]}}
+        div.col-lg-3
             h3 Meta data
                 h4 Properties
-                div.container(ng-repeat='(key, value) in table.Properties')
+                div.container(ng-repeat='(key, value) in dataProvider.currentTable.Properties')
                     span {{key}}:{{value}}
                 h4 Comments
-                div.container(ng-repeat='comment in table.Comments')
+                div.container(ng-repeat='comment in dataProvider.currentTable.Comments')
                     div {{comment.Text}}

@@ -3,28 +3,65 @@ zmq = require("zmq")
 fs = require("fs")
 protobuf = require("node-protobuf")
 proto_metadata = new protobuf(fs.readFileSync("proto/meta_data.pb.desc"))
+proto_data = new protobuf(fs.readFileSync("proto/data.pb.desc"))
 log = require("loglevel")
 require('source-map-support').install()
 log.setLevel 'debug'
 
 class DataProviderConnector
-    socket: null
-    onMetadata: null
+    metaDataSocket: null
+    columnSocket: null
+    querySocket: null
 
-    constructor: (address) ->
-        @socket = zmq.socket('req')
-        @socket.on "message", @_onMessage
-        @socket.connect(address)
+    onMetaData: null
+    onColumn: null
+    dataColumns: null
+    res: null
 
-    getMetadata: (schema, regexp, @onMetadata) =>
+    queryId = 0
+
+    constructor: (metaDataAddress, columnAddress, queryAddress) ->
+
+        #initialize meta data socket
+        @metaDataSocket = zmq.socket('req')
+        @metaDataSocket.on "message", @_onMetaDataMessage
+        @metaDataSocket.connect(metaDataAddress)
+
+        #initialize column data socket
+        @columnSocket = zmq.socket('sub')
+        @columnSocket.on "message", @_onColumnMessage
+        @columnSocket.connect(columnAddress)
+
+        #initialize data socket
+        @querySocket = zmq.socket('push')
+        @querySocket.connect(queryAddress)
+
+    getMetadata: (schema, regexp, @onMetaData) =>
         request =
             Name: regexp
             Schema: schema
-        @socket.send proto_metadata.serialize request, "virtdb.interface.pb.MetaDataRequest"
+        @metaDataSocket.send proto_metadata.serialize request, "virtdb.interface.pb.MetaDataRequest"
 
-    _onMessage: (data) =>
+    getData: (table, fields, count, @onColumn, @res) =>
+
+        @queryId = Math.floor((Math.random() * 100000) + 1);
+        @columnSocket.subscribe(@queryId.toString())
+
+        query =
+            QueryId: @queryId
+            Table: table
+            Fields: fields
+            Limit: count
+        @querySocket.send proto_data.serialize query, "virtdb.interface.pb.Query"
+
+    _onMetaDataMessage: (data) =>
         metadata = proto_metadata.parse data, 'virtdb.interface.pb.MetaData'
-        @onMetadata metadata
+        @onMetaData metadata
+        return
+
+    _onColumnMessage: (channelId, data) =>
+        column = proto_data.parse data, 'virtdb.interface.pb.Column'
+        @onColumn column
         return
 
 

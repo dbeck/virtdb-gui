@@ -27,9 +27,13 @@ class ServiceConfig
             @_connect()
             @_requestEndpoints()
 
-        getAddress: (name, serviceType, connectionType) =>
-            for endpoint in @endpoints when endpoint.Name is name and endpoint.SvcType is serviceType
-                return connection.Address for connection in endpoint.Connections when connection.Type is connectionType
+        getAddresses: (name) =>
+            addresses = {}
+            for endpoint in @endpoints when endpoint.Name is name
+                addresses[endpoint.SvcType] = {} unless addresses.hasOwnProperty endpoint.SvcType
+                for conn in endpoint.Connections
+                    addresses[endpoint.SvcType][conn.Type] = conn.Address
+            return addresses
 
         getEndpoints: () ->
             @endpoints
