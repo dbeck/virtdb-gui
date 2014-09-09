@@ -16,7 +16,6 @@ class DataProviderConnector
     onMetaData: null
     onColumn: null
     dataColumns: null
-    res: null
 
     queryId = 0
 
@@ -42,7 +41,7 @@ class DataProviderConnector
             Schema: schema
         @metaDataSocket.send proto_metadata.serialize request, "virtdb.interface.pb.MetaDataRequest"
 
-    getData: (table, fields, count, @onColumn, @res) =>
+    getData: (table, fields, count, @onColumn) =>
 
         @queryId = Math.floor((Math.random() * 100000) + 1);
         @columnSocket.subscribe(@queryId.toString())
