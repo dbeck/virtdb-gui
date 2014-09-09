@@ -27,9 +27,13 @@ class ServiceConfig
             @_connect()
             @_requestEndpoints()
 
-        getAddress: (name, serviceType, connectionType) =>
-            for endpoint in @endpoints when endpoint.Name is name and endpoint.SvcType is serviceType
-                return connection.Address for connection in endpoint.Connections when connection.Type is connectionType
+        getAddresses: (name) =>
+            addresses = {}
+            for endpoint in @endpoints when endpoint.Name is name
+                addresses[endpoint.SvcType] = {} unless addresses.hasOwnProperty endpoint.SvcType
+                for conn in endpoint.Connections
+                    addresses[endpoint.SvcType][conn.Type] = conn.Address
+            return addresses
 
         getEndpoints: () ->
             @endpoints
@@ -54,14 +58,13 @@ class ServiceConfig
             @reqrepSocket.send proto_service_config.serialize endpointMessage, "virtdb.interface.pb.Endpoint"
             return
 
-        _onMessageSub: (channelId, message) =>
+        _onPublishedMessage: (channelId, message) =>
             data = (proto_service_config.parse message, 'virtdb.interface.pb.Endpoint')
             @endpoints = @endpoints.concat data.Endpoints
 
         _subscribeEndpoints: () =>
-            console.log 'subscribing'
             @pubsubSocket = zmq.socket('sub')
-            @pubsubSocket.on "message", @_onMessageSub
+            @pubsubSocket.on "message", @_onPublishedMessage
             for connection in @serviceConfigConnections when connection.Type is 'PUB_SUB'
                 for address in connection.Address
                     try
