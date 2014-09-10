@@ -60,7 +60,12 @@ class ServiceConfig
 
         _onPublishedMessage: (channelId, message) =>
             data = (proto_service_config.parse message, 'virtdb.interface.pb.Endpoint')
-            @endpoints = @endpoints.concat data.Endpoints
+            for new_endpoint in data.Endpoints
+                for endpoint in @endpoints
+                    if endpoint.Name == new_endpoint.Name and endpoint.SvcType == new_endpoint.SvcType
+                        @endpoints.splice @endpoints.indexOf(endpoint), 1
+                        break
+                @endpoints = @endpoints.concat new_endpoint
 
         _subscribeEndpoints: () =>
             @pubsubSocket = zmq.socket('sub')
