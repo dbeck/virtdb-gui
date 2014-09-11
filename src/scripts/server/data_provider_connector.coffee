@@ -39,7 +39,11 @@ class DataProviderConnector
         request =
             Name: regexp
             Schema: schema
-        @metaDataSocket.send proto_metadata.serialize request, "virtdb.interface.pb.MetaDataRequest"
+            WithFields: true
+        try
+            @metaDataSocket.send proto_metadata.serialize request, "virtdb.interface.pb.MetaDataRequest"
+        catch e
+            log.error e
 
     getData: (table, fields, count, @onColumn) =>
 
