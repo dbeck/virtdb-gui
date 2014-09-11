@@ -20,35 +20,22 @@ app.config ($routeProvider) ->
     return
 
 app.controller 'DataProviderController', ['$scope', '$http', ($scope, $http) ->
+
+    @requests = new Requests("")
     @currentProvider = ''
     @providers = []
 
-    @metaData = []
-    @data = {}
-    @currentTable = {}
+    @tableMetaData = {}
+    @tableData = {}
+    @tableList = []
+    @fieldList = []
+    @currentTable = ''
     @currentField = ''
     @limit = 10
     @rowIndexes = [0..@limit-1]
 
-    @onProviderChange = () ->
-        if @currentProvider
-            @getMetaData()
-
-    @getMetaData = () =>
-        $http.get("/api/data_providers/" + @currentProvider + "/meta_data").success (data) =>
-            @metaData = data
-        return
-
-    @getData = () =>
-        fields = (field.Name for field in @currentTable.Fields).join()
-        $http.get(
-            "/api/data_providers/" + @currentProvider + "/data/table/" + @currentTable.Name + "/fields/" + fields + "/count/" + @limit
-            ).success (data) =>
-                @data = data
-        return
-
     @getDataProviders = () ->
-        $http.get("/api/endpoints").success (data) =>
+        $http.get(@requests.endpoints()).success (data) =>
             services = {}
             for endpoint in data
                 services[endpoint.Name] ?= []
@@ -58,17 +45,36 @@ app.controller 'DataProviderController', ['$scope', '$http', ($scope, $http) ->
                     @providers.push endpointName
         return
 
-    @selectTable = (selectedTable) ->
-        @currentTable = (table for table in @metaData.Tables when table.Name is selectedTable)[0]
-        @getData()
+    @onProviderChange = () =>
+        @requests.setDataProvider @currentProvider
+        if @currentProvider
+            @getTableList()
+
+    @getTableList = () =>
+        $http.get(@requests.metaDataTableNames()).success (data) =>
+            @tableList = data
+        return
+
+    @getMetaData = () =>
+        $http.get(@requests.metaDataTable @currentTable).success (data) =>
+            @tableMetaData = data
+            @getData()
+        return
+
+    @getData = () =>
+        @tableData = {}
+        $http.get(@requests.dataTable @currentTable, @limit).success (data) =>
+            @tableData = data
+        return
+
+    @selectTable = (table) ->
+        @currentTable = table
+        @getMetaData()
         return
 
     @selectField = (field) ->
         @currentField = field
         return
-
-    @selectedTableFilter = (table) =>
-        return table.Name is @selectedTable
 
     @getDataProviders()
 

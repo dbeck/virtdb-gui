@@ -14,17 +14,17 @@ div
             h3 Tables
             div.list-group
                 a.list-group-item(
-                    ng-repeat='table in dataProvider.metaData.Tables',
-                    ng-click='dataProvider.selectTable(table.Name)'
-                ) {{table.Name}}
+                    ng-repeat='table in dataProvider.tableList',
+                    ng-click='dataProvider.selectTable(table)'
+                ) {{table}}
         div.col-lg-6
             h3 Data
             div.data-table
                 table.table.table-bordered
                     tr
-                        th(ng-repeat='field in dataProvider.currentTable.Fields') {{field.Name}}
+                        th(ng-repeat='field in dataProvider.tableMetaData.Fields') {{field.Name}}
                     tr(ng-repeat='index in dataProvider.rowIndexes')
-                        td(ng-repeat='field in dataProvider.currentTable.Fields') {{dataProvider.data[field.Name][index]}}
+                        td(ng-repeat='(field, dataColumn) in dataProvider.tableData') {{dataProvider.tableData[field][index]}}
         div.col-lg-3
             h3 Meta data
                 h4 Properties

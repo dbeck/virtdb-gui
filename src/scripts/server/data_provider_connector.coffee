@@ -16,7 +16,6 @@ class DataProviderConnector
     onMetaData: null
     onColumn: null
     dataColumns: null
-    res: null
 
     queryId = 0
 
@@ -37,16 +36,17 @@ class DataProviderConnector
         @querySocket.connect(queryAddress)
 
     getMetadata: (schema, regexp, @onMetaData) =>
-        request =
+        metaDataRequest =
             Name: regexp
             Schema: schema
             WithFields: true
         try
-            @metaDataSocket.send proto_metadata.serialize request, "virtdb.interface.pb.MetaDataRequest"
+            log.debug "Sending MetaDataRequest message: " + JSON.stringify metaDataRequest
+            @metaDataSocket.send proto_metadata.serialize metaDataRequest, "virtdb.interface.pb.MetaDataRequest"
         catch e
             log.error e
 
-    getData: (table, fields, count, @onColumn, @res) =>
+    getData: (table, fields, count, @onColumn) =>
 
         @queryId = Math.floor((Math.random() * 100000) + 1);
         @columnSocket.subscribe(@queryId.toString())
@@ -56,7 +56,11 @@ class DataProviderConnector
             Table: table
             Fields: fields
             Limit: count
-        @querySocket.send proto_data.serialize query, "virtdb.interface.pb.Query"
+        try
+            log.debug "Sending Query message: " + JSON.stringify query
+            @querySocket.send proto_data.serialize query, "virtdb.interface.pb.Query"
+        catch e
+            log.error e
 
     _onMetaDataMessage: (data) =>
         metadata = proto_metadata.parse data, 'virtdb.interface.pb.MetaData'
