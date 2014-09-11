@@ -14,13 +14,10 @@ providers = {}
 metaDataCache = {}
 
 # returns true if table already in metaDataCache false anyway
-# create cache if it has not existed yet
-checkTableInCache = (provider, table) =>
+isTableInCache = (provider, table) =>
     if metaDataCache[provider]?
         return metaDataCache[provider].getTable(table)?
-    else
-        metaDataCache[provider] = new MetaDataCache()
-        return false
+    return false
 
 # create cache for the given provider
 prepareCache = (provider) =>
@@ -56,12 +53,13 @@ router.get "/data_provider/:provider_id/meta_data/table/:table", (req, res) ->
 
     onMetaDataReceived = (metaData) ->
         res.json metaData
+        prepareCache(provider)
         metaDataCache[provider].putTable(metaData.Tables[0])
         return
 
     try
-        if not checkTableInCache(provider, table)
-            getDataProvider(provider).getMetadata "data", "^#{table}$", true, onMetaDataReceived
+        if not isTableInCache(provider, table)
+            getDataProvider(provider).getMetadata "data", "^#{table}$", onMetaDataReceived
         else
             res.json metaDataCache[provider].getTable(table)
     catch ex
@@ -80,7 +78,7 @@ router.get "/data_provider/:provider_id/meta_data/table_names", (req, res) ->
         return
 
     try
-        getDataProvider(provider).getMetadata "data", ".*", false, onMetaDataReceived
+        getDataProvider(provider).getMetadata "data", ".*", onMetaDataReceived
     catch ex
         log.error ex
         res.status(500).send "Error occured: " + ex

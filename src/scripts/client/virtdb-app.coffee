@@ -62,6 +62,7 @@ app.controller 'DataProviderController', ['$scope', '$http', ($scope, $http) ->
         return
 
     @getData = () =>
+        @tableData = {}
         $http.get(@requests.dataTable @currentTable, @limit).success (data) =>
             @tableData = data
         return

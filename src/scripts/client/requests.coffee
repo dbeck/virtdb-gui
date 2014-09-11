@@ -35,7 +35,6 @@ class Requests
 
 
 
-    formatString = (format) =>
-        args = Array.prototype.slice.call arguments, 1
+    formatString = (format, args...) =>
         return format.replace /{(\d+)}/g, (match, number) ->
           return if typeof args[number] != 'undefined' then args[number] else match
