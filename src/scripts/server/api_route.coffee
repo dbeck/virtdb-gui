@@ -3,6 +3,7 @@ router = express.Router()
 DataProviderConnector = require("./data_provider_connector")
 ServiceConfig = require('./svcconfig_connector')
 FieldData = require './fieldData'
+MetaDataCache = require './meta_data_cache'
 log = require 'loglevel'
 log.setLevel 'debug'
 
@@ -10,6 +11,21 @@ require('source-map-support').install()
 
 serviceConfig = ServiceConfig.getInstance()
 providers = {}
+metaDataCache = {}
+
+# returns true if table already in metaDataCache false anyway
+# create cache if it has not existed yet
+checkTableInCache = (provider, table) =>
+    if metaDataCache[provider]?
+        return metaDataCache[provider].getTable(table)?
+    else
+        metaDataCache[provider] = new MetaDataCache()
+        return false
+
+# create cache for the given provider
+prepareCache = (provider) =>
+    if not metaDataCache[provider]?
+        metaDataCache[provider] = new MetaDataCache()
 
 getDataProvider = (providerId) ->
     if not providers[providerId]?
@@ -28,29 +44,56 @@ router.get "/", (req, res) ->
   return
 
 router.get "/endpoints", (req, res) ->
-    res.json serviceConfig.getEndpoints()
+    try
+        res.json serviceConfig.getEndpoints()
+    catch ex
+        log.error ex
+        res.status(500).send "Error occured: " + ex
 
-# GET /data_providers/
-router.get "/data_providers/:provider_id/meta_data", (req, res) ->
-    providerId = req.params.provider_id
+router.get "/data_provider/:provider_id/meta_data/table/:table", (req, res) ->
+    provider = req.params.provider_id
+    table = req.params.table
 
     onMetaDataReceived = (metaData) ->
-      res.json metaData
-      return
+        res.json metaData
+        metaDataCache[provider].putTable(metaData.Tables[0])
+        return
 
     try
-        getDataProvider(providerId).getMetadata "data", ".*", onMetaDataReceived
+        if not checkTableInCache(provider, table)
+            getDataProvider(provider).getMetadata "data", "^#{table}$", true, onMetaDataReceived
+        else
+            res.json metaDataCache[provider].getTable(table)
     catch ex
+        log.error ex
         res.status(500).send "Error occured: " + ex
         return
 
-router.get "/data_providers/:provider_id/data/table/:table/fields/:fields/count/:count", (req, res) ->
+
+router.get "/data_provider/:provider_id/meta_data/table_names", (req, res) ->
+    provider = req.params.provider_id
+
+    onMetaDataReceived = (metaData) ->
+        res.json (table.Name for table in metaData.Tables)
+        prepareCache(provider)
+        metaDataCache[provider].set(metaData.Tables)
+        return
+
+    try
+        getDataProvider(provider).getMetadata "data", ".*", false, onMetaDataReceived
+    catch ex
+        log.error ex
+        res.status(500).send "Error occured: " + ex
+        return
+
+router.get "/data_provider/:provider_id/data/table/:table/count/:count", (req, res) ->
     providerId = req.params.provider_id
     table = req.params.table
-    fieldNames = req.params.fields.split ','
     count = req.params.count
-
     columnData = {}
+    fieldNames = []
+
+    tableMeta = metaDataCache[providerId].getTable(table)
 
     onDataReceived = (data) =>
         columnData[data.Name] = FieldData.get(data)
@@ -59,17 +102,13 @@ router.get "/data_providers/:provider_id/data/table/:table/fields/:fields/count/
         return
 
     checkReceivedColumns = () =>
-        for field in fieldNames
-            if not columnData[field]?
+        for field in tableMeta.Fields
+            if not columnData[field.Name]?
                 return false
         return true
 
-    onMetaDataReceived = (metaData) =>
-        fields = (field for field in metaData.Tables[0].Fields when field.Name in fieldNames)
-        getDataProvider(providerId).getData table, fields, count, onDataReceived, res
-        return
+    getDataProvider(providerId).getData table, tableMeta.Fields, count, onDataReceived
 
-    getDataProvider(providerId).getMetadata "data", "^" + table + "$", onMetaDataReceived
     return
 
 # GET /data_providers/:provider_id/meta_data

@@ -35,7 +35,7 @@ class DataProviderConnector
         @querySocket = zmq.socket('push')
         @querySocket.connect(queryAddress)
 
-    getMetadata: (schema, regexp, @onMetaData) =>
+    getMetadata: (schema, regexp, withFields, @onMetaData) =>
         request =
             Name: regexp
             Schema: schema
