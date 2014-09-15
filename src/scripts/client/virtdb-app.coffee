@@ -57,7 +57,7 @@ app.controller 'DataProviderController', ['$scope', '$http', ($scope, $http) ->
 
     @getMetaData = () =>
         $http.get(@requests.metaDataTable @currentTable).success (data) =>
-            @tableMetaData = data
+            @tableMetaData = data.Tables[0]
             @getData()
         return
 
