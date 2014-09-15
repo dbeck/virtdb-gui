@@ -1,6 +1,6 @@
 express = require("express")
 router = express.Router()
-DataProviderConnector = require("./data_provider_connector")
+DataProviderConnection = require("./data_provider_connector")
 ServiceConfig = require('./svcconfig_connector')
 FieldData = require './fieldData'
 MetaDataCache = require './meta_data_cache'
@@ -24,16 +24,16 @@ prepareCache = (provider) =>
     if not metaDataCache[provider]?
         metaDataCache[provider] = new MetaDataCache()
 
-getDataProvider = (providerId) ->
-    if not providers[providerId]?
-        adresses = serviceConfig.getAddresses providerId
-        metaDataAddress = adresses["META_DATA"]["REQ_REP"][0]
-        columnAddress = adresses["COLUMN"]["PUB_SUB"][0]
-        queryAddress = adresses["QUERY"]["PUSH_PULL"][0]
-
-        dataProvider = new DataProviderConnector(metaDataAddress, columnAddress, queryAddress)
-        providers[providerId] = dataProvider
-    return providers[providerId]
+# getDataProvider = (providerId) ->
+#     # if not providers[providerId]?
+#         adresses = serviceConfig.getAddresses providerId
+#         metaDataAddress = adresses["META_DATA"]["REQ_REP"][0]
+#         columnAddress = adresses["COLUMN"]["PUB_SUB"][0]
+#         queryAddress = adresses["QUERY"]["PUSH_PULL"][0]
+#
+#         dataProvider = new DataProviderConnector(metaDataAddress, columnAddress, queryAddress)
+#         providers[providerId] = dataProvider
+#     return providers[providerId]
 
 # GET home page.
 router.get "/", (req, res) ->
@@ -50,16 +50,17 @@ router.get "/endpoints", (req, res) ->
 router.get "/data_provider/:provider_id/meta_data/table/:table", (req, res) ->
     provider = req.params.provider_id
     table = req.params.table
+    connection = DataProviderConnection.getConnection(provider)
 
     onMetaDataReceived = (metaData) ->
-        res.json metaData
+        res.json metaData.Tables[0]
         prepareCache(provider)
         metaDataCache[provider].putTable(metaData.Tables[0])
         return
 
     try
         if not isTableInCache(provider, table)
-            getDataProvider(provider).getMetadata "data", "^#{table}$", onMetaDataReceived
+            connection.getMetadata "data", table, true, onMetaDataReceived
         else
             res.json metaDataCache[provider].getTable(table)
     catch ex
@@ -70,28 +71,29 @@ router.get "/data_provider/:provider_id/meta_data/table/:table", (req, res) ->
 
 router.get "/data_provider/:provider_id/meta_data/table_names", (req, res) ->
     provider = req.params.provider_id
+    connection = DataProviderConnection.getConnection(provider)
 
     onMetaDataReceived = (metaData) ->
         res.json (table.Name for table in metaData.Tables)
-        prepareCache(provider)
-        metaDataCache[provider].set(metaData.Tables)
+        connection.close()
         return
 
     try
-        getDataProvider(provider).getMetadata "data", ".*", onMetaDataReceived
+        connection.getMetadata "data", ".*", false, onMetaDataReceived
     catch ex
         log.error ex
         res.status(500).send "Error occured: " + ex
         return
 
 router.get "/data_provider/:provider_id/data/table/:table/count/:count", (req, res) ->
-    providerId = req.params.provider_id
+    provider = req.params.provider_id
+    connection = DataProviderConnection.getConnection(provider)
     table = req.params.table
     count = req.params.count
     columnData = {}
     fieldNames = []
 
-    tableMeta = metaDataCache[providerId].getTable(table)
+    tableMeta = metaDataCache[provider].getTable(table)
 
     onDataReceived = (data) =>
         columnData[data.Name] = FieldData.get(data)
@@ -105,7 +107,7 @@ router.get "/data_provider/:provider_id/data/table/:table/count/:count", (req, r
                 return false
         return true
 
-    getDataProvider(providerId).getData table, tableMeta.Fields, count, onDataReceived
+    connection.getData table, tableMeta.Fields, count, onDataReceived
 
     return
 
