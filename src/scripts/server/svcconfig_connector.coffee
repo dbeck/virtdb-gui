@@ -40,12 +40,12 @@ class ServiceConfig
 
         _onMessage: (reply) =>
             @endpoints = (proto_service_config.parse reply, 'virtdb.interface.pb.Endpoint').Endpoints
-            @serviceConfigConnections = endpoint.Connections for endpoint in @endpoints when endpoint.Name is "svc_config"
+            @serviceConfigConnections = endpoint.Connections for endpoint in @endpoints when endpoint.Name is CONST.CONFIG_SERVICE_NAME
             @_subscribeEndpoints() unless @pubsubSocket
             return
 
         _connect: =>
-            @reqrepSocket.connect(CONST.SVC_CONFIG_ADDRESS)
+            @reqrepSocket.connect(CONST.CONFIG_SERVICE_ADDRESS)
 
 
         _requestEndpoints: () =>
