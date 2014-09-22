@@ -33,6 +33,7 @@ app.controller 'DataProviderController', ['$scope', '$http', ($scope, $http) ->
     @currentField = ''
     @limit = 10
     @rowIndexes = [0..@limit-1]
+    @isHeaderColumn = false
 
     @getDataProviders = () ->
         $http.get(@requests.endpoints()).success (data) =>
@@ -57,7 +58,7 @@ app.controller 'DataProviderController', ['$scope', '$http', ($scope, $http) ->
 
     @getMetaData = () =>
         $http.get(@requests.metaDataTable @currentTable).success (data) =>
-            @tableMetaData = data.Tables[0]
+            @tableMetaData = data
             @getData()
         return
 
@@ -75,6 +76,9 @@ app.controller 'DataProviderController', ['$scope', '$http', ($scope, $http) ->
     @selectField = (field) ->
         @currentField = field
         return
+
+    @transposeData = () ->
+        @isHeaderColumn = !@isHeaderColumn
 
     @getDataProviders()
 
