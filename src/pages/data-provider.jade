@@ -10,7 +10,7 @@ div
                 ng-change='dataProvider.onProviderChange()')
                 option(value='') Select provider
     div.row
-        div.col-lg-3
+        div.col-lg-3(ng-controller='DBConfigController as dbConfig')
             h3 Tables
             div.list-group
                 a.list-group-item(

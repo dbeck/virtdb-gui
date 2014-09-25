@@ -1,5 +1,4 @@
-app = angular.module 'virtdb-data-provider', []
-
+app = angular.module 'virtdb'
 app.controller 'DataProviderController', ['$scope', '$http', ($scope, $http) ->
 
     @requests = new Requests("")
@@ -15,7 +14,7 @@ app.controller 'DataProviderController', ['$scope', '$http', ($scope, $http) ->
     @limit = 10
     @rowIndexes = [0..@limit-1]
     @isHeaderColumn = false
-
+    
     @getDataProviders = () ->
         $http.get(@requests.endpoints()).success (data) =>
             services = {}
