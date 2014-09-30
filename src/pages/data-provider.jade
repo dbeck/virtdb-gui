@@ -10,21 +10,25 @@ div
                 ng-change='dataProvider.onProviderChange()')
                 option(value='') Select provider
     div.row
-        div.col-lg-3
+        div.col-lg-3(ng-controller='DBConfigController as dbConfig')
             h3 Tables
             div.list-group
-                a.list-group-item(
-                    ng-repeat='table in dataProvider.tableList',
-                    ng-click='dataProvider.selectTable(table)'
-                ) {{table}}
+                li.list-group-item(ng-repeat='table in dataProvider.tableList')
+                    a(ng-click='dataProvider.selectTable(table)') {{table}}
+                    button(ng-click='dbConfig.addTable(table)') Add
         div.col-lg-6
             h3 Data
             div.data-table
-                table.table.table-bordered
+                button(ng-click='dataProvider.transposeData()') transpose
+                table.table.table-bordered(ng-hide='dataProvider.isHeaderColumn')
                     tr
                         th(ng-repeat='field in dataProvider.tableMetaData.Fields') {{field.Name}}
                     tr(ng-repeat='index in dataProvider.rowIndexes')
                         td(ng-repeat='(field, dataColumn) in dataProvider.tableData') {{dataProvider.tableData[field][index]}}
+                table.table.table-bordered(ng-show='dataProvider.isHeaderColumn')
+                    tr(ng-repeat='(field, dataColumn) in dataProvider.tableData')
+                        th {{field}}
+                        td(ng-repeat='cell in dataColumn track by $index') {{cell}}
         div.col-lg-3
             h3 Meta data
                 h4 Properties

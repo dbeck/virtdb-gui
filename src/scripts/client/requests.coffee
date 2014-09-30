@@ -14,6 +14,8 @@ class Requests
     _dataProviderDataTable: '/api/data_provider/{0}/data/table/{1}/count/{2}'
     _dataProviderDataTableField: '/api/data_provider/{0}/data/table/{1}/field/{2}/count/{3}'
 
+    _dbConfig: 'api/db_config'
+
     endpoints: () =>
         return @_address + @_endpoints
 
@@ -28,6 +30,9 @@ class Requests
 
     dataTableField: (table, field, count) =>
         return @_address + formatString(@_dataProviderDataTableField, @_providerName, table, field, count)
+
+    dbConfig: () =>
+        return @_address + @_dbConfig
 
     formatString = (format, args...) =>
         return format.replace /{(\d+)}/g, (match, number) ->

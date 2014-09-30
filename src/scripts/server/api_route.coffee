@@ -1,6 +1,7 @@
 express = require("express")
 router = express.Router()
 DataProvider = require("./data_provider_connector")
+DBConfig = require("./db_config_connector")
 ServiceConfig = require('./svcconfig_connector')
 log = require 'loglevel'
 log.setLevel 'debug'
@@ -56,6 +57,21 @@ router.get "/data_provider/:provider/data/table/:table/count/:count", (req, res)
     try
         DataProvider.getData provider, SCHEMA, table, count, (data) =>
             res.json data
+    catch ex
+        log.error ex
+        res.status(500).send "Error occured: " + ex
+        return
+
+router.post "/db_config", (req, res) ->
+    log.debug req.body
+    table = req.body.table
+    provider = req.body.provider
+    tableMeta = null
+
+    try
+        DataProvider.getTableMeta provider, SCHEMA, table, (metaData) ->
+            DBConfig.addTable(provider, metaData)
+            return
     catch ex
         log.error ex
         res.status(500).send "Error occured: " + ex
