@@ -17,6 +17,11 @@ app.config ($routeProvider) ->
             controller  : 'EndpointController',
             controllerAs: 'endpoint',
         }
+        .when '/config', {
+            templateUrl : '../pages/configuration.html',
+            controller  : 'ConfigurationController',
+            controllerAs: 'cfg',
+        }
     return
 
 app.controller 'DiagnosticsController', ($scope) ->
@@ -25,7 +30,25 @@ app.controller 'DiagnosticsController', ($scope) ->
 
 app.controller 'EndpointController', ['$scope', '$http', ($scope, $http) ->
     @endpoints = ''
+
     $http.get("/api/endpoints").success (data) =>
         @endpoints = data
     return
+]
+
+app.controller 'ConfigurationController', ['$scope', '$http', ($scope, $http) ->
+
+    @config = {}
+
+    @setConfig = () =>
+        $http.post("/api/set_config", @config)
+
+    @getConfig = () =>
+        $http.get("/api/get_config").success (data) =>
+            @config = data
+
+    @getConfig()
+
+    return
+
 ]

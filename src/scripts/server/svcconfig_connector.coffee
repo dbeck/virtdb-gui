@@ -24,7 +24,7 @@ class ServiceConfig
         constructor: () ->
             @reqrepSocket = zmq.socket('req')
             @reqrepSocket.on "message", @_onMessage
-            @_connect()
+            @connect()
             @_requestEndpoints()
 
         getAddresses: (name) =>
@@ -44,7 +44,7 @@ class ServiceConfig
             @_subscribeEndpoints() unless @pubsubSocket
             return
 
-        _connect: =>
+        connect: =>
             @reqrepSocket.connect(CONST.CONFIG_SERVICE_ADDRESS)
 
 
