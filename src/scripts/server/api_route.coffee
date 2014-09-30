@@ -1,12 +1,13 @@
-express = require("express")
+express = require "express"
 router = express.Router()
-DataProvider = require("./data_provider_connector")
-DBConfig = require("./db_config_connector")
-ServiceConfig = require('./svcconfig_connector')
-CONFIG = require("./config")
-log = require 'loglevel'
-log.setLevel 'debug'
+log = require "loglevel"
 
+DataProvider = require "./data_provider_connector"
+DBConfig = require "./db_config_connector"
+ServiceConfig = require "./svcconfig_connector"
+Config = require "./config"
+
+log.setLevel "debug"
 require('source-map-support').install()
 
 SCHEMA = ""
@@ -81,13 +82,14 @@ router.post "/db_config", (req, res) ->
 router.post "/set_config", (req, res) ->
     log.debug "Set config"
     for key, value of req.body
-        CONFIG.Const[key] = value
-    ServiceConfig.getInstance().connect()
+        Config.Values[key] = value
+    ServiceConfig.reset()
+    ServiceConfig.getInstance()
     return
 
 router.get "/get_config", (req, res) ->
     log.debug "Get config"
-    res.json CONFIG.Const
+    res.json Config.Values
     return
 
 module.exports = router

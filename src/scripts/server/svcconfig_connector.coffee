@@ -1,17 +1,22 @@
-CONST = require("./config").Const
-zmq = require("zmq")
-fs = require("fs")
-protobuf = require("node-protobuf")
-log = require("loglevel")
-require('source-map-support').install()
+zmq = require "zmq"
+fs = require "fs"
+protobuf = require "node-protobuf"
+log = require "loglevel"
+Config = require "./config"
+Const = require "./constants"
 
-log.setLevel 'debug'
-proto_service_config = new protobuf(fs.readFileSync("proto/svc_config.pb.desc"))
+require("source-map-support").install()
+log.setLevel "debug"
+
+serviceConfigProto = new protobuf(fs.readFileSync("proto/svc_config.pb.desc"))
 
 class ServiceConfig
     instance: null
     @getInstance: () ->
         @instance ?= new ServiceConfigConnector
+
+    @reset: () ->
+        @instance = null
 
 
     class ServiceConfigConnector
@@ -22,7 +27,7 @@ class ServiceConfig
         serviceConfigConnections: []
 
         constructor: () ->
-            @reqrepSocket = zmq.socket('req')
+            @reqrepSocket = zmq.socket(Const.ZMQ_REQ)
             @reqrepSocket.on "message", @_onMessage
             @connect()
             @_requestEndpoints()
@@ -30,53 +35,56 @@ class ServiceConfig
         getAddresses: (name) =>
             addresses = {}
             for endpoint in @endpoints when endpoint.Name is name
-                addresses[endpoint.SvcType] = {} unless addresses.hasOwnProperty endpoint.SvcType
+                addresses[endpoint.SvcType] ?= {}
                 for conn in endpoint.Connections
                     addresses[endpoint.SvcType][conn.Type] = conn.Address
             return addresses
 
-        getEndpoints: () ->
+        getEndpoints: () =>
             @endpoints
 
+        connect: =>
+            try
+                @reqrepSocket.connect(Config.Values.CONFIG_SERVICE_ADDRESS)
+            catch ex
+                log.error "Error during connect: #{ex}"
+            log.debug "Connected to the service config!"
+
         _onMessage: (reply) =>
-            @endpoints = (proto_service_config.parse reply, 'virtdb.interface.pb.Endpoint').Endpoints
-            @serviceConfigConnections = endpoint.Connections for endpoint in @endpoints when endpoint.Name is CONST.CONFIG_SERVICE_NAME
+            @endpoints = (serviceConfigProto.parse reply, "virtdb.interface.pb.Endpoint").Endpoints
+            @serviceConfigConnections = endpoint.Connections for endpoint in @endpoints when endpoint.Name is Config.Values.CONFIG_SERVICE_NAME
             @_subscribeEndpoints() unless @pubsubSocket
             return
-
-        connect: =>
-            @reqrepSocket.connect(CONST.CONFIG_SERVICE_ADDRESS)
-
 
         _requestEndpoints: () =>
             endpointMessage =
                 Endpoints: [
-                    Name: "virtdb-gui"
-                    SvcType: 'NONE'
+                    Name: Config.Values.GUI_ENDPOINT_NAME
+                    SvcType: Const.ENDPOINT_TYPE.NONE
                 ]
 
-            @reqrepSocket.send proto_service_config.serialize endpointMessage, "virtdb.interface.pb.Endpoint"
+            @reqrepSocket.send serviceConfigProto.serialize endpointMessage, "virtdb.interface.pb.Endpoint"
             return
 
         _onPublishedMessage: (channelId, message) =>
-            data = (proto_service_config.parse message, 'virtdb.interface.pb.Endpoint')
-            for new_endpoint in data.Endpoints
+            data = (serviceConfigProto.parse message, "virtdb.interface.pb.Endpoint")
+            for newEndpoint in data.Endpoints
                 for endpoint in @endpoints
-                    if endpoint.Name == new_endpoint.Name and endpoint.SvcType == new_endpoint.SvcType
+                    if endpoint.Name == newEndpoint.Name and endpoint.SvcType == newEndpoint.SvcType
                         @endpoints.splice @endpoints.indexOf(endpoint), 1
                         break
-                @endpoints = @endpoints.concat new_endpoint
+                @endpoints = @endpoints.concat newEndpoint
 
         _subscribeEndpoints: () =>
-            @pubsubSocket = zmq.socket('sub')
+            @pubsubSocket = zmq.socket(Const.ZMQ_SUB)
             @pubsubSocket.on "message", @_onPublishedMessage
-            for connection in @serviceConfigConnections when connection.Type is 'PUB_SUB'
+            for connection in @serviceConfigConnections when connection.Type is Const.SOCKET_TYPE.PUB_SUB
                 for address in connection.Address
                     try
                         @pubsubSocket.connect address
                     catch ex
                         continue
-                    @pubsubSocket.subscribe ''
+                    @pubsubSocket.subscribe Const.EVERY_CHANNEL
                     break
 
 module.exports = ServiceConfig
