@@ -47,12 +47,12 @@ class StringFieldData extends FieldData
 
     push: (value) =>
         @StringValue.push value
-        @IsNull.push (value == "")
+        @IsNull.push (value == null)
 
     pushArray: (data) =>
         @StringValue = data.StringValue
         for item, index in data.IsNull
-            @StringValue[index] = "" unless item?
+            @StringValue[index] = null unless item?
 
     getArray: () =>
         @StringValue
@@ -77,8 +77,16 @@ class Int32FieldData extends FieldData
         @Int32Value = new Array()
 
     push: (value) =>
-        @Int32Value.push 0
-        super
+        @Int32Value.push value
+        @IsNull.push (value == null)
+
+    pushArray: (data) =>
+        @Int32Value = data.Int32Value
+        for item, index in data.IsNull
+            @Int32Value[index] = null unless item?
+
+    getArray: () =>
+        @Int32Value
 
     length: =>
         @Int32Value.length
@@ -96,8 +104,16 @@ class Int64FieldData extends FieldData
         @Int64Value = new Array()
 
     push: (value) =>
-        @Int64Value.push 0
-        super
+        @Int64Value.push value
+        @IsNull.push (value == null)
+
+    pushArray: (data) =>
+        @Int64Value = data.Int64Value
+        for item, index in data.IsNull
+            @Int64Value[index] = null unless item?
+
+    getArray: () =>
+        @Int64Value
 
     length: =>
         @Int64Value.length
@@ -115,8 +131,16 @@ class UInt32FieldData extends FieldData
         @UInt32Value = new Array()
 
     push: (value) =>
-        @UInt32Value.push 0
-        super
+        @UInt32Value.push value
+        @IsNull.push (value == null)
+
+    pushArray: (data) =>
+        @UInt32Value = data.UInt32Value
+        for item, index in data.IsNull
+            @UInt32Value[index] = null unless item?
+
+    getArray: () =>
+        @UInt32Value
 
     length: =>
         @UInt32Value.length
@@ -134,8 +158,16 @@ class UInt64FieldData extends FieldData
         @UInt64Value = new Array()
 
     push: (value) =>
-        @UInt64Value.push 0
-        super
+        @UInt64Value.push value
+        @IsNull.push (value == null)
+
+    pushArray: (data) =>
+        @UInt64Value = data.UInt64Value
+        for item, index in data.IsNull
+            @UInt64Value[index] = null unless item?
+
+    getArray: () =>
+        @UInt64Value
 
     length: =>
         @UInt64Value.length
@@ -153,8 +185,16 @@ class DoubleFieldData extends FieldData
         @DoubleValue = new Array()
 
     push: (value) =>
-        @DoubleValue.push 0
-        super
+        @DoubleValue.push value
+        @IsNull.push (value == null)
+
+    pushArray: (data) =>
+        @DoubleValue = data.DoubleValue
+        for item, index in data.IsNull
+            @DoubleValue[index] = null unless item?
+
+    getArray: () =>
+        @DoubleValue
 
     length: =>
         @DoubleValue.length
@@ -172,8 +212,16 @@ class FloatFieldData extends FieldData
         @FloatValue = new Array()
 
     push: (value) =>
-        @FloatValue.push 0
-        super
+        @FloatValue.push value
+        @IsNull.push (value == null)
+
+    pushArray: (data) =>
+        @FloatValue = data.FloatValue
+        for item, index in data.IsNull
+            @FloatValue[index] = null unless item?
+
+    getArray: () =>
+        @FloatValue
 
     length: =>
         @FloatValue.length
@@ -191,8 +239,16 @@ class BoolFieldData extends FieldData
         @BoolValue = new Array()
 
     push: (value) =>
-        @BoolValue.push false
-        super
+        @BoolValue.push value
+        @IsNull.push (value == null)
+
+    pushArray: (data) =>
+        @BoolValue = data.BoolValue
+        for item, index in data.IsNull
+            @BoolValue[index] = null unless item?
+
+    getArray: () =>
+        @BoolValue
 
     length: =>
         @BoolValue.length
@@ -210,8 +266,16 @@ class BytesFieldData extends FieldData
         @BytesValue = new Array()
 
     push: (value) =>
-        @BytesValue.push 0
-        super
+        @BytesValue.push value
+        @IsNull.push (value == null)
+
+    pushArray: (data) =>
+        @BytesValue = data.BytesValue
+        for item, index in data.IsNull
+            @BytesValue[index] = null unless item?
+
+    getArray: () =>
+        @BytesValue
 
     length: =>
         @BytesValue.length

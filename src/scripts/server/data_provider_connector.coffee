@@ -2,6 +2,7 @@ zmq = require "zmq"
 fs = require "fs"
 protobuf = require "node-protobuf"
 log = require "loglevel"
+lz4 = require "lz4"
 ServiceConfig = require "./svcconfig_connector"
 FieldData = require "./fieldData"
 Const = require "./constants"
@@ -12,6 +13,7 @@ require("source-map-support").install()
 
 DataProto = new protobuf(fs.readFileSync("proto/data.pb.desc"))
 MetaDataProto = new protobuf(fs.readFileSync("proto/meta_data.pb.desc"))
+CommonProto = new protobuf(fs.readFileSync("proto/common.pb.desc"))
 
 class DataProvider
 
@@ -102,7 +104,7 @@ class DataProviderConnection
         @_metaDataSocket.connect(@metaDataAddress)
         @_metaDataSocket.on "message", (data) =>
             metaData = MetaDataProto.parse data, "virtdb.interface.pb.MetaData"
-            log.debug "Got metadata: ", metaData
+            log.trace "Got metadata: ", metaData
             onMetaData metaData
             return
 
@@ -127,9 +129,15 @@ class DataProviderConnection
         @_columnSocket.connect(@columnAddress)
         @_columnSocket.subscribe @queryId.toString()
         @_columnSocket.on "message", (channel, data) =>
-            log.debug "Got column on channel: ", channel.toString()
             column = DataProto.parse data, "virtdb.interface.pb.Column"
-            log.debug "Data: ", column
+            log.debug "Got column on channel: channel=" + channel.toString() + " column=#{column.Name}"
+            if column.CompType is "LZ4_COMPRESSION"
+                uncompressedData = new Buffer(column.UncompressedSize)
+                size = lz4.decodeBlock(column.CompressedData, uncompressedData)
+                uncompressedData = uncompressedData.slice(0, size)
+                column.Data = CommonProto.parse uncompressedData, "virtdb.interface.pb.ValueType"
+            log.trace "Column: ", column
+
             @_columnReceiver.add column
             return
 
@@ -137,7 +145,7 @@ class DataProviderConnection
         @_querySocket.connect(@queryAddress)
 
         try
-            log.debug "Sending Query message: " + JSON.stringify query
+            log.debug "Sending Query message: id=#{@queryId} table=#{table}"
             @_querySocket.send DataProto.serialize query, "virtdb.interface.pb.Query"
         catch e
             log.error e
