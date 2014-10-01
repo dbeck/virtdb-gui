@@ -1,35 +1,33 @@
-CONST = require("./config").Const
-zmq = require("zmq")
-fs = require("fs")
-protobuf = require("node-protobuf")
-proto_metadata = new protobuf(fs.readFileSync("proto/meta_data.pb.desc"))
-proto_data = new protobuf(fs.readFileSync("proto/data.pb.desc"))
-log = require("loglevel")
-require('source-map-support').install()
-FieldData = require './fieldData'
-log.setLevel 'debug'
-ServiceConfig = require('./svcconfig_connector')
+zmq = require "zmq"
+fs = require "fs"
+protobuf = require "node-protobuf"
+log = require "loglevel"
+lz4 = require "lz4"
+ServiceConfig = require "./svcconfig_connector"
+FieldData = require "./fieldData"
+Const = require "./constants"
+Config = require "./config"
+
+log.setLevel "debug"
+require("source-map-support").install()
+
+DataProto = new protobuf(fs.readFileSync("proto/data.pb.desc"))
+MetaDataProto = new protobuf(fs.readFileSync("proto/meta_data.pb.desc"))
+CommonProto = new protobuf(fs.readFileSync("proto/common.pb.desc"))
 
 class DataProvider
 
     @_tableNamesCache = {}
     @_tableMetaCache = []
 
-    #TODO This function needs to be be deleted ASAP
-    @selectSchema: (provider) =>
-        if provider is "csv-provider"
-            return "data"
-        if provider is "sap-provider"
-            return ""
-
     @checkTableNamesCache: (provider, schema) =>
         if not @_tableNamesCache[provider]?
-            log.debug "Cache for the provider: #{provider} is not existing yet."
+            log.debug "Table name cache for the provider: #{provider} is not existing yet."
             @_tableNamesCache[provider] = []
 
     @checkTableMetaCache: (provider) =>
         if not @_tableMetaCache[provider]?
-            log.debug "Cache for the provider: #{provider} is not existing yet."
+            log.debug "Table meta cache for the provider: #{provider} is not existing yet."
             @_tableMetaCache[provider] = []
 
 
@@ -41,7 +39,7 @@ class DataProvider
             log.debug "Getting table meta from provider"
             connection = DataProviderConnection.getConnection(provider)
             #TODO We should use the schema given as parameter
-            connection.getMetadata @selectSchema(provider), table, true, (metaData) =>
+            connection.getMetadata Config.Values.SCHEMA, table, true, (metaData) =>
                 tableMeta = metaData.Tables[0]
                 @_tableMetaCache[provider][table] = tableMeta
                 onReady @_tableMetaCache[provider][table]
@@ -58,7 +56,7 @@ class DataProvider
             log.debug "Getting table names from provider"
             connection = DataProviderConnection.getConnection(provider)
             #TODO We should use the schema given as parameter
-            connection.getMetadata @selectSchema(provider), ".*", false, (metaData) =>
+            connection.getMetadata Config.Values.SCHEMA, Config.Values.TABLE_REGEXP, false, (metaData) =>
                 @_tableNamesCache[provider] = (table.Name for table in metaData.Tables)
                 onReady @_tableNamesCache[provider]
         else
@@ -68,31 +66,30 @@ class DataProvider
 
     @getData: (provider, schema, table, count, onData) =>
         @checkTableMetaCache(provider)
-        
+
         #TODO We should use the schema given as parameter
-        @getTableMeta provider, @selectSchema(provider), table, (tableMeta) =>
+        @getTableMeta provider, Config.Values.SCHEMA, table, (tableMeta) =>
             connection = DataProviderConnection.getConnection(provider)
             connection.getData schema, table, tableMeta.Fields, count, (data) =>
                 onData data
 
 class DataProviderConnection
 
-    @_configService = ServiceConfig.getInstance()
-
     @getConnection: (provider) ->
-        addresses = @_configService.getAddresses provider
+        addresses = ServiceConfig.getInstance().getAddresses provider
         try
-            metaDataAddress = addresses["META_DATA"]["REQ_REP"][0]
-            columnAddress = addresses["COLUMN"]["PUB_SUB"][0]
-            queryAddress = addresses["QUERY"]["PUSH_PULL"][0]
+            metaDataAddress = addresses[Const.ENDPOINT_TYPE.META_DATA][Const.SOCKET_TYPE.REQ_REP][0]
+            columnAddress = addresses[Const.ENDPOINT_TYPE.COLUMN][Const.SOCKET_TYPE.PUB_SUB][0]
+            queryAddress = addresses[Const.ENDPOINT_TYPE.QUERY][Const.SOCKET_TYPE.PUSH_PULL][0]
         catch ex
-            log.error "Couldn't get provider addresses!"
+            log.error "Couldn't find addresses for provider: #{provider}!"
             throw ex
         return new DataProviderConnection(metaDataAddress, columnAddress, queryAddress)
 
-    _reqRepSocket: null
-    _pushPullSocket: null
-    _pubSubSocket: null
+    _metaDataSocket: null
+    _querySocket: null
+    _columnSocket: null
+
     _columnReceiver: null
 
     constructor: (@metaDataAddress, @columnAddress, @queryAddress) ->
@@ -103,17 +100,17 @@ class DataProviderConnection
             Schema: schema
             WithFields: withFields
 
-        @_reqRepSocket = zmq.socket('req')
-        @_reqRepSocket.connect(@metaDataAddress)
-        @_reqRepSocket.on "message", (data) =>
-            metaData = proto_metadata.parse data, 'virtdb.interface.pb.MetaData'
-            log.debug 'Got metadata: ', metaData
+        @_metaDataSocket = zmq.socket(Const.ZMQ_REQ)
+        @_metaDataSocket.connect(@metaDataAddress)
+        @_metaDataSocket.on "message", (data) =>
+            metaData = MetaDataProto.parse data, "virtdb.interface.pb.MetaData"
+            log.trace "Got metadata: ", metaData
             onMetaData metaData
             return
 
         try
             log.debug "Sending MetaDataRequest message: " + JSON.stringify metaDataRequest
-            @_reqRepSocket.send proto_metadata.serialize metaDataRequest, "virtdb.interface.pb.MetaDataRequest"
+            @_metaDataSocket.send MetaDataProto.serialize metaDataRequest, "virtdb.interface.pb.MetaDataRequest"
         catch e
             log.error e
 
@@ -128,32 +125,38 @@ class DataProviderConnection
             Limit: count
 
         @_columnReceiver = new ColumnReceiver(onColumn, fields)
-        @_pubSubSocket = zmq.socket('sub')
-        @_pubSubSocket.connect(@columnAddress)
-        @_pubSubSocket.subscribe @queryId.toString()
-        @_pubSubSocket.on "message", (channel, data) =>
-            log.debug 'Got column on channel: ', channel.toString()
-            column = proto_data.parse data, 'virtdb.interface.pb.Column'
-            log.debug 'Data: ', column
+        @_columnSocket = zmq.socket(Const.ZMQ_SUB)
+        @_columnSocket.connect(@columnAddress)
+        @_columnSocket.subscribe @queryId.toString()
+        @_columnSocket.on "message", (channel, data) =>
+            column = DataProto.parse data, "virtdb.interface.pb.Column"
+            log.debug "Got column on channel: channel=" + channel.toString() + " column=#{column.Name}"
+            if column.CompType is "LZ4_COMPRESSION"
+                uncompressedData = new Buffer(column.UncompressedSize)
+                size = lz4.decodeBlock(column.CompressedData, uncompressedData)
+                uncompressedData = uncompressedData.slice(0, size)
+                column.Data = CommonProto.parse uncompressedData, "virtdb.interface.pb.ValueType"
+            log.trace "Column: ", column
+
             @_columnReceiver.add column
             return
 
-        @_pushPullSocket = zmq.socket('push')
-        @_pushPullSocket.connect(@queryAddress)
+        @_querySocket = zmq.socket(Const.ZMQ_PUSH)
+        @_querySocket.connect(@queryAddress)
 
         try
-            log.debug "Sending Query message: " + JSON.stringify query
-            @_pushPullSocket.send proto_data.serialize query, "virtdb.interface.pb.Query"
+            log.debug "Sending Query message: id=#{@queryId} table=#{table}"
+            @_querySocket.send DataProto.serialize query, "virtdb.interface.pb.Query"
         catch e
             log.error e
 
     close: () =>
-        if @_reqRepSocket?
-            @_reqRepSocket.close()
-        if @_pubSubSocket?
-            @_pubSubSocket.close()
-        if @_pushPullSocket?
-            @_pushPullSocket.close()
+        if @_metaDataSocket?
+            @_metaDataSocket.close()
+        if @_columnSocket?
+            @_columnSocket.close()
+        if @_querySocket?
+            @_querySocket.close()
 
 class ColumnReceiver
     _columns: null

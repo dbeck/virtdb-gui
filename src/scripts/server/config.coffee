@@ -1,6 +1,10 @@
 class Config
-    @Const:
-        CONFIG_SERVICE_ADDRESS: 'tcp://config-service:65001'
-        CONFIG_SERVICE_NAME: 'config-service'
+    @Values:
+        GUI_ENDPOINT_NAME: "virtdb-gui"
+        CONFIG_SERVICE_ADDRESS: "tcp://192.168.221.11:12345"
+        CONFIG_SERVICE_NAME: "config-service"
+        DB_CONFIG_SERVICE: "postgres-config"
+        SCHEMA: ""
+        TABLE_REGEXP: ".*"
 
 module.exports = Config

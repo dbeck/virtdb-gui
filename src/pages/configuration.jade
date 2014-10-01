@@ -1,0 +1,8 @@
+div.container
+    div.row(ng-repeat="(key, value) in cfg.config")
+        div.col-md-6
+            {{key}}:
+        div.col.md-6
+            input(type="text" ng-model="cfg.config[key]")
+    div.container
+        button(ng-click="cfg.setConfig()") Save

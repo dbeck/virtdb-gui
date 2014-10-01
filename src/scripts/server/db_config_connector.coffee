@@ -1,20 +1,23 @@
-CONST = require("./config").Const
-zmq = require("zmq")
-fs = require("fs")
-protobuf = require("node-protobuf")
-protoMetaData = new protobuf(fs.readFileSync("proto/meta_data.pb.desc"))
-protoDBConfig = new protobuf(fs.readFileSync("proto/db_config.pb.desc"))
-log = require("loglevel")
-require('source-map-support').install()
-FieldData = require './fieldData'
-log.setLevel 'debug'
-ServiceConfig = require('./svcconfig_connector')
+zmq = require "zmq"
+fs = require "fs"
+protobuf = require "node-protobuf"
+log = require "loglevel"
+
+Config = require "./config"
+Constants = require "./constants"
+FieldData = require "./fieldData"
+ServiceConfig = require "./svcconfig_connector"
+
+require("source-map-support").install()
+log.setLevel "debug"
+
+dbConfigProto = new protobuf(fs.readFileSync("proto/db_config.pb.desc"))
 
 class DBConfig
 
     @addTable: (provider, tableMeta) =>
         log.debug "Adding table: #{tableMeta.Name} of provider: #{provider} to the db config"
-        connection = DBConfigConnection.getConnection(CONST.DB_CONFIG_SERVICE)
+        connection = DBConfigConnection.getConnection(Config.Values.DB_CONFIG_SERVICE)
         connection.sendServerConfig provider, tableMeta
         return
 
@@ -28,9 +31,9 @@ class DBConfigConnection
     @getConnection: (service) ->
         addresses = @_configService.getAddresses service
         try
-            dbConfigAddress = addresses["DB_CONFIG"]["PUSH_PULL"][0]
+            dbConfigAddress = addresses[Const.ENDPOINT_TYPE.DB_CONFIG][Const.SOCKET_TYPE.PUSH_PULL][0]
         catch ex
-            log.error "Couldn't get service addresses!"
+            log.error "Couldn't find addresses for db config: #{service}!"
             throw ex
         return new DBConfigConnection(dbConfigAddress)
 
@@ -40,12 +43,12 @@ class DBConfigConnection
 
     sendServerConfig: (provider, tableMeta) =>
 
-        @_pushPullSocket = zmq.socket('push')
+        @_pushPullSocket = zmq.socket(Const.ZMQ_PUSH)
         @_pushPullSocket.connect(@dbConfigAddress)
 
-        tableMeta.Schema?= ""
+        tableMeta.Schema ?= ""
         serverConfigMessage =
-            Type: "42"
+            Type: Const.SERVER_CONFIG_TYPE
             Name: provider
             Tables: [tableMeta]
-        @_pushPullSocket.send protoDBConfig.serialize serverConfigMessage, "virtdb.interface.pb.ServerConfig"
+        @_pushPullSocket.send dbConfigProto.serialize serverConfigMessage, "virtdb.interface.pb.ServerConfig"
