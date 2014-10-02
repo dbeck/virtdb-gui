@@ -4,7 +4,7 @@ protobuf = require "node-protobuf"
 log = require "loglevel"
 
 Config = require "./config"
-Constants = require "./constants"
+Const = require "./constants"
 FieldData = require "./fieldData"
 ServiceConfig = require "./svcconfig_connector"
 
