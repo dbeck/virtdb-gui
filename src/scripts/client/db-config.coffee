@@ -1,20 +1,32 @@
 app = angular.module 'virtdb'
-app.controller 'DBConfigController', ['$scope', '$http', ($scope, $http) ->
+app.controller 'DBConfigController',
+    class DBConfigController
+        selectedTables: null
+        requests: null
+        currentProvider: null
 
-    @selectedTables = []
-    @requests = new Requests('')
+        constructor: (@$rootScope, @$scope, @$http) ->
+            @selectedTables = []
+            @requests = new Requests('')
+            @$rootScope.$watch "currentProvider", () =>
+                @currentProvider = @$rootScope.currentProvider
+            return
+
+        selectTable: (table) =>
+            if table not in @selectedTables
+                @selectedTables.push table
+            else
+                @selectedTables.splice @selectedTables.indexOf table, 1
 
 
-    @addTable = (table) =>
-        # @selectedTables.push(table)
-        data =
-            "table": table
-            "schema": "data"
-            "provider": "sap_data_provider"
+        addTables: () =>
+            for table in @selectedTables
+                data =
+                    "table": table
+                    "schema": "data"
+                    "provider": "sap_data_provider"
+                    # "provider": @$rootScope.currentProvider
 
-        $http.post(@requests.dbConfig(), data).success (data) =>
-             console.log data
-        return
-
-    return
-]
+                @$http.post(@requests.dbConfig(), data).success (data) =>
+                     console.log data
+            return

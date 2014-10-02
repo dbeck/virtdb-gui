@@ -1,66 +1,81 @@
 app = angular.module 'virtdb'
-app.controller 'DataProviderController', ['$scope', '$http', ($scope, $http) ->
+app.controller 'DataProviderController',
+    class DataProviderController
 
-    @requests = new Requests("")
-    @currentProvider = ''
-    @providers = []
+        requests: null
+        currentProvider: null
+        providers: null
 
-    @tableMetaData = {}
-    @tableData = {}
-    @tableList = []
-    @fieldList = []
-    @currentTable = ''
-    @currentField = ''
-    @limit = 10
-    @rowIndexes = [0..@limit-1]
-    @isHeaderColumn = false
-    
-    @getDataProviders = () ->
-        $http.get(@requests.endpoints()).success (data) =>
-            services = {}
-            for endpoint in data
-                services[endpoint.Name] ?= []
-                services[endpoint.Name].push(endpoint.SvcType)
-            for endpointName, serviceTypes of services
-                if "META_DATA" in serviceTypes and "QUERY" in serviceTypes and "COLUMN" in serviceTypes
-                    @providers.push endpointName
-        return
+        tableMetaData: null
+        tableData: null
+        tableList: null
+        fieldList: null
+        currentTable: null
+        currentField: null
+        limit: null
+        rowIndexes: null
+        isHeaderColumn: null
 
-    @onProviderChange = () =>
-        @requests.setDataProvider @currentProvider
-        if @currentProvider
-            @getTableList()
+        constructor: (@$rootScope, @$scope, @$http) ->
+            @requests = new Requests("")
+            @currentProvider = ''
+            @providers = []
 
-    @getTableList = () =>
-        $http.get(@requests.metaDataTableNames()).success (data) =>
-            @tableList = data
-        return
+            @tableMetaData = {}
+            @tableData = {}
+            @tableList = []
+            @fieldList = []
+            @currentTable = ''
+            @currentField = ''
+            @limit = 10
+            @rowIndexes = [0..@limit-1]
+            @isHeaderColumn = false
+            @$rootScope.currentProvider = ""
+            @getDataProviders()
+            return
 
-    @getMetaData = () =>
-        $http.get(@requests.metaDataTable @currentTable).success (data) =>
-            @tableMetaData = data
-            @getData()
-        return
+        getDataProviders: () =>
+            @$http.get(@requests.endpoints()).success (data) =>
+                services = {}
+                for endpoint in data
+                    services[endpoint.Name] ?= []
+                    services[endpoint.Name].push(endpoint.SvcType)
+                for endpointName, serviceTypes of services
+                    if "META_DATA" in serviceTypes and "QUERY" in serviceTypes and "COLUMN" in serviceTypes
+                        @providers.push endpointName
+            return
 
-    @getData = () =>
-        @tableData = {}
-        $http.get(@requests.dataTable @currentTable, @limit).success (data) =>
-            @tableData = data
-        return
+        onProviderChange: () =>
+            @$rootScope.currentProvider = @currentProvider 
+            @requests.setDataProvider @currentProvider
+            if @currentProvider
+                @getTableList()
 
-    @selectTable = (table) ->
-        @currentTable = table
-        @getMetaData()
-        return
+        getTableList: () =>
+            @$http.get(@requests.metaDataTableNames()).success (data) =>
+                @tableList = data
+            return
 
-    @selectField = (field) ->
-        @currentField = field
-        return
+        getMetaData: () =>
+            @$http.get(@requests.metaDataTable @currentTable).success (data) =>
+                @tableMetaData = data
+                @getData()
+            return
 
-    @transposeData = () ->
-        @isHeaderColumn = !@isHeaderColumn
+        getData: () =>
+            @tableData = {}
+            @$http.get(@requests.dataTable @currentTable, @limit).success (data) =>
+                @tableData = data
+            return
 
-    @getDataProviders()
+        selectTable: (table) =>
+            @currentTable = table
+            @getMetaData()
+            return
 
-    return
-]
+        selectField: (field) =>
+            @currentField = field
+            return
+
+        transposeData: () =>
+            @isHeaderColumn = !@isHeaderColumn
