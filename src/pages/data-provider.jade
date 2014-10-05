@@ -14,11 +14,10 @@ div
             h3 Tables
             input.form-control(type="text" placeholder="Search")
             table.table
-                tr(ng-repeat="table in dataProvider.tableList")
+                tr(ng-repeat="table in dataProvider.tableList" ng-class="{active: dataProvider.currentTable == table}")
                     td
                         input(type="checkbox" ng-model="check" ng-change="dbConfig.selectTable(table)")
-                    td
-                        a(ng-click="dataProvider.selectTable(table)") {{table}}
+                    td(ng-click="dataProvider.selectTable(table)") {{table}}
             button(ng-click='dbConfig.addTables()') Add
         div.col-md-6
             h3 Data
@@ -26,11 +25,20 @@ div
                 button(ng-click='dataProvider.transposeData()') transpose
                 table.table.table-bordered(ng-hide='dataProvider.isHeaderColumn')
                     tr
-                        th(ng-repeat='field in dataProvider.tableMetaData.Fields') {{field.Name}}
+                        th(
+                            ng-repeat='(field, dataColumn) in dataProvider.tableData'
+                            ng-click="dataProvider.selectField(field)"
+                            ng-class="{active: dataProvider.currentField === field}") {{field}}
                     tr(ng-repeat='index in dataProvider.rowIndexes')
-                        td(ng-repeat='(field, dataColumn) in dataProvider.tableData') {{dataProvider.tableData[field][index]}}
+                        td(
+                            ng-repeat='(field, dataColumn) in dataProvider.tableData'
+                            ng-click="dataProvider.selectField(field)"
+                            ng-class="{active: dataProvider.currentField === field}") {{dataColumn[index]}}
                 table.table.table-bordered(ng-show='dataProvider.isHeaderColumn')
-                    tr(ng-repeat='(field, dataColumn) in dataProvider.tableData')
+                    tr(
+                        ng-repeat='(field, dataColumn) in dataProvider.tableData'
+                        ng-click="dataProvider.selectField(field)"
+                        ng-class="{active: dataProvider.currentField == field}")
                         th {{field}}
                         td(ng-repeat='cell in dataColumn track by $index') {{cell}}
         div.col-md-3
