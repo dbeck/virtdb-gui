@@ -59,6 +59,7 @@ app.controller 'DataProviderController',
         getMetaData: () =>
             @$http.get(@requests.metaDataTable @currentTable).success (data) =>
                 @tableMetaData = data
+                @$scope.currentMeta = data
                 @getData()
             return
 
@@ -75,6 +76,7 @@ app.controller 'DataProviderController',
 
         selectField: (field) =>
             @currentField = field
+            @$scope.currentMeta = fieldMeta for fieldMeta in @tableMetaData.Fields when fieldMeta.Name is field
             return
 
         transposeData: () =>

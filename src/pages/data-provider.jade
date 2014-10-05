@@ -35,9 +35,9 @@ div
                         td(ng-repeat='cell in dataColumn track by $index') {{cell}}
         div.col-md-3
             h3 Meta data
-                h4 Properties
-                div.container(ng-repeat='(key, value) in dataProvider.currentTable.Properties')
-                    span {{key}}:{{value}}
                 h4 Comments
-                div.container(ng-repeat='comment in dataProvider.currentTable.Comments')
+                div.container(ng-repeat='comment in currentMeta.Comments')
                     div {{comment.Text}}
+                h4 Properties
+                div.container(ng-repeat='(key, value) in currentMeta.Properties')
+                    span {{key}}:{{value}}
