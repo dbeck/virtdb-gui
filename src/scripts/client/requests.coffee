@@ -9,7 +9,8 @@ class Requests
 
     _endpoints: '/api/endpoints'
 
-    _dataProviderMetaDataTableNames: '/api/data_provider/{0}/meta_data/table_names'
+    _dataProviderMetaDataTableNames: '/api/data_provider/{0}/meta_data/table_names/from/{1}/to/{2}'
+    _dataProviderMetaDataTableNamesSearch: '/api/data_provider/{0}/meta_data/table_names/search/{1}'
     _dataProviderMetaDataTable: '/api/data_provider/{0}/meta_data/table/{1}'
     _dataProviderDataTable: '/api/data_provider/{0}/data/table/{1}/count/{2}'
     _dataProviderDataTableField: '/api/data_provider/{0}/data/table/{1}/field/{2}/count/{3}'
@@ -19,8 +20,11 @@ class Requests
     endpoints: () =>
         return @_address + @_endpoints
 
-    metaDataTableNames: () =>
-        return @_address + formatString(@_dataProviderMetaDataTableNames, @_providerName)
+    metaDataTableNames: (from, to) =>
+        return @_address + formatString(@_dataProviderMetaDataTableNames, @_providerName, from, to)
+
+    metaDataTableNamesSearch: (search) =>
+        return @_address + formatString(@_dataProviderMetaDataTableNamesSearch, @_providerName, search)
 
     metaDataTable: (table) =>
         return @_address + formatString(@_dataProviderMetaDataTable, @_providerName, table)

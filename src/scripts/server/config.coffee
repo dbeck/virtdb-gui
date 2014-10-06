@@ -5,6 +5,5 @@ class Config
         CONFIG_SERVICE_NAME: "config-service"
         DB_CONFIG_SERVICE: "postgres-config"
         SCHEMA: ""
-        TABLE_REGEXP: ".*"
 
 module.exports = Config

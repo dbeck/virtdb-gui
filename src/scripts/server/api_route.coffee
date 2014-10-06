@@ -39,12 +39,27 @@ router.get "/data_provider/:provider/meta_data/table/:table", (req, res) ->
         return
 
 
-router.get "/data_provider/:provider/meta_data/table_names", (req, res) ->
+router.get "/data_provider/:provider/meta_data/table_names/from/:from/to/:to", (req, res) ->
     provider = req.params.provider
+    from = Number(req.params.from)
+    to = Number(req.params.to)
 
     try
-        DataProvider.getTableNames provider, SCHEMA, (metaData) ->
-            res.json metaData
+        DataProvider.getTableNames provider, SCHEMA, from, to, (tableNames) ->
+            res.json tableNames
+            return
+    catch ex
+        log.error ex
+        res.status(500).send "Error occured: " + ex
+        return
+
+router.get "/data_provider/:provider/meta_data/table_names/search/:search", (req, res) ->
+    provider = req.params.provider
+    search = req.params.search
+
+    try
+        DataProvider.searchTableNames provider, SCHEMA, search, (tableNames) ->
+            res.json tableNames
             return
     catch ex
         log.error ex

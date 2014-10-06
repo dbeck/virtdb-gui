@@ -48,7 +48,7 @@ class DataProvider
             onReady @_tableMetaCache[provider][table]
 
 
-    @getTableNames: (provider, schema, onReady) =>
+    @getTableNames: (provider, schema, from, to, onReady) =>
         @checkTableNamesCache(provider)
 
         if @_tableNamesCache[provider].length is 0
@@ -56,12 +56,32 @@ class DataProvider
             log.debug "Getting table names from provider"
             connection = DataProviderConnection.getConnection(provider)
             #TODO We should use the schema given as parameter
-            connection.getMetadata Config.Values.SCHEMA, Config.Values.TABLE_REGEXP, false, (metaData) =>
+            connection.getMetadata Config.Values.SCHEMA, ".*", false, (metaData) =>
                 @_tableNamesCache[provider] = (table.Name for table in metaData.Tables)
-                onReady @_tableNamesCache[provider]
+                realTo = Math.min(to, @_tableNamesCache[provider].length)
+                onReady @_tableNamesCache[provider].slice from, realTo
         else
             log.debug "Getting table names from cache"
-            onReady @_tableNamesCache[provider]
+            realTo = Math.min(to, @_tableNamesCache[provider].length)
+            onReady @_tableNamesCache[provider].slice from, realTo
+
+    @searchTableNames: (provider, schema, search, onReady) =>
+        @checkTableNamesCache(provider)
+
+        if @_tableNamesCache[provider].length is 0
+            log.debug "Cache for the current provider is empty."
+            log.debug "Getting table names from provider"
+            connection = DataProviderConnection.getConnection(provider)
+            #TODO We should use the schema given as parameter
+            connection.getMetadata Config.Values.SCHEMA, ".*", false, (metaData) =>
+                @_tableNamesCache[provider] = (table.Name for table in metaData.Tables)
+                results = (table.Name for table in metaData.Tables when table.Name.indexOf(search) isnt -1)
+                onReady results
+        else
+            log.debug "Getting table names from cache"
+            onReady (table for table in @_tableNamesCache[provider] when table.indexOf(search) isnt -1)
+
+
 
 
     @getData: (provider, schema, table, count, onData) =>
