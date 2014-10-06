@@ -12,6 +12,7 @@ var NOT_LIVERELOAD_PORT = 3002;
 
 
 var lr;
+
 gulp.task('start-livereload-server', function() {
   lr = require('tiny-lr')();
   lr.listen(LIVERELOAD_PORT);
@@ -24,6 +25,14 @@ function notifyLivereload(event) {
       files: [fileName]
     }
   });
+}
+
+function startExpress() {
+    server.run({
+        file: 'app.js',
+        env: 'development',
+        port: NOT_LIVERELOAD_PORT
+    });
 }
 
 gulp.task('compile-stylus', function() {
@@ -61,20 +70,11 @@ gulp.task('compile-server-coffee', function() {
         .pipe(coffee({bare: true}).on('error', console.error))
         .pipe(sourcemaps.write('.'))
         .pipe(gulp.dest(destDir))
-    server.run();
 })
 
-gulp.task('start-dev-server', [
-    'prepare-files',
-    'start-livereload-server'
-    ],
-    function () {
-        server.run({
-            file: 'app.js',
-            env: 'development',
-            port: NOT_LIVERELOAD_PORT
-        });
-})
+gulp.task('start-dev-server', ['prepare-files','start-livereload-server'], startExpress)
+
+gulp.task('restart-express', ['compile-server-coffee'], startExpress)
 
 gulp.task('prepare-files', [
     'collect-libs',
@@ -107,7 +107,7 @@ gulp.task('watch', function()
     gulp.watch(['src/pages/index.jade'], ['copy-index-to-static']);
 
     //Server side watch
-    gulp.watch(['src/scripts/server/**/*.coffee'], ['compile-server-coffee']);
+    gulp.watch(['src/scripts/server/**/*.coffee'], ['restart-express']);
 
     //Third-party watch
     gulp.watch(['bower.json'], ['collect-libs']);
