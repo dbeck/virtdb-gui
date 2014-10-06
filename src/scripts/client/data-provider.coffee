@@ -2,6 +2,7 @@ app = angular.module 'virtdb'
 app.controller 'DataProviderController',
     class DataProviderController
 
+
         requests: null
         currentProvider: null
         providers: null
@@ -15,6 +16,11 @@ app.controller 'DataProviderController',
         limit: null
         rowIndexes: null
         isHeaderColumn: null
+
+        currentTablePosition: null
+        isMoreTable: null
+        tableCount = 40
+        currentSearchPattern: null
 
         constructor: (@$rootScope, @$scope, @$http) ->
             @requests = new Requests("")
@@ -30,6 +36,10 @@ app.controller 'DataProviderController',
             @limit = 10
             @rowIndexes = [0..@limit-1]
             @isHeaderColumn = false
+            @currentTablePosition = 0
+            @isMoreTable = true
+            @tableCount = 10
+            @currentSearchPattern = ""
             @$rootScope.currentProvider = ""
             @getDataProviders()
             return
@@ -46,13 +56,20 @@ app.controller 'DataProviderController',
             return
 
         onProviderChange: () =>
-            @$rootScope.currentProvider = @currentProvider 
+            @tableList = []
+            @currentTablePosition = 0
+            @$rootScope.currentProvider = @currentProvider
             @requests.setDataProvider @currentProvider
             if @currentProvider
                 @getTableList()
 
         getTableList: () =>
-            @$http.get(@requests.metaDataTableNames()).success (data) =>
+            @$http.get(@requests.metaDataTableNames(@currentTablePosition, @currentTablePosition + @tableCount)).success (data) =>
+                if data.length is 0
+                    @isMoreTable = false
+                    return
+
+                @isMoreTable = data.length is @tableCount
                 @tableList = data
             return
 
@@ -81,3 +98,20 @@ app.controller 'DataProviderController',
 
         transposeData: () =>
             @isHeaderColumn = !@isHeaderColumn
+
+        getNextTables: () =>
+            if @isMoreTable
+                @currentTablePosition = @currentTablePosition + @tableCount
+                @getTableList()
+
+        getPreviousTables: () =>
+            if @currentTablePosition isnt 0
+                @currentTablePosition = @currentTablePosition - @tableCount
+                @getTableList()
+
+        searchTableNames: () =>
+            if @currentSearchPattern.length > 1
+                @$http.get(@requests.metaDataTableNamesSearch(@currentSearchPattern)).success (data) =>
+                    @tableList = data
+            else
+                @getTableList()

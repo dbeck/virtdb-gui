@@ -65,12 +65,7 @@ gulp.task('compile-server-coffee', function() {
 })
 
 gulp.task('start-dev-server', [
-    'collect-libs',
-    'compile-server-coffee',
-    'copy-index-to-static',
-    'compile-client-coffee',
-    'compile-jade',
-    'compile-stylus',
+    'prepare-files',
     'start-livereload-server'
     ],
     function () {
@@ -80,6 +75,19 @@ gulp.task('start-dev-server', [
             port: NOT_LIVERELOAD_PORT
         });
 })
+
+gulp.task('prepare-files', [
+    'collect-libs',
+    'compile-server-coffee',
+    'copy-index-to-static',
+    'compile-client-coffee',
+    'compile-jade',
+    'compile-stylus',
+    ],
+    function () {
+        console.log("Prepare files...");
+    }
+)
 
 gulp.task('collect-libs', function() {
     var files = mainBowerFiles();

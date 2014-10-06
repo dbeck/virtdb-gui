@@ -12,13 +12,21 @@ div
     div.row
         div.col-md-3(ng-controller='DBConfigController as dbConfig')
             h3 Tables
-            input.form-control(type="text" placeholder="Search")
+            div.input-group
+                span.input-group-addon Search
+                input.form-control(type="text" ng-model="dataProvider.currentSearchPattern" ng-change="dataProvider.searchTableNames()")
+            ul.pager
+                li.previous
+                    a(ng-click="dataProvider.getPreviousTables()")&laquo;
+                li.next
+                    a(ng-click="dataProvider.getNextTables()")&raquo;
             table.table
                 tr(ng-repeat="table in dataProvider.tableList" ng-class="{active: dataProvider.currentTable == table}")
                     td
                         input(type="checkbox" ng-model="check" ng-change="dbConfig.selectTable(table)")
                     td(ng-click="dataProvider.selectTable(table)") {{table}}
-            button(ng-click='dbConfig.addTables()') Add
+            p
+                button.btn.ntn-default(ng-click='dbConfig.addTables()') Add
         div.col-md-6
             h3 Data
             div.data-table
