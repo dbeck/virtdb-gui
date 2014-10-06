@@ -19,7 +19,7 @@ app.controller 'DataProviderController',
 
         currentTablePosition: null
         isMoreTable: null
-        tableCount = 40
+        tableCount: null
         currentSearchPattern: null
 
         constructor: (@$rootScope, @$scope, @$http) ->
