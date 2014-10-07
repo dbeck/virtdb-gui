@@ -11,9 +11,9 @@ Config = require "./config"
 log.setLevel "debug"
 require("source-map-support").install()
 
-DataProto = new protobuf(fs.readFileSync("proto/data.pb.desc"))
-MetaDataProto = new protobuf(fs.readFileSync("proto/meta_data.pb.desc"))
-CommonProto = new protobuf(fs.readFileSync("proto/common.pb.desc"))
+DataProto = new protobuf(fs.readFileSync("common/proto/data.pb.desc"))
+MetaDataProto = new protobuf(fs.readFileSync("common/proto/meta_data.pb.desc"))
+CommonProto = new protobuf(fs.readFileSync("common/proto/common.pb.desc"))
 
 class DataProvider
 

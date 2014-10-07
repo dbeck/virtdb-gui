@@ -8,7 +8,7 @@ Const = require "./constants"
 require("source-map-support").install()
 log.setLevel "debug"
 
-serviceConfigProto = new protobuf(fs.readFileSync("proto/svc_config.pb.desc"))
+serviceConfigProto = new protobuf(fs.readFileSync("common/proto/svc_config.pb.desc"))
 
 class ServiceConfig
     instance: null

@@ -11,7 +11,7 @@ ServiceConfig = require "./svcconfig_connector"
 require("source-map-support").install()
 log.setLevel "debug"
 
-dbConfigProto = new protobuf(fs.readFileSync("proto/db_config.pb.desc"))
+dbConfigProto = new protobuf(fs.readFileSync("common/proto/db_config.pb.desc"))
 
 class DBConfig
 
