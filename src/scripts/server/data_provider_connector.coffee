@@ -96,14 +96,13 @@ class DataProvider
 class DataProviderConnection
 
     @getConnection: (provider) ->
-        addresses = ServiceConfig.getInstance().getAddresses provider
         try
+            addresses = ServiceConfig.getInstance().getAddresses provider
             metaDataAddress = addresses[Const.ENDPOINT_TYPE.META_DATA][Const.SOCKET_TYPE.REQ_REP][0]
             columnAddress = addresses[Const.ENDPOINT_TYPE.COLUMN][Const.SOCKET_TYPE.PUB_SUB][0]
             queryAddress = addresses[Const.ENDPOINT_TYPE.QUERY][Const.SOCKET_TYPE.PUSH_PULL][0]
         catch ex
             log.error "Couldn't find addresses for provider: #{provider}!"
-            throw ex
         return new DataProviderConnection(metaDataAddress, columnAddress, queryAddress)
 
     _metaDataSocket: null

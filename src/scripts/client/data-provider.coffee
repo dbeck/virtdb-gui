@@ -87,6 +87,7 @@ app.controller 'DataProviderController',
             return
 
         selectTable: (table) =>
+            @tableData = {}
             @currentTable = table
             @getMetaData()
             return
