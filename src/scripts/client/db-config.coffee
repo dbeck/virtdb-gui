@@ -24,8 +24,7 @@ app.controller 'DBConfigController',
                 data =
                     "table": table
                     "schema": "data"
-                    "provider": "sap_data_provider"
-                    # "provider": @$rootScope.currentProvider
+                    "provider": @currentProvider
 
                 @$http.post(@requests.dbConfig(), data).success (data) =>
                      console.log data
