@@ -18,8 +18,10 @@ class DBConfig
     @addTable: (provider, tableMeta) =>
         log.debug "Adding table: #{tableMeta.Name} of provider: #{provider} to the db config"
         connection = DBConfigConnection.getConnection(Config.Values.DB_CONFIG_SERVICE)
-        connection.sendServerConfig provider, tableMeta
-        return
+        try
+            connection.sendServerConfig provider, tableMeta
+        catch ex
+            return
 
 
 module.exports = DBConfig
@@ -32,10 +34,10 @@ class DBConfigConnection
         addresses = @_configService.getAddresses service
         try
             dbConfigAddress = addresses[Const.ENDPOINT_TYPE.DB_CONFIG][Const.SOCKET_TYPE.PUSH_PULL][0]
+            return new DBConfigConnection(dbConfigAddress)
         catch ex
             log.error "Couldn't find addresses for db config: #{service}!"
-            throw ex
-        return new DBConfigConnection(dbConfigAddress)
+        return null
 
     _pushPullSocket: null
 

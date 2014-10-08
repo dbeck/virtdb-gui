@@ -38,11 +38,13 @@ class DataProvider
             log.debug "The requested table is not in cache."
             log.debug "Getting table meta from provider"
             connection = DataProviderConnection.getConnection(provider)
-            #TODO We should use the schema given as parameter
-            connection.getMetadata Config.Values.SCHEMA, table, true, (metaData) =>
-                tableMeta = metaData.Tables[0]
-                @_tableMetaCache[provider][table] = tableMeta
-                onReady @_tableMetaCache[provider][table]
+            try
+                connection.getMetadata Config.Values.SCHEMA, table, true, (metaData) =>
+                    tableMeta = metaData.Tables[0]
+                    @_tableMetaCache[provider][table] = tableMeta
+                    onReady @_tableMetaCache[provider][table]
+            catch e
+                onReady []
         else
             log.debug "The requested table is in cache."
             onReady @_tableMetaCache[provider][table]
@@ -55,11 +57,13 @@ class DataProvider
             log.debug "Cache for the current provider is empty."
             log.debug "Getting table names from provider"
             connection = DataProviderConnection.getConnection(provider)
-            #TODO We should use the schema given as parameter
-            connection.getMetadata Config.Values.SCHEMA, ".*", false, (metaData) =>
-                @_tableNamesCache[provider] = (table.Name for table in metaData.Tables)
-                realTo = Math.min(to, @_tableNamesCache[provider].length)
-                onReady @_tableNamesCache[provider].slice from, realTo
+            try
+                connection.getMetadata Config.Values.SCHEMA, ".*", false, (metaData) =>
+                    @_tableNamesCache[provider] = (table.Name for table in metaData.Tables)
+                    realTo = Math.min(to, @_tableNamesCache[provider].length)
+                    onReady @_tableNamesCache[provider].slice from, realTo
+            catch e
+                onReady []
         else
             log.debug "Getting table names from cache"
             realTo = Math.min(to, @_tableNamesCache[provider].length)
@@ -72,17 +76,16 @@ class DataProvider
             log.debug "Cache for the current provider is empty."
             log.debug "Getting table names from provider"
             connection = DataProviderConnection.getConnection(provider)
-            #TODO We should use the schema given as parameter
-            connection.getMetadata Config.Values.SCHEMA, ".*", false, (metaData) =>
+            try
+                connection.getMetadata Config.Values.SCHEMA, ".*", false, (metaData) =>
                 @_tableNamesCache[provider] = (table.Name for table in metaData.Tables)
                 results = (table.Name for table in metaData.Tables when table.Name.indexOf(search) isnt -1)
                 onReady results
+            catch e
+                onReady []
         else
             log.debug "Getting table names from cache"
             onReady (table for table in @_tableNamesCache[provider] when table.indexOf(search) isnt -1)
-
-
-
 
     @getData: (provider, schema, table, count, onData) =>
         @checkTableMetaCache(provider)
@@ -90,21 +93,24 @@ class DataProvider
         #TODO We should use the schema given as parameter
         @getTableMeta provider, Config.Values.SCHEMA, table, (tableMeta) =>
             connection = DataProviderConnection.getConnection(provider)
-            connection.getData schema, table, tableMeta.Fields, count, (data) =>
-                onData data
+            try
+                connection.getData schema, table, tableMeta.Fields, count, (data) =>
+                    onData data
+            catch e
+                onData []
 
 class DataProviderConnection
 
     @getConnection: (provider) ->
-        addresses = ServiceConfig.getInstance().getAddresses provider
         try
+            addresses = ServiceConfig.getInstance().getAddresses provider
             metaDataAddress = addresses[Const.ENDPOINT_TYPE.META_DATA][Const.SOCKET_TYPE.REQ_REP][0]
             columnAddress = addresses[Const.ENDPOINT_TYPE.COLUMN][Const.SOCKET_TYPE.PUB_SUB][0]
             queryAddress = addresses[Const.ENDPOINT_TYPE.QUERY][Const.SOCKET_TYPE.PUSH_PULL][0]
+            return new DataProviderConnection(metaDataAddress, columnAddress, queryAddress)
         catch ex
-            log.error "Couldn't find addresses for provider: #{provider}!"
-            throw ex
-        return new DataProviderConnection(metaDataAddress, columnAddress, queryAddress)
+            log.error "Couldn't find addresses for provider!", provider
+        return null
 
     _metaDataSocket: null
     _querySocket: null
@@ -124,12 +130,12 @@ class DataProviderConnection
         @_metaDataSocket.connect(@metaDataAddress)
         @_metaDataSocket.on "message", (data) =>
             metaData = MetaDataProto.parse data, "virtdb.interface.pb.MetaData"
-            log.trace "Got metadata: ", metaData
+            log.trace "Got metadata:", metaData
             onMetaData metaData
             return
 
         try
-            log.debug "Sending MetaDataRequest message: " + JSON.stringify metaDataRequest
+            log.debug "Sending MetaDataRequest message:", JSON.stringify metaDataRequest
             @_metaDataSocket.send MetaDataProto.serialize metaDataRequest, "virtdb.interface.pb.MetaDataRequest"
         catch e
             log.error e
