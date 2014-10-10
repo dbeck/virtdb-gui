@@ -13,5 +13,4 @@ div.container
                     td {{ep.Name}}
                     td {{ep.SvcType}}
                     td
-                        div(ng-repeat='conn in ep.Connections')
-                            {{conn.Type}}: {{conn.Address}}
+                        div(ng-repeat='conn in ep.Connections') {{conn.Type}}: {{conn.Address}}

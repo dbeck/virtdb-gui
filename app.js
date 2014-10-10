@@ -5,6 +5,7 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var argv = require('minimist')(process.argv.slice(2))
+var VirtDBLoader = require("./src/scripts/server/out/virtdb_loader.js")
 
 var EXPRESS_PORT = argv["port"] || 3000;
 var LIVERELOAD_PORT = 3001;
@@ -31,6 +32,8 @@ var index = require('./src/scripts/server/out/index_route');
 var api = require('./src/scripts/server/out/api_route');
 app.use('/api', api);
 app.use('/', index);
+
+VirtDBLoader.start();
 
 var server = app.listen(EXPRESS_PORT, function() {
     console.log('Listening on port %d', server.address().port);
