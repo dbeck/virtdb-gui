@@ -4,9 +4,9 @@ protobuf = require "node-protobuf"
 log = require "loglevel"
 
 Config = require "./config"
-Const = require "./constants"
+Const = (require "virtdb-connector").Constants
 FieldData = require "./fieldData"
-ServiceConfig = require "./svcconfig_connector"
+EndpointService = (require "virtdb-connector").EndpointService
 
 require("source-map-support").install()
 log.setLevel "debug"
@@ -28,10 +28,8 @@ module.exports = DBConfig
 
 class DBConfigConnection
 
-    @_configService = ServiceConfig.getInstance()
-
     @getConnection: (service) ->
-        addresses = @_configService.getAddresses service
+        addresses = EndpointService.getInstance().getComponentAddress service
         try
             dbConfigAddress = addresses[Const.ENDPOINT_TYPE.DB_CONFIG][Const.SOCKET_TYPE.PUSH_PULL][0]
             return new DBConfigConnection(dbConfigAddress)

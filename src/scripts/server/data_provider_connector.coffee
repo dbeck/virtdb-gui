@@ -3,9 +3,9 @@ fs = require "fs"
 protobuf = require "node-protobuf"
 log = require "loglevel"
 lz4 = require "lz4"
-ServiceConfig = require "./svcconfig_connector"
+EndpointService = (require "virtdb-connector").EndpointService
 FieldData = require "./fieldData"
-Const = require "./constants"
+Const = (require "virtdb-connector").Constants
 Config = require "./config"
 
 log.setLevel "debug"
@@ -103,7 +103,7 @@ class DataProviderConnection
 
     @getConnection: (provider) ->
         try
-            addresses = ServiceConfig.getInstance().getAddresses provider
+            addresses = EndpointService.getInstance().getComponentAddress provider
             metaDataAddress = addresses[Const.ENDPOINT_TYPE.META_DATA][Const.SOCKET_TYPE.REQ_REP][0]
             columnAddress = addresses[Const.ENDPOINT_TYPE.COLUMN][Const.SOCKET_TYPE.PUB_SUB][0]
             queryAddress = addresses[Const.ENDPOINT_TYPE.QUERY][Const.SOCKET_TYPE.PUSH_PULL][0]

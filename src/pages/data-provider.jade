@@ -17,9 +17,9 @@ div
                 input.form-control(type="text" ng-model="dataProvider.currentSearchPattern" ng-change="dataProvider.searchTableNames()")
             ul.pager
                 li.previous
-                    a(ng-click="dataProvider.getPreviousTables()")&laquo;
+                    a(ng-click="dataProvider.getPreviousTables()") &laquo;
                 li.next
-                    a(ng-click="dataProvider.getNextTables()")&raquo;
+                    a(ng-click="dataProvider.getNextTables()") &raquo;
             table.table
                 tr(ng-repeat="table in dataProvider.tableList" ng-class="{active: dataProvider.currentTable == table}")
                     td

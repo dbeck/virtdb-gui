@@ -4,8 +4,13 @@ log = require "loglevel"
 
 DataProvider = require "./data_provider_connector"
 DBConfig = require "./db_config_connector"
-ServiceConfig = require "./svcconfig_connector"
 Config = require "./config"
+
+VirtDBLoader = require "./virtdb_loader"
+
+KeyValue = (require "virtdb-connector").KeyValue
+ConfigService = (require "virtdb-connector").ConfigService
+EndpointService = (require "virtdb-connector").EndpointService
 
 log.setLevel "debug"
 require('source-map-support').install()
@@ -18,7 +23,7 @@ router.get "/", (req, res) ->
     return
 
 router.get "/endpoints", (req, res) ->
-    serviceConfig = ServiceConfig.getInstance()
+    serviceConfig = EndpointService.getInstance()
     try
         res.json serviceConfig.getEndpoints()
     catch ex
@@ -98,13 +103,20 @@ router.post "/set_config", (req, res) ->
     log.debug "Set config"
     for key, value of req.body
         Config.Values[key] = value
-    ServiceConfig.reset()
-    ServiceConfig.getInstance()
+    VirtDBLoader.start()
+    EndpointService.setConnectionData(Config.Values.CONFIG_SERVICE_NAME, Config.Values.CONFIG_SERVICE_ADDRESS)
+    EndpointService.getInstance()
     return
 
 router.get "/get_config", (req, res) ->
     log.debug "Get config"
     res.json Config.Values
     return
+
+router.get "/configs", (req, res) =>
+    log.debug "Configs"
+    configs = ConfigService.getInstance().getConfigs()
+    log.debug configs
+    res.json KeyValue.toJSON(configs["sap_data_provider"].ConfigData[0])
 
 module.exports = router
