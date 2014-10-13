@@ -41,10 +41,10 @@ app.controller 'ConfigurationController', ['$scope', '$http', ($scope, $http) ->
     @config = {}
 
     @setConfig = () =>
-        $http.post("/api/set_config", @config)
+        $http.post("/api/set_app_config", @config)
 
     @getConfig = () =>
-        $http.get("/api/get_config").success (data) =>
+        $http.get("/api/get_app_config").success (data) =>
             @config = data
 
     @getConfig()

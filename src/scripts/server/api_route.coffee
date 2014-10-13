@@ -99,7 +99,7 @@ router.post "/db_config", (req, res) ->
         res.status(500).send "Error occured: " + ex
         return
 
-router.post "/set_config", (req, res) ->
+router.post "/set_app_config", (req, res) ->
     log.debug "Set config"
     for key, value of req.body
         Config.Values[key] = value
@@ -108,7 +108,7 @@ router.post "/set_config", (req, res) ->
     EndpointService.getInstance()
     return
 
-router.get "/get_config", (req, res) ->
+router.get "/get_app_config", (req, res) ->
     log.debug "Get config"
     res.json Config.Values
     return
