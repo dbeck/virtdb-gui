@@ -1,16 +1,14 @@
 express = require "express"
 router = express.Router()
 log = require "loglevel"
-
+util = require "util"
 DataProvider = require "./data_provider_connector"
 DBConfig = require "./db_config_connector"
 Config = require "./config"
-
 VirtDBLoader = require "./virtdb_loader"
-
-KeyValue = (require "virtdb-connector").KeyValue
-ConfigService = (require "virtdb-connector").ConfigService
-EndpointService = (require "virtdb-connector").EndpointService
+KeyValue = require "./key_value"
+ConfigService = require "./config_service"
+EndpointService = require "./endpoint_service"
 
 log.setLevel "debug"
 require('source-map-support').install()
@@ -99,24 +97,60 @@ router.post "/db_config", (req, res) ->
         res.status(500).send "Error occured: " + ex
         return
 
-router.post "/set_config", (req, res) ->
+router.post "/set_app_config", (req, res) ->
     log.debug "Set config"
     for key, value of req.body
         Config.Values[key] = value
     VirtDBLoader.start()
-    EndpointService.setConnectionData(Config.Values.CONFIG_SERVICE_NAME, Config.Values.CONFIG_SERVICE_ADDRESS)
+    EndpointService.setAddress(Config.Values.CONFIG_SERVICE_ADDRESS)
     EndpointService.getInstance()
     return
 
-router.get "/get_config", (req, res) ->
+router.get "/get_app_config", (req, res) ->
     log.debug "Get config"
     res.json Config.Values
     return
 
-router.get "/configs", (req, res) =>
-    log.debug "Configs"
-    configs = ConfigService.getInstance().getConfigs()
-    log.debug configs
-    res.json KeyValue.toJSON(configs["sap_data_provider"].ConfigData[0])
+router.get "/get_config/:component", (req, res) =>
+    try
+        component = req.params.component
+        log.debug "Getting config:", component
+        ConfigService.getConfig component, (config) =>
+            if config.ConfigData.length isnt 0
+                for scope in config.ConfigData
+                    if scope.Key is ""
+                        res.json (KeyValue.toJSON scope)[""]
+            else
+                res.json {}
+    catch ex
+        log.error ex
+        res.status(500).send "Error occured: " + ex
+        return
+
+router.post "/set_config/:component", (req, res) =>
+    try
+        component = req.params.component
+        config = req.body
+        log.debug "Setting config:", component, config
+
+        scopedConfig = {}
+        scopedConfig[""] = config
+        for property, configObj of config
+            scope = configObj.Scope.Value[0]
+            scopedConfig[scope] ?= {}
+            scopedConfig[scope][property] ?= JSON.parse(JSON.stringify(configObj.Value))
+            configObj.Value.Value = []
+
+        configMessage =
+            Name: component
+            ConfigData: KeyValue.parseJSON(scopedConfig)
+
+        ConfigService.sendConfig configMessage
+        res.status(200).send()
+
+    catch ex
+        log.error ex
+        res.status(500).send "Error occured: " + ex
+        return
 
 module.exports = router

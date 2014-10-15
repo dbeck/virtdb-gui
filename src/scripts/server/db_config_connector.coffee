@@ -6,7 +6,7 @@ log = require "loglevel"
 Config = require "./config"
 Const = (require "virtdb-connector").Constants
 FieldData = require "./fieldData"
-EndpointService = (require "virtdb-connector").EndpointService
+EndpointService = require "./endpoint_service"
 
 require("source-map-support").install()
 log.setLevel "debug"

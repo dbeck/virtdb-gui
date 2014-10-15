@@ -1,14 +1,10 @@
 div
     div.panel.panel-default
         div.panel-heading
-            div.panel-title Data provider
+            div.panel-title Data providers
         div.panel-body
-            h4 Provider:
-            select(
-                ng-model='dataProvider.currentProvider',
-                ng-options='provider for provider in dataProvider.providers',
-                ng-change='dataProvider.onProviderChange()')
-                option(value='') Select provider
+            div(ng-repeat="provider in dataProvider.providers")
+                button.btn.btn-default(ng-click="dataProvider.selectProvider(provider)" ng-class="{active: currentProvider == provider}") {{provider}}
     div.row
         div.col-md-3(ng-controller='DBConfigController as dbConfig')
             h3 Tables

@@ -1,16 +1,29 @@
 div.container
-    //- {{endpoint.endpoints}}
-    div.panel.panel-default
-        div.panel-heading
-            h3.panel-title Endpoints
-        div.panelbody
+    div.row
+        div.col-md-2
+            h3 Components
+            div.list-group
+                a.list-group-item(
+                    ng-repeat='component in componentList'
+                    ng-click="$parent.selectedComponent = component"
+                    ng-class="{active: $parent.selectedComponent === component}") {{component}}
+        div.col-md-6
+            h3 Configuration
+            dov.row(ng-repeat="(property, value) in componentConfig | orderBy: 'property':reverse")
+                div.col-md-6
+                    {{value.Scope.Value[0]}}/{{property}}
+                div.col-md-6
+                    input(type="text" ng-model="componentConfig[property].Value.Value[0]")
+            button.btn.btn-default(ng-click="endpointController.sendConfig()") Save
+
+        div.col-md-4
+            h3 Endpoints
             table.table
                 tr
-                    th Name
-                    th Service Type
-                    th Connections
-                tr(ng-repeat='ep in endpoint.endpoints')
-                    td {{ep.Name}}
-                    td {{ep.SvcType}}
-                    td
-                        div(ng-repeat='conn in ep.Connections') {{conn.Type}}: {{conn.Address}}
+                    th Service type
+                    th Socket type
+                    th Addresses
+                tr(ng-repeat='infoRow in componentInfo')
+                    td {{infoRow.SvcType}}
+                    td {{infoRow.SocketType}}
+                    td {{infoRow.Address}}

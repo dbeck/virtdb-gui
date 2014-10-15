@@ -53,9 +53,13 @@ app.controller 'DataProviderController',
                 for endpointName, serviceTypes of services
                     if "META_DATA" in serviceTypes and "QUERY" in serviceTypes and "COLUMN" in serviceTypes
                         @providers.push endpointName
+                @selectProvider(@providers[0])
             return
 
-        onProviderChange: () =>
+        selectProvider: (provider) =>
+            if provider is @currentProvider
+                return
+            @currentProvider = provider
             @tableList = []
             @currentTablePosition = 0
             @$rootScope.currentProvider = @currentProvider
