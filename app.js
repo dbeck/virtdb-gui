@@ -33,8 +33,11 @@ var api = require('./src/scripts/server/out/api_route');
 app.use('/api', api);
 app.use('/', index);
 
-VirtDBLoader.start();
+var server;
+var startApp = function () {
+    server = app.listen(EXPRESS_PORT, function() {
+        console.log('Listening on port %d', server.address().port);
+    });
+}
 
-var server = app.listen(EXPRESS_PORT, function() {
-    console.log('Listening on port %d', server.address().port);
-});
+VirtDBLoader.start(argv["service-config-address"], startApp);

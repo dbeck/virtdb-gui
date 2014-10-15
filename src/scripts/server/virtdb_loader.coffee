@@ -1,16 +1,23 @@
-EndpointService = (require "virtdb-connector").EndpointService
-ConfigService = (require "virtdb-connector").ConfigService
+ConfigService = require "./config_service"
+EndpointService = require "./endpoint_service"
 VirtDBConnector = (require "virtdb-connector")
+Const = VirtDBConnector.Constants
 Config = require "./config"
 async = require "async"
+log = require "loglevel"
+log.setLevel "debug"
 
 class VirtDBLoader
 
-    @start = () =>
+    @start = (address, startCallback) =>
+        address ?= Config.Values.CONFIG_SERVICE_ADDRESS
         async.series [
             (callback) ->
                 try
-                    VirtDBConnector.connect(Config.Values.GUI_ENDPOINT_NAME, Config.Values.CONFIG_SERVICE_ADDRESS)
+                    VirtDBConnector.connect(Config.Values.GUI_ENDPOINT_NAME, address)
+                    VirtDBConnector.onAddress Const.ENDPOINT_TYPE.CONFIG, Const.SOCKET_TYPE.REQ_REP, (address) =>
+                        log.debug "Got config service address:", address
+                        ConfigService.setAddress(address)
                     callback null
                 catch ex
                     callback ex
@@ -18,7 +25,7 @@ class VirtDBLoader
             (callback) ->
                 try
                     EndpointService.reset()
-                    EndpointService.setConnectionData(Config.Values.CONFIG_SERVICE_NAME, Config.Values.CONFIG_SERVICE_ADDRESS)
+                    EndpointService.setAddress(address)
                     async.whilst () ->
                                     EndpointService.getInstance().getEndpoints().length == 0
                                 ,
@@ -27,16 +34,9 @@ class VirtDBLoader
                                 ,
                                 () ->
                                     callback null
-                    ,
-            (callback) ->
-                try
-                    ConfigService.getInstance()
-                    callback null
-                catch ex
-                    callback ex
-
-        ], (err, results) ->
+            ], (err, results) ->
             if err
                 console.error err
+            startCallback()
 
 module.exports = VirtDBLoader
