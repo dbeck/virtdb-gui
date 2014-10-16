@@ -1,6 +1,6 @@
 ConfigService = require "./config_service"
 EndpointService = require "./endpoint_service"
-VirtDBConnector = (require "virtdb-connector")
+VirtDBConnector = require "virtdb-connector"
 Const = VirtDBConnector.Constants
 Config = require "./config"
 async = require "async"
@@ -9,8 +9,15 @@ log.setLevel "debug"
 
 class VirtDBLoader
 
-    @start = (address, startCallback) =>
-        address ?= Config.Values.CONFIG_SERVICE_ADDRESS
+    @startCallback: null
+
+    @setStartCallback: (callback) =>
+        @startCallback = callback
+
+    @start: (address = Config.Values.CONFIG_SERVICE_ADDRESS) =>
+        callb = @startCallback
+        if address?
+            Config.Values.CONFIG_SERVICE_ADDRESS = address
         async.series [
             (callback) ->
                 try
@@ -37,6 +44,6 @@ class VirtDBLoader
             ], (err, results) ->
             if err
                 console.error err
-            startCallback()
+            callb()
 
 module.exports = VirtDBLoader
