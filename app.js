@@ -40,4 +40,5 @@ var startApp = function () {
     });
 }
 
-VirtDBLoader.start(argv["service-config-address"], startApp);
+VirtDBLoader.setStartCallback(startApp)
+VirtDBLoader.start(argv["service-config-address"]);

@@ -102,8 +102,6 @@ router.post "/set_app_config", (req, res) ->
     for key, value of req.body
         Config.Values[key] = value
     VirtDBLoader.start()
-    EndpointService.setAddress(Config.Values.CONFIG_SERVICE_ADDRESS)
-    EndpointService.getInstance()
     return
 
 router.get "/get_app_config", (req, res) ->
@@ -116,10 +114,20 @@ router.get "/get_config/:component", (req, res) =>
         component = req.params.component
         log.debug "Getting config:", component
         ConfigService.getConfig component, (config) =>
+            template = {}
             if config.ConfigData.length isnt 0
                 for scope in config.ConfigData
                     if scope.Key is ""
-                        res.json (KeyValue.toJSON scope)[""]
+                        template = (KeyValue.toJSON scope)[""]
+                        log.debug "template", template
+                        res.json template
+                # for scope in config.ConfigData
+                #     if scope.Key isnt ""
+                #         filledConfig = (KeyValue.toJSON scope)[scope.Key]
+                #         for property, setting of filledConfig
+                #             if setting.Value.length isnt 0
+                #                 template[property][Value].push setting.Value[0]
+
             else
                 res.json {}
     catch ex
