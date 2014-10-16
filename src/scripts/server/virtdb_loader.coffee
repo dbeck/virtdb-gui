@@ -9,13 +9,7 @@ log.setLevel "debug"
 
 class VirtDBLoader
 
-    @startCallback: null
-
-    @setStartCallback: (callback) =>
-        @startCallback = callback
-
-    @start: (address = Config.Values.CONFIG_SERVICE_ADDRESS) =>
-        callb = @startCallback
+    @start: (address = Config.Values.CONFIG_SERVICE_ADDRESS, startCallback) =>
         if address?
             Config.Values.CONFIG_SERVICE_ADDRESS = address
         async.series [
@@ -44,6 +38,7 @@ class VirtDBLoader
             ], (err, results) ->
             if err
                 console.error err
-            callb()
+            if startCallback?
+                startCallback()
 
 module.exports = VirtDBLoader
