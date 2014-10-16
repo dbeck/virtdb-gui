@@ -7,6 +7,7 @@ EndpointService = require "./endpoint_service"
 FieldData = require "./fieldData"
 Const = (require "virtdb-connector").Constants
 Config = require "./config"
+util = require "util"
 
 log.setLevel "debug"
 require("source-map-support").install()
@@ -31,7 +32,7 @@ class DataProvider
             @_tableMetaCache[provider] = []
 
 
-    @getTableMeta: (provider, schema, table, onReady) =>
+    @getTableMeta: (provider, tableName, onReady) =>
         @checkTableMetaCache(provider)
 
         if not @_tableMetaCache[provider][table]?
@@ -39,65 +40,84 @@ class DataProvider
             log.debug "Getting table meta from provider"
             connection = DataProviderConnection.getConnection(provider)
             try
-                connection.getMetadata Config.Values.SCHEMA, table, true, (metaData) =>
+                table = @_processTableName tableName
+                connection.getMetadata table.Schema, table.Name, true, (metaData) =>
                     tableMeta = metaData.Tables[0]
                     @_tableMetaCache[provider][table] = tableMeta
                     onReady @_tableMetaCache[provider][table]
-            catch e
+            catch ex
+                log.error "Couldn't get table meta.", ex
                 onReady []
         else
             log.debug "The requested table is in cache."
             onReady @_tableMetaCache[provider][table]
 
-
-    @getTableNames: (provider, schema, from, to, onReady) =>
-        @checkTableNamesCache(provider)
-
-        if @_tableNamesCache[provider].length is 0
-            log.debug "Cache for the current provider is empty."
-            log.debug "Getting table names from provider"
+    @getData: (provider, tableName, count, onData) =>
+        @getTableMeta provider, tableName, (tableMeta) =>
             connection = DataProviderConnection.getConnection(provider)
             try
-                connection.getMetadata Config.Values.SCHEMA, ".*", false, (metaData) =>
-                    @_tableNamesCache[provider] = (table.Name for table in metaData.Tables)
-                    realTo = Math.min(to, @_tableNamesCache[provider].length)
-                    onReady @_tableNamesCache[provider].slice from, realTo
-            catch e
-                onReady []
-        else
-            log.debug "Getting table names from cache"
-            realTo = Math.min(to, @_tableNamesCache[provider].length)
-            onReady @_tableNamesCache[provider].slice from, realTo
-
-    @searchTableNames: (provider, schema, search, onReady) =>
-        @checkTableNamesCache(provider)
-
-        if @_tableNamesCache[provider].length is 0
-            log.debug "Cache for the current provider is empty."
-            log.debug "Getting table names from provider"
-            connection = DataProviderConnection.getConnection(provider)
-            try
-                connection.getMetadata Config.Values.SCHEMA, ".*", false, (metaData) =>
-                @_tableNamesCache[provider] = (table.Name for table in metaData.Tables)
-                results = (table.Name for table in metaData.Tables when table.Name.indexOf(search) isnt -1)
-                onReady results
-            catch e
-                onReady []
-        else
-            log.debug "Getting table names from cache"
-            onReady (table for table in @_tableNamesCache[provider] when table.indexOf(search) isnt -1)
-
-    @getData: (provider, schema, table, count, onData) =>
-        @checkTableMetaCache(provider)
-
-        #TODO We should use the schema given as parameter
-        @getTableMeta provider, Config.Values.SCHEMA, table, (tableMeta) =>
-            connection = DataProviderConnection.getConnection(provider)
-            try
-                connection.getData schema, table, tableMeta.Fields, count, (data) =>
+                connection.getData tableMeta.Schema, tableMeta.Name, tableMeta.Fields, count, (data) =>
                     onData data
             catch e
                 onData []
+
+    @getTableNames: (provider, from, to, onReady) =>
+        try
+            @_fillTableNamesCache provider, () =>
+                realTo = Math.min(to, @_tableNamesCache[provider].length)
+                onReady @_tableNamesCache[provider].slice from, realTo
+        catch ex
+            log.error "Couldn't get table names.", ex
+            onReady []
+
+    @searchTableNames: (provider, search, onReady) =>
+        try
+            @_fillTableNamesCache provider, () =>
+                results = []
+                for table in @_tableNamesCache[provider]
+                    if table.toLowerCase().indexOf(search.toLowerCase()) isnt -1
+                        results.push table
+                onReady results
+        catch ex
+            log.error "Couldn't search table names.", ex
+            onReady []
+
+    @_fillTableNamesCache: (provider, onReady) =>
+        @checkTableNamesCache(provider)
+        if @_tableNamesCache[provider].length isnt 0
+            log.debug "Serving table names from cahce.", provider
+            onReady()
+        else
+            log.debug "Cache for the current provider is empty."
+            log.debug "Getting table names from provider"
+            connection = DataProviderConnection.getConnection(provider)
+            try
+                connection.getMetadata ".*", ".*", false, (metaData) =>
+                    @_tableNamesCache[provider] = []
+                    for table in metaData.Tables
+                        if table.Schema?
+                            @_tableNamesCache[provider].push table.Schema + "." + table.Name
+                        else
+                            @_tableNamesCache[provider].push table.Name
+                    onReady()
+            catch ex
+                log.error "Couldn't fill table names cache.", provider, ex
+                throw ex
+        return
+
+    @_processTableName: (tableDesc) =>
+        table = {}
+        tableElements = tableDesc.split(".")
+        #if no schema
+        if tableElements.length is 1
+            table.Name ?= tableElements[0]
+        #if schema and tablename is also exist
+        else if tableElements.length is 2
+            table.Name ?= tableElements[1]
+            table.Schema ?= tableElements[0]
+        else
+            throw "Something wrong with the format of the table name."
+        return table
 
 class DataProviderConnection
 
@@ -142,6 +162,9 @@ class DataProviderConnection
 
     getData: (schema, table, fields, count, onColumn) =>
 
+        if not schema?
+            schema = ""
+
         @queryId = Math.floor((Math.random() * 100000) + 1)
 
         query =
@@ -149,6 +172,7 @@ class DataProviderConnection
             Table: table
             Fields: fields
             Limit: count
+            Schema: schema
 
         @_columnReceiver = new ColumnReceiver(onColumn, fields)
         @_columnSocket = zmq.socket(Const.ZMQ_SUB)
