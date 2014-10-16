@@ -29,7 +29,7 @@ module.exports = DBConfig
 class DBConfigConnection
 
     @getConnection: (service) ->
-        addresses = EndpointService.getInstance().getComponentAddress service
+        addresses = EndpointService.getInstance().getComponentAddresses service
         try
             dbConfigAddress = addresses[Const.ENDPOINT_TYPE.DB_CONFIG][Const.SOCKET_TYPE.PUSH_PULL][0]
             return new DBConfigConnection(dbConfigAddress)

@@ -13,8 +13,6 @@ EndpointService = require "./endpoint_service"
 log.setLevel "debug"
 require('source-map-support').install()
 
-SCHEMA = ""
-
 # GET home page.
 router.get "/", (req, res) ->
     res.json "{message: virtdb api}"
@@ -33,7 +31,7 @@ router.get "/data_provider/:provider/meta_data/table/:table", (req, res) ->
     table = req.params.table
 
     try
-        DataProvider.getTableMeta provider, SCHEMA, table, (metaData) ->
+        DataProvider.getTableMeta provider, table, (metaData) ->
             res.json metaData
             return
     catch ex
@@ -41,14 +39,13 @@ router.get "/data_provider/:provider/meta_data/table/:table", (req, res) ->
         res.status(500).send "Error occured: " + ex
         return
 
-
 router.get "/data_provider/:provider/meta_data/table_names/from/:from/to/:to", (req, res) ->
     provider = req.params.provider
     from = Number(req.params.from)
     to = Number(req.params.to)
 
     try
-        DataProvider.getTableNames provider, SCHEMA, from, to, (tableNames) ->
+        DataProvider.getTableNames provider, from, to, (tableNames) ->
             res.json tableNames
             return
     catch ex
@@ -61,7 +58,7 @@ router.get "/data_provider/:provider/meta_data/table_names/search/:search", (req
     search = req.params.search
 
     try
-        DataProvider.searchTableNames provider, SCHEMA, search, (tableNames) ->
+        DataProvider.searchTableNames provider, search, (tableNames) ->
             res.json tableNames
             return
     catch ex
@@ -75,7 +72,7 @@ router.get "/data_provider/:provider/data/table/:table/count/:count", (req, res)
     count = req.params.count
 
     try
-        DataProvider.getData provider, SCHEMA, table, count, (data) =>
+        DataProvider.getData provider, table, count, (data) =>
             res.json data
     catch ex
         log.error ex
@@ -89,7 +86,7 @@ router.post "/db_config", (req, res) ->
     tableMeta = null
 
     try
-        DataProvider.getTableMeta provider, SCHEMA, table, (metaData) ->
+        DataProvider.getTableMeta provider, table, (metaData) ->
             DBConfig.addTable(provider, metaData)
             return
     catch ex
