@@ -10,77 +10,103 @@ VirtDBLoader = require "./virtdb_loader"
 KeyValue = require "./key_value"
 ConfigService = require "./config_service"
 EndpointService = require "./endpoint_service"
+timeout = require "connect-timeout"
 
 log.setLevel "debug"
 require('source-map-support').install()
 
+onRequestTimeout = (res) =>
+    res.status(503).send('Request timeout occured')
+
 # GET home page.
-router.get "/", (req, res) ->
+router.get "/", timeout(Config.Values.REQUEST_TIMEOUT, {respond: false}), (req, res) ->
+    req.on "timeout", () =>
+        onRequestTimeout(res)
     res.json "{message: virtdb api}"
     return
 
-router.get "/endpoints", (req, res) ->
+router.get "/endpoints", timeout(Config.Values.REQUEST_TIMEOUT, {respond: false}), (req, res) ->
+    req.on "timeout", () =>
+        onRequestTimeout(res)
     serviceConfig = EndpointService.getInstance()
     try
-        res.json serviceConfig.getEndpoints()
+        if not res.headersSent
+            res.json serviceConfig.getEndpoints()
     catch ex
         log.error ex
         res.status(500).send "Error occured: " + ex
 
-router.get "/data_provider/:provider/meta_data/table/:table", (req, res) ->
+router.get "/data_provider/:provider/meta_data/table/:table", timeout(Config.Values.REQUEST_TIMEOUT, {respond: false}), (req, res) ->
+    req.on "timeout", () =>
+        onRequestTimeout(res)
     provider = req.params.provider
     table = req.params.table
 
     try
         DataProvider.getTableMeta provider, table, (metaData) ->
-            res.json metaData
+            if not res.headersSent
+                res.json metaData
             return
     catch ex
         log.error ex
         res.status(500).send "Error occured: " + ex
         return
 
-router.get "/data_provider/:provider/meta_data/table_names/from/:from/to/:to", (req, res) ->
+router.get "/data_provider/:provider/meta_data/table_names/from/:from/to/:to", timeout(Config.Values.REQUEST_TIMEOUT, {respond: false}), (req, res) ->
+    req.on "timeout", () =>
+        onRequestTimeout(res)
     provider = req.params.provider
     from = Number(req.params.from)
     to = Number(req.params.to)
 
     try
         DataProvider.getTableNames provider, from, to, (tableNames) ->
-            res.json tableNames
+            if not res.headersSent
+                res.json tableNames
             return
     catch ex
         log.error ex
         res.status(500).send "Error occured: " + ex
         return
 
-router.get "/data_provider/:provider/meta_data/table_names/search/:search", (req, res) ->
+router.get "/data_provider/:provider/meta_data/table_names/search/:search", timeout(Config.Values.REQUEST_TIMEOUT, {respond: false}), (req, res) ->
+    req.on "timeout", () =>
+        onRequestTimeout(res)
+
     provider = req.params.provider
     search = req.params.search
 
     try
         DataProvider.searchTableNames provider, search, (tableNames) ->
-            res.json tableNames
+            if not res.headersSent
+                res.json tableNames
             return
     catch ex
         log.error ex
         res.status(500).send "Error occured: " + ex
         return
 
-router.get "/data_provider/:provider/data/table/:table/count/:count", (req, res) ->
+router.get "/data_provider/:provider/data/table/:table/count/:count", timeout(Config.Values.REQUEST_TIMEOUT, {respond: false}), (req, res) ->
+    req.on "timeout", () =>
+        onRequestTimeout(res)
+
     provider = req.params.provider
     table = req.params.table
     count = req.params.count
 
     try
         DataProvider.getData provider, table, count, (data) =>
-            res.json data
+            if not res.headersSent
+                res.json data
     catch ex
         log.error ex
         res.status(500).send "Error occured: " + ex
         return
 
-router.post "/db_config", (req, res) ->
+router.post "/db_config", timeout(Config.Values.REQUEST_TIMEOUT, {respond: false}), (req, res) ->
+    req.on "timeout", () =>
+        onRequestTimeout(res)
+
     log.debug req.body
     table = req.body.table
     provider = req.body.provider
@@ -96,23 +122,31 @@ router.post "/db_config", (req, res) ->
         res.status(500).send "Error occured: " + ex
         return
 
-router.post "/set_app_config", (req, res) ->
+router.post "/set_app_config", timeout(Config.Values.REQUEST_TIMEOUT, {respond: false}), (req, res) ->
+    req.on "timeout", () =>
+        onRequestTimeout(res)
+
     log.debug "Set config"
     for key, value of req.body
         Config.Values[key] = value
     VirtDBLoader.start()
     return
 
-router.get "/get_app_config", (req, res) ->
+router.get "/get_app_config", timeout(Config.Values.REQUEST_TIMEOUT, {respond: false}), (req, res) ->
+    req.on "timeout", () =>
+        onRequestTimeout(res)
     log.debug "Get config"
     res.json Config.Values
     return
 
-router.get "/get_config/:component", (req, res) =>
+router.get "/get_config/:component", timeout(Config.Values.REQUEST_TIMEOUT, {respond: false}), (req, res) =>
+    req.on "timeout", () =>
+        onRequestTimeout(res)
     try
         component = req.params.component
         log.debug "Getting config:", component
         ConfigService.getConfig component, (config) =>
+            "Got response from the endpoint service."
             template = {}
             if config.ConfigData.length isnt 0
                 newObject = VirtDBConnector.Convert.ToObject VirtDBConnector.Convert.ToNew config
@@ -138,7 +172,9 @@ router.get "/get_config/:component", (req, res) =>
         res.status(500).send "Error occured: " + ex
         return
 
-router.post "/set_config/:component", (req, res) =>
+router.post "/set_config/:component", timeout(Config.Values.REQUEST_TIMEOUT, {respond: false}), (req, res) =>
+    req.on "timeout", () =>
+        onRequestTimeout(res)
     try
         component = req.params.component
         config = req.body
@@ -157,7 +193,8 @@ router.post "/set_config/:component", (req, res) =>
             ConfigData: KeyValue.parseJSON(scopedConfig)
 
         ConfigService.sendConfig configMessage
-        res.status(200).send()
+        if not res.headersSent
+            res.status(200).send()
 
     catch ex
         log.error ex
