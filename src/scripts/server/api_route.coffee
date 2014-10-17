@@ -5,6 +5,7 @@ util = require "util"
 DataProvider = require "./data_provider_connector"
 DBConfig = require "./db_config_connector"
 Config = require "./config"
+VirtDBConnector = require "virtdb-connector"
 VirtDBLoader = require "./virtdb_loader"
 KeyValue = require "./key_value"
 ConfigService = require "./config_service"
@@ -113,18 +114,22 @@ router.get "/get_config/:component", (req, res) =>
         ConfigService.getConfig component, (config) =>
             template = {}
             if config.ConfigData.length isnt 0
+                newObject = VirtDBConnector.Convert.ToObject VirtDBConnector.Convert.ToNew config
                 for scope in config.ConfigData
                     if scope.Key is ""
-                        template = (KeyValue.toJSON scope)[""]
-                        log.debug "template", template
-                        res.json template
-                # for scope in config.ConfigData
-                #     if scope.Key isnt ""
-                #         filledConfig = (KeyValue.toJSON scope)[scope.Key]
-                #         for property, setting of filledConfig
-                #             if setting.Value.length isnt 0
-                #                 template[property][Value].push setting.Value[0]
-
+                        resultArray = []
+                        for child in scope.Children
+                            item =
+                                Name: child.Key
+                                Data: {}
+                            for variable in child.Children
+                                convertedVariable = KeyValue.toJSON variable
+                                item.Data[variable.Key] = convertedVariable[variable.Key]
+                            resultArray.push item
+                        convertedTemplate = (KeyValue.toJSON scope)[""]
+                        for item in resultArray
+                            item.Data.Value.Value.push newObject[item.Data.Scope.Value[0]]?[item.Name]
+                        res.json resultArray
             else
                 res.json {}
     catch ex
@@ -136,15 +141,15 @@ router.post "/set_config/:component", (req, res) =>
     try
         component = req.params.component
         config = req.body
-        log.debug "Setting config:", component, config
 
         scopedConfig = {}
-        scopedConfig[""] = config
-        for property, configObj of config
-            scope = configObj.Scope.Value[0]
+        scopedConfig[""] = {}
+        for item in config
+            scopedConfig[""][item.Name] = item.Data
+            scope = item.Data.Scope.Value[0]
             scopedConfig[scope] ?= {}
-            scopedConfig[scope][property] ?= JSON.parse(JSON.stringify(configObj.Value))
-            configObj.Value.Value = []
+            scopedConfig[scope][item.Name] ?= JSON.parse(JSON.stringify(item.Data.Value))
+            item.Data.Value.Value = []
 
         configMessage =
             Name: component
