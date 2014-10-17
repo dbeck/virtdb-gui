@@ -28,7 +28,7 @@ app.controller 'DataProviderController',
             @providers = []
 
             @tableMetaData = {}
-            @tableData = {}
+            @tableData = null
             @tableList = []
             @fieldList = []
             @currentTable = ''
@@ -85,13 +85,13 @@ app.controller 'DataProviderController',
             return
 
         getData: () =>
-            @tableData = {}
+            @tableData = null
             @$http.get(@requests.dataTable @currentTable, @limit).success (data) =>
                 @tableData = data
             return
 
         selectTable: (table) =>
-            @tableData = {}
+            @tableData = null
             @currentTable = table
             @getMetaData()
             return

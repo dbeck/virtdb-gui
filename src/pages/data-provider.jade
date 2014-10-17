@@ -30,21 +30,21 @@ div
                 table.table.table-bordered(ng-hide='dataProvider.isHeaderColumn')
                     tr
                         th(
-                            ng-repeat='(field, dataColumn) in dataProvider.tableData'
-                            ng-click="dataProvider.selectField(field)"
-                            ng-class="{active: dataProvider.currentField === field}") {{field}}
+                            ng-repeat='field in dataProvider.tableData'
+                            ng-click="dataProvider.selectField(field.Name)"
+                            ng-class="{active: dataProvider.currentField === field.Name}") {{field.Name}}
                     tr(ng-repeat='index in dataProvider.rowIndexes')
                         td(
-                            ng-repeat='(field, dataColumn) in dataProvider.tableData'
-                            ng-click="dataProvider.selectField(field)"
-                            ng-class="{active: dataProvider.currentField === field}") {{dataColumn[index]}}
+                            ng-repeat='field in dataProvider.tableData'
+                            ng-click="dataProvider.selectField(field.Name)"
+                            ng-class="{active: dataProvider.currentField === field.Name}") {{field.Data[index]}}
                 table.table.table-bordered(ng-show='dataProvider.isHeaderColumn')
                     tr(
-                        ng-repeat='(field, dataColumn) in dataProvider.tableData'
-                        ng-click="dataProvider.selectField(field)"
-                        ng-class="{active: dataProvider.currentField == field}")
-                        th {{field}}
-                        td(ng-repeat='cell in dataColumn track by $index') {{cell}}
+                        ng-repeat='field in dataProvider.tableData'
+                        ng-click="dataProvider.selectField(field.Name)"
+                        ng-class="{active: dataProvider.currentField == field.Name}")
+                        th {{field.Name}}
+                        td(ng-repeat='cell in field.Data track by $index') {{cell}}
         div.col-md-3
             h3 Meta data
                 h4 Comments

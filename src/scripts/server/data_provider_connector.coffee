@@ -215,17 +215,13 @@ class ColumnReceiver
     _columnEndOfData: null
 
     constructor: (@_readyCallback, @_fields) ->
-        @_columns = {}
+        @_columns = []
         @_columnEndOfData = {}
         for field in @_fields
             @_columnEndOfData[field.name] = false
 
     add: (column) =>
-        if @_columns[column.Name]?
-            #TODO append data properly
-            log.debug "Append data to the already received ones"
-        else
-            @_columns[column.Name] = FieldData.get(column)
+        @_add column.Name, FieldData.get column
 
         if not column.EndOfData
             log.debug "More data will come in this column."
@@ -236,11 +232,23 @@ class ColumnReceiver
 
         return
 
+    _contains: (columnName) =>
+        for column in @_columns
+            if column.Name == columnName
+                return true
+        return false
+
+    _add: (columnName, data) =>
+        if @_contains columnName
+            #TODO append data properly
+            log.debug "Append data to the already received ones"
+        else
+            @_columns.push
+                Name: columnName
+                Data: data
+
     _checkReceivedColumns: () =>
-        for field in @_fields
-            if not @_columns[field.Name]? or not @_columnEndOfData[field.Name]
-                return false
-        return true
+        @_fields.length == @_columns.length
 
 
 module.exports = DataProvider
