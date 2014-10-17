@@ -85,7 +85,7 @@ class DataProvider
     @_fillTableNamesCache: (provider, onReady) =>
         @checkTableNamesCache(provider)
         if @_tableNamesCache[provider].length isnt 0
-            log.debug "Serving table names from cahce.", provider
+            log.debug "Serving table names from cache.", provider
             onReady()
         else
             log.debug "Cache for the current provider is empty."
