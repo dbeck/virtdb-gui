@@ -50,7 +50,7 @@ class EndpointService
                     if @address in conn.Address
                         @name = endpoint.Name
                         break
-            return @getComponentAddress(@name)
+            return @getComponentAddresses(@name)
 
         getEndpoints: () =>
             @endpoints
@@ -71,7 +71,7 @@ class EndpointService
 
         _onMessage: (reply) =>
             @endpoints = (serviceConfigProto.parse reply, "virtdb.interface.pb.Endpoint").Endpoints
-            @_subscribeEndpoints() unless @pubsubSocket
+            @_subscribeEndpoints() unless @pubsubSocket?
             return
 
         _requestEndpoints: () =>
@@ -85,7 +85,10 @@ class EndpointService
             return
 
         _onPublishedMessage: (channelId, message) =>
-            data = (serviceConfigProto.parse message, "virtdb.interface.pb.Endpoint")
+            data = serviceConfigProto.parse message, "virtdb.interface.pb.Endpoint"
+            log.debug "Got published message from endpoint service."
+            log.debug "channel:", channelId.toString()
+            log.debug "data:", data
             for newEndpoint in data.Endpoints
                 for endpoint in @endpoints
                     if endpoint.Name == newEndpoint.Name and endpoint.SvcType == newEndpoint.SvcType
@@ -94,15 +97,15 @@ class EndpointService
                 @endpoints = @endpoints.concat newEndpoint
 
         _subscribeEndpoints: () =>
-            @pubsubSocket = zmq.socket(Const.ZMQ_SUB)
-            @pubsubSocket.on "message", @_onPublishedMessage
-            for connection in @serviceConfigConnections when connection.Type is Const.SOCKET_TYPE.PUB_SUB
-                for address in connection.Address
-                    try
-                        @pubsubSocket.connect address
-                    catch ex
-                        continue
-                    @pubsubSocket.subscribe Const.EVERY_CHANNEL
-                    break
+            try
+                @pubsubSocket = zmq.socket(Const.ZMQ_SUB)
+                @pubsubSocket.on "message", @_onPublishedMessage
+                connections = @getConfigServiceAddresses()
+                address = connections[Const.ENDPOINT_TYPE.ENDPOINT][Const.SOCKET_TYPE.PUB_SUB][0]
+                @pubsubSocket.connect address
+                @pubsubSocket.subscribe Const.EVERY_CHANNEL
+                log.debug "Subscribed to endpoint service", address
+            catch ex
+                log.debug "Couldn't subscribe to endpoint service", ex
 
 module.exports = EndpointService
