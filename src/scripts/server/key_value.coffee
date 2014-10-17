@@ -25,22 +25,22 @@ class KeyValue
     @toJSON = (data) =>
         if data.length is 0
             return {}
-        @_processKeyValue(data, {})
+        return @_processKeyValue(data)
 
-    @_processKeyValue = (data, result) =>
+    @_processKeyValue = (data) =>
+        result = {}
         if data.Value?
             valueType = @_selectValue data.Value
             result[data.Key] =
                 Type: data.Value.Type
                 Value: data.Value[valueType]
-            return result
         else
             if data.Children.length isnt 0
-                obj = {}
+                result[data.Key] = {}
                 for child in data.Children
-                    obj = @_processKeyValue child, obj
-                result[data.Key] = obj
-                return result
+                    result[data.Key][child.Key] = (@_processKeyValue child)[child.Key]
+        return result
+
 
     @_selectValue = (value) =>
         switch value.Type
