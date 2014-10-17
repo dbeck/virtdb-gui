@@ -89,6 +89,7 @@ router.post "/db_config", (req, res) ->
     try
         DataProvider.getTableMeta provider, table, (metaData) ->
             DBConfig.addTable(provider, metaData)
+            res.status(200).send()
             return
     catch ex
         log.error ex
