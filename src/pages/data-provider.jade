@@ -3,8 +3,7 @@ div
         div.panel-heading
             div.panel-title Data providers
         div.panel-body
-            div(ng-repeat="provider in dataProvider.providers")
-                button.btn.btn-default(ng-click="dataProvider.selectProvider(provider)" ng-class="{active: currentProvider == provider}") {{provider}}
+            button.btn.btn-default(ng-repeat="provider in dataProvider.providers" ng-click="dataProvider.selectProvider(provider)" ng-class="{active: currentProvider == provider}") {{provider}}
     div.row
         div.col-md-3(ng-controller='DBConfigController as dbConfig')
             h3 Tables
