@@ -60,21 +60,37 @@ app.controller 'DataProviderController',
             if provider is @currentProvider
                 return
             @currentProvider = provider
-            @tableList = []
-            @currentTablePosition = 0
+            @resetTableFilter()
             @$rootScope.currentProvider = @currentProvider
             @requests.setDataProvider @currentProvider
             if @currentProvider
                 @getTableList()
 
+        resetTableFilter: () =>
+            @tableList = []
+            @currentTablePosition = 0
+            @currentSearchPattern = ""
+            @$scope.tableNamesFrom = 0
+            @$scope.tableNamesTo = 0
+            @$scope.tableNamesCount = 0
+
         getTableList: () =>
-            @$http.get(@requests.metaDataTableNames(@currentTablePosition, @currentTablePosition + @tableCount)).success (data) =>
-                if data.length is 0
+            @tableList = []
+            @$http.get(@requests.metaDataTableNames(@currentSearchPattern, @currentTablePosition + 1, @currentTablePosition + @tableCount)).success (data) =>
+                @$scope.tableNamesCount = data.count
+                if data.count > 0
+                    @$scope.tableNamesFrom = data.from + 1
+                    @$scope.tableNamesTo = data.to + 1
+                else
+                    @$scope.tableNamesFrom = data.from
+                    @$scope.tableNamesTo = data.to
+
+                if data.results.length is 0
                     @isMoreTable = false
                     return
 
-                @isMoreTable = data.length is @tableCount
-                @tableList = data
+                @isMoreTable = data.results.length is @tableCount
+                @tableList = data.results
             return
 
         getMetaData: () =>
@@ -115,8 +131,5 @@ app.controller 'DataProviderController',
                 @getTableList()
 
         searchTableNames: () =>
-            if @currentSearchPattern.length > 1
-                @$http.get(@requests.metaDataTableNamesSearch(@currentSearchPattern)).success (data) =>
-                    @tableList = data
-            else
-                @getTableList()
+            @currentTablePosition = 0
+            @getTableList()

@@ -7,14 +7,20 @@ div
     div.row
         div.col-md-3(ng-controller='DBConfigController as dbConfig')
             h3 Tables
-            div.input-group
-                span.input-group-addon Search
-                input.form-control(type="text" ng-model="dataProvider.currentSearchPattern" ng-change="dataProvider.searchTableNames()")
-            ul.pager
-                li.previous
-                    a(ng-click="dataProvider.getPreviousTables()") &laquo;
-                li.next
-                    a(ng-click="dataProvider.getNextTables()") &raquo;
+            div.row
+                div.col-md-3
+                    div.input-group
+                        div.input-group-btn
+                            button.btn.btn-default(ng-click="dataProvider.getPreviousTables()")
+                                span.glyphicon.glyphicon-chevron-left
+                            button.btn.btn-default(ng-click="dataProvider.getNextTables()")
+                                span.glyphicon.glyphicon-chevron-right
+                div.col-md-9
+                    div.input-group
+                        span.input-group-addon
+                            span.glyphicon.glyphicon-search
+                        input.form-control(type="text" ng-model="dataProvider.currentSearchPattern" ng-change="dataProvider.searchTableNames()")
+            div Count: {{tableNamesCount}} Displaying: {{tableNamesFrom}} - {{tableNamesTo}}
             table.table
                 tr(ng-repeat="table in dataProvider.tableList" ng-class="{active: dataProvider.currentTable == table}")
                     td

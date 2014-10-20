@@ -61,11 +61,24 @@ class DataProvider
             catch e
                 onData []
 
-    @getTableNames: (provider, from, to, onReady) =>
+    @getTableNames: (provider, search, from, to, onReady) =>
         try
             @_fillTableNamesCache provider, () =>
-                realTo = Math.min(to, @_tableNamesCache[provider].length)
-                onReady @_tableNamesCache[provider].slice from, realTo
+                results = []
+                if not search?
+                    results = @_tableNamesCache[provider]
+                else
+                    for table in @_tableNamesCache[provider]
+                        if table.toLowerCase().indexOf(search.toLowerCase()) isnt -1
+                            results.push table
+                realFrom = Math.max(0, from - 1)
+                realTo = Math.min(to - 1, Math.max(results.length - 1, 0))
+                result =
+                    from: realFrom
+                    to: realTo
+                    count: results.length
+                    results: results[realFrom..realTo]
+                onReady result
         catch ex
             log.error "Couldn't get table names.", ex
             onReady []
