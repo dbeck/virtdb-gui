@@ -37,7 +37,7 @@ class DataProvider
 
         if not @_tableMetaCache[provider][table]?
             log.debug "The requested table is not in cache."
-            log.debug "Getting table meta from provider"
+            log.debug "Requesting table meta from provider"
             connection = DataProviderConnection.getConnection(provider)
             try
                 table = @_processTableName tableName
@@ -90,7 +90,7 @@ class DataProvider
             onReady()
         else
             log.debug "Cache for the current provider is empty."
-            log.debug "Getting table names from provider"
+            log.debug "Requesting table names from provider"
             connection = DataProviderConnection.getConnection(provider)
             try
                 connection.getMetadata ".*", ".*", false, (metaData) =>
@@ -151,7 +151,7 @@ class DataProviderConnection
         @_metaDataSocket.connect(@metaDataAddress)
         @_metaDataSocket.on "message", (data) =>
             metaData = MetaDataProto.parse data, "virtdb.interface.pb.MetaData"
-            log.trace "Got metadata:", metaData
+            log.debug "Got metadata"
             onMetaData metaData
             return
 
