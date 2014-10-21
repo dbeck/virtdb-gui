@@ -36,4 +36,4 @@ class Requests
 
     formatString = (format, args...) =>
         return format.replace /{(\d+)}/g, (match, number) ->
-          return if typeof args[number] != 'undefined' then args[number] else match
+          return if typeof args[number] != 'undefined' then encodeURIComponent(args[number]) else match
