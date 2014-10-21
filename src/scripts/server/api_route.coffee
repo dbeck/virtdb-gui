@@ -52,39 +52,25 @@ router.get "/data_provider/:provider/meta_data/table/:table", timeout(Config.Val
         res.status(500).send "Error occured: " + ex
         return
 
-router.get "/data_provider/:provider/meta_data/table_names/from/:from/to/:to", timeout(Config.Values.REQUEST_TIMEOUT, {respond: false}), (req, res) ->
+getTableNames = (req, res) ->
     req.on "timeout", () =>
         onRequestTimeout(res)
     provider = req.params.provider
     from = Number(req.params.from)
     to = Number(req.params.to)
-
-    try
-        DataProvider.getTableNames provider, from, to, (tableNames) ->
-            if not res.headersSent
-                res.json tableNames
-            return
-    catch ex
-        log.error ex
-        res.status(500).send "Error occured: " + ex
-        return
-
-router.get "/data_provider/:provider/meta_data/table_names/search/:search", timeout(Config.Values.REQUEST_TIMEOUT, {respond: false}), (req, res) ->
-    req.on "timeout", () =>
-        onRequestTimeout(res)
-
-    provider = req.params.provider
     search = req.params.search
-
     try
-        DataProvider.searchTableNames provider, search, (tableNames) ->
+        DataProvider.getTableNames provider, search, from, to, (result) ->
             if not res.headersSent
-                res.json tableNames
+                res.json result
             return
     catch ex
         log.error ex
         res.status(500).send "Error occured: " + ex
         return
+
+router.get "/data_provider/:provider/meta_data/table_names/search/:search/from/:from/to/:to", timeout(Config.Values.REQUEST_TIMEOUT, {respond: false}), getTableNames
+router.get "/data_provider/:provider/meta_data/table_names/search//from/:from/to/:to", timeout(Config.Values.REQUEST_TIMEOUT, {respond: false}), getTableNames
 
 router.get "/data_provider/:provider/data/table/:table/count/:count", timeout(Config.Values.REQUEST_TIMEOUT, {respond: false}), (req, res) ->
     req.on "timeout", () =>
@@ -130,6 +116,7 @@ router.post "/set_app_config", timeout(Config.Values.REQUEST_TIMEOUT, {respond: 
     for key, value of req.body
         Config.Values[key] = value
     VirtDBLoader.start()
+    res.status(200).send()
     return
 
 router.get "/get_app_config", timeout(Config.Values.REQUEST_TIMEOUT, {respond: false}), (req, res) ->
