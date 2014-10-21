@@ -72,23 +72,6 @@ getTableNames = (req, res) ->
 router.get "/data_provider/:provider/meta_data/table_names/search/:search/from/:from/to/:to", timeout(Config.Values.REQUEST_TIMEOUT, {respond: false}), getTableNames
 router.get "/data_provider/:provider/meta_data/table_names/search//from/:from/to/:to", timeout(Config.Values.REQUEST_TIMEOUT, {respond: false}), getTableNames
 
-router.get "/data_provider/:provider/meta_data/table_names/search/:search", timeout(Config.Values.REQUEST_TIMEOUT, {respond: false}), (req, res) ->
-    req.on "timeout", () =>
-        onRequestTimeout(res)
-
-    provider = req.params.provider
-    search = req.params.search
-
-    try
-        DataProvider.searchTableNames provider, search, (tableNames) ->
-            if not res.headersSent
-                res.json tableNames
-            return
-    catch ex
-        log.error ex
-        res.status(500).send "Error occured: " + ex
-        return
-
 router.get "/data_provider/:provider/data/table/:table/count/:count", timeout(Config.Values.REQUEST_TIMEOUT, {respond: false}), (req, res) ->
     req.on "timeout", () =>
         onRequestTimeout(res)

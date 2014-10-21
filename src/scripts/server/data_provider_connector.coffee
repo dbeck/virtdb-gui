@@ -83,18 +83,6 @@ class DataProvider
             log.error "Couldn't get table names.", ex
             onReady []
 
-    @searchTableNames: (provider, search, onReady) =>
-        try
-            @_fillTableNamesCache provider, () =>
-                results = []
-                for table in @_tableNamesCache[provider]
-                    if table.toLowerCase().indexOf(search.toLowerCase()) isnt -1
-                        results.push table
-                onReady results
-        catch ex
-            log.error "Couldn't search table names.", ex
-            onReady []
-
     @_fillTableNamesCache: (provider, onReady) =>
         @checkTableNamesCache(provider)
         if @_tableNamesCache[provider].length isnt 0
