@@ -75,6 +75,7 @@ app.controller 'DataProviderController',
             @$scope.tableNamesFrom = 0
             @$scope.tableNamesTo = 0
             @$scope.tableNamesCount = 0
+            @currentField = ""
 
         getTableList: () =>
             @tableList = []
