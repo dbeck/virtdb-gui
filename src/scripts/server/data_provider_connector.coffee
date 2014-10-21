@@ -8,6 +8,8 @@ FieldData = require "./fieldData"
 Const = (require "virtdb-connector").Constants
 Config = require "./config"
 util = require "util"
+NodeCache = require "node-cache"
+ms = require "ms"
 
 log.setLevel "debug"
 require("source-map-support").install()
@@ -16,41 +18,45 @@ DataProto = new protobuf(fs.readFileSync("common/proto/data.pb.desc"))
 MetaDataProto = new protobuf(fs.readFileSync("common/proto/meta_data.pb.desc"))
 CommonProto = new protobuf(fs.readFileSync("common/proto/common.pb.desc"))
 
+CACHE_TTL = ms(Config.Values.CACHE_TTL)/1000
+CACHE_CHECK_PERIOD = ms(Config.Values.CACHE_CHECK_PERIOD)/1000
+
+
 class DataProvider
 
-    @_tableNamesCache = {}
-    @_tableMetaCache = []
+    @_tableNamesCache = new NodeCache({ stdTTL: CACHE_TTL, checkperiod: CACHE_CHECK_PERIOD})
+    @_tableNamesCache.on "expired", (key, value) =>
+        log.debug "Table names cache expired:", key
 
-    @checkTableNamesCache: (provider, schema) =>
-        if not @_tableNamesCache[provider]?
-            log.debug "Table name cache for the provider: #{provider} is not existing yet."
-            @_tableNamesCache[provider] = []
+    @_tableMetaCache = []
 
     @checkTableMetaCache: (provider) =>
         if not @_tableMetaCache[provider]?
             log.debug "Table meta cache for the provider: #{provider} is not existing yet."
-            @_tableMetaCache[provider] = []
-
+            @_tableMetaCache[provider] = new NodeCache({ stdTTL: CACHE_TTL, checkperiod: CACHE_CHECK_PERIOD })
+            @_tableMetaCache[provider].on "expired", (key, value) =>
+                    log.debug "Table meta cache expired:", provider, ":", key
 
     @getTableMeta: (provider, tableName, onReady) =>
         @checkTableMetaCache(provider)
 
-        if not @_tableMetaCache[provider][table]?
+        cachedTable = @_tableMetaCache[provider].get(tableName)
+        if cachedTable? and Object.keys(cachedTable).length is 0
             log.debug "The requested table is not in cache."
-            log.debug "Getting table meta from provider"
+            log.debug "Requesting table meta from provider"
             connection = DataProviderConnection.getConnection(provider)
             try
                 table = @_processTableName tableName
                 connection.getMetadata table.Schema, table.Name, true, (metaData) =>
                     tableMeta = metaData.Tables[0]
-                    @_tableMetaCache[provider][table] = tableMeta
-                    onReady @_tableMetaCache[provider][table]
+                    @_tableMetaCache[provider].set(tableName, tableMeta)
+                    onReady tableMeta
             catch ex
                 log.error "Couldn't get table meta.", ex
                 onReady []
         else
             log.debug "The requested table is in cache."
-            onReady @_tableMetaCache[provider][table]
+            onReady cachedTable[tableName]
 
     @getData: (provider, tableName, count, onData) =>
         @getTableMeta provider, tableName, (tableMeta) =>
@@ -63,12 +69,12 @@ class DataProvider
 
     @getTableNames: (provider, search, from, to, onReady) =>
         try
-            @_fillTableNamesCache provider, () =>
+            @_fillTableNamesCache provider, (tableNameList) =>
                 results = []
                 if not search?
-                    results = @_tableNamesCache[provider]
+                    results = tableNameList
                 else
-                    for table in @_tableNamesCache[provider]
+                    for table in tableNameList
                         if table.toLowerCase().indexOf(search.toLowerCase()) isnt -1
                             results.push table
                 realFrom = Math.max(0, from - 1)
@@ -84,23 +90,25 @@ class DataProvider
             onReady []
 
     @_fillTableNamesCache: (provider, onReady) =>
-        @checkTableNamesCache(provider)
-        if @_tableNamesCache[provider].length isnt 0
+        # @checkTableNamesCache(provider)
+        tableNameList = @_tableNamesCache.get(provider)[provider]
+        if util.isArray tableNameList
             log.debug "Serving table names from cache.", provider
-            onReady()
+            onReady tableNameList
         else
             log.debug "Cache for the current provider is empty."
-            log.debug "Getting table names from provider"
+            log.debug "Requesting table names from provider"
             connection = DataProviderConnection.getConnection(provider)
             try
                 connection.getMetadata ".*", ".*", false, (metaData) =>
-                    @_tableNamesCache[provider] = []
+                    tableList = []
                     for table in metaData.Tables
                         if table.Schema?
-                            @_tableNamesCache[provider].push table.Schema + "." + table.Name
+                            tableList.push table.Schema + "." + table.Name
                         else
-                            @_tableNamesCache[provider].push table.Name
-                    onReady()
+                            tableList.push table.Name
+                    @_tableNamesCache.set(provider, tableList)
+                    onReady tableList
             catch ex
                 log.error "Couldn't fill table names cache.", provider, ex
                 throw ex
@@ -151,7 +159,7 @@ class DataProviderConnection
         @_metaDataSocket.connect(@metaDataAddress)
         @_metaDataSocket.on "message", (data) =>
             metaData = MetaDataProto.parse data, "virtdb.interface.pb.MetaData"
-            log.trace "Got metadata:", metaData
+            log.debug "Got metadata"
             onMetaData metaData
             return
 

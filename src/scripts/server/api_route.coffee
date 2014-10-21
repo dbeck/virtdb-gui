@@ -44,7 +44,11 @@ router.get "/data_provider/:provider/meta_data/table/:table", timeout(Config.Val
 
     try
         DataProvider.getTableMeta provider, table, (metaData) ->
+            log.debug "Try to send, response to meta data request:", metaData.Name
             if not res.headersSent
+                for id, field of metaData.Fields
+                    props = KeyValue.toJSON {Key: "Properties", Children: field.Properties}
+                    field.Properties = props.Properties
                 res.json metaData
             return
     catch ex

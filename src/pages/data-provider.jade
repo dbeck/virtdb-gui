@@ -56,5 +56,7 @@ div
                 div.container(ng-repeat='comment in currentMeta.Comments')
                     div {{comment.Text}}
                 h4 Properties
-                div.container(ng-repeat='(key, value) in currentMeta.Properties')
-                    span {{key}}:{{value}}
+                table.table
+                    tr(ng-repeat='(key, value) in currentMeta.Properties')
+                        td {{key}}
+                        td {{value.Value[0]}}
