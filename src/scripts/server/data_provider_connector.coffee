@@ -63,6 +63,7 @@ class DataProvider
             connection = DataProviderConnection.getConnection(provider)
             try
                 connection.getData tableMeta.Schema, tableMeta.Name, tableMeta.Fields, count, (data) =>
+                    log.debug "Data received", tableMeta.Name
                     onData data
             catch e
                 onData []
@@ -189,7 +190,7 @@ class DataProviderConnection
         @_columnSocket.subscribe @queryId.toString()
         @_columnSocket.on "message", (channel, data) =>
             column = DataProto.parse data, "virtdb.interface.pb.Column"
-            log.debug "Got column on channel: channel=" + channel.toString() + " column=#{column.Name}"
+            log.trace "Got column on channel: channel=" + channel.toString() + " column=#{column.Name}"
             if column.CompType is "LZ4_COMPRESSION"
                 uncompressedData = new Buffer(column.UncompressedSize)
                 size = lz4.decodeBlock(column.CompressedData, uncompressedData)
@@ -233,7 +234,7 @@ class ColumnReceiver
         @_add column.Name, FieldData.get column
 
         if not column.EndOfData
-            log.debug "More data will come in this column."
+            log.trace "More data will come in this column."
         @_columnEndOfData[column.Name] = column.EndOfData
 
         if @_checkReceivedColumns()
@@ -250,7 +251,7 @@ class ColumnReceiver
     _add: (columnName, data) =>
         if @_contains columnName
             #TODO append data properly
-            log.debug "Append data to the already received ones"
+            log.trace "Append data to the already received ones"
         else
             @_columns.push
                 Name: columnName

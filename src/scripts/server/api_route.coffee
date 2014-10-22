@@ -46,11 +46,15 @@ router.get "/data_provider/:provider/meta_data/table/:table", timeout(Config.Val
         DataProvider.getTableMeta provider, table, (metaData) ->
             log.debug "Try to send, response to meta data request:", metaData.Name
             if not res.headersSent
-                for id, field of metaData.Fields
-                    props = KeyValue.toJSON {Key: "Properties", Children: field.Properties}
-                    field.Properties = props.Properties
-                res.json metaData
-            return
+                metaDataResponse = JSON.parse JSON.stringify metaData
+                for field in metaDataResponse.Fields
+                    properties = {}
+                    for prop in field.Properties
+                        formattedProp = KeyValue.toJSON prop
+                        for key, value of formattedProp
+                            properties[key] = value
+                    field.Properties = properties
+                res.json metaDataResponse
     catch ex
         log.error ex
         res.status(500).send "Error occured: " + ex

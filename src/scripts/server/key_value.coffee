@@ -23,7 +23,9 @@ class KeyValue
         return children
 
     @toJSON = (data) =>
-        if data.length is 0
+        if not data?
+            return data
+        if data?.length and data.length is 0
             return {}
         return @_processKeyValue(data)
 
