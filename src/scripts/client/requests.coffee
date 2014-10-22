@@ -9,9 +9,9 @@ class Requests
 
     _endpoints: '/api/endpoints'
 
-    _dataProviderMetaDataTableNames: '/api/data_provider/{0}/meta_data/table_names/search/{1}/from/{2}/to/{3}'
-    _dataProviderMetaDataTable: '/api/data_provider/{0}/meta_data/table/{1}'
-    _dataProviderDataTable: '/api/data_provider/{0}/data/table/{1}/count/{2}'
+    _dataProviderMetaDataTableNames: '/api/data_provider/{0}/meta_data/table_names/search/{1}/from/{2}/to/{3}/id/{4}'
+    _dataProviderMetaDataTable: '/api/data_provider/{0}/meta_data/table/{1}/id/{2}'
+    _dataProviderDataTable: '/api/data_provider/{0}/data/table/{1}/count/{2}/id/{3}'
     _dataProviderDataTableField: '/api/data_provider/{0}/data/table/{1}/field/{2}/count/{3}'
 
     _dbConfig: 'api/db_config'
@@ -19,14 +19,14 @@ class Requests
     endpoints: () =>
         return @_address + @_endpoints
 
-    metaDataTableNames: (search, from, to) =>
-        return @_address + formatString(@_dataProviderMetaDataTableNames, @_providerName, search, from, to)
+    metaDataTableNames: (search, from, to, id) =>
+        return @_address + formatString(@_dataProviderMetaDataTableNames, @_providerName, search, from, to, id)
 
-    metaDataTable: (table) =>
-        return @_address + formatString(@_dataProviderMetaDataTable, @_providerName, table)
+    metaDataTable: (table, id) =>
+        return @_address + formatString(@_dataProviderMetaDataTable, @_providerName, table, id)
 
-    dataTable: (table, count) =>
-        return @_address + formatString(@_dataProviderDataTable, @_providerName, table, count)
+    dataTable: (table, count, id) =>
+        return @_address + formatString(@_dataProviderDataTable, @_providerName, table, count, id)
 
     dataTableField: (table, field, count) =>
         return @_address + formatString(@_dataProviderDataTableField, @_providerName, table, field, count)
