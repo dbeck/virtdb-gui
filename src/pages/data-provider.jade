@@ -52,6 +52,11 @@ div
                         td(ng-repeat='cell in field.Data track by $index') {{cell}}
         div.col-md-3
             h3 Meta data
+                h4 Description
+                table.table
+                    tr(ng-repeat='(key, value) in fieldDescription')
+                        td {{key}}
+                        td {{value}}
                 h4 Comments
                 div.container(ng-repeat='comment in currentMeta.Comments')
                     div {{comment.Text}}

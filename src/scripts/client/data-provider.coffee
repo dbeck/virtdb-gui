@@ -69,6 +69,7 @@ app.controller 'DataProviderController',
         resetTableLevelView: () =>
             @tableData = {}
             @$scope.currentMeta = {}
+            @$scope.fieldDescription = {}
             @currentField = ""
 
         resetProviderLevelView: () =>
@@ -122,6 +123,7 @@ app.controller 'DataProviderController',
         selectField: (field) =>
             @currentField = field
             @$scope.currentMeta = fieldMeta for fieldMeta in @tableMetaData.Fields when fieldMeta.Name is field
+            @$scope.fieldDescription = @$scope.currentMeta.Desc
             return
 
         transposeData: () =>
