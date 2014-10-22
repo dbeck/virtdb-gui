@@ -2,7 +2,6 @@ app = angular.module 'virtdb'
 app.controller 'DataProviderController',
     class DataProviderController
 
-
         requests: null
         currentProvider: null
         providers: null
@@ -21,6 +20,8 @@ app.controller 'DataProviderController',
         isMoreTable: null
         tableCount: null
         currentSearchPattern: null
+
+        requestId: null
 
         constructor: (@$rootScope, @$scope, @$http) ->
             @requests = new Requests("")
@@ -42,6 +43,9 @@ app.controller 'DataProviderController',
             @currentSearchPattern = ""
             @$rootScope.currentProvider = ""
             @getDataProviders()
+
+            @requestId = {}
+
             return
 
         getDataProviders: () =>
@@ -84,7 +88,12 @@ app.controller 'DataProviderController',
 
         getTableList: () =>
             @tableList = []
-            @$http.get(@requests.metaDataTableNames(@currentSearchPattern, @currentTablePosition + 1, @currentTablePosition + @tableCount)).success (data) =>
+            @requestId["tableList"] = @generateRequestId()
+            @$http.get(@requests.metaDataTableNames(@currentSearchPattern, @currentTablePosition + 1, @currentTablePosition + @tableCount, @requestId["tableList"])).success (response) =>
+                if response.id isnt @requestId["tableList"]
+                    console.log "Table list response outdated."
+                    return
+                data = response.data
                 @$scope.tableNamesCount = data.count
                 if data.count > 0
                     @$scope.tableNamesFrom = data.from + 1
@@ -102,15 +111,25 @@ app.controller 'DataProviderController',
             return
 
         getMetaData: () =>
-            @$http.get(@requests.metaDataTable @currentTable).success (data) =>
+            @requestId["metaData"] = @generateRequestId()
+            @$http.get(@requests.metaDataTable @currentTable, @requestId["metaData"]).success (response) =>
+                if response.id isnt @requestId["metaData"]
+                    console.log "Meta data response outdated."
+                    return
+                data = response.data
                 @tableMetaData = data
                 @$scope.currentMeta = data
                 @getData()
             return
 
         getData: () =>
+            @requestId["data"] = @generateRequestId()
             @tableData = null
-            @$http.get(@requests.dataTable @currentTable, @limit).success (data) =>
+            @$http.get(@requests.dataTable @currentTable, @limit, @requestId["data"]).success (response) =>
+                if response.id isnt @requestId["data"]
+                    console.log "Data response outdated."
+                    return
+                data = response.data
                 @tableData = data
             return
 
@@ -142,3 +161,7 @@ app.controller 'DataProviderController',
         searchTableNames: () =>
             @currentTablePosition = 0
             @getTableList()
+
+        generateRequestId: () =>
+            id = Math.floor(Math.random() * 1000000) + 1
+            return id
