@@ -60,22 +60,27 @@ app.controller 'DataProviderController',
             if provider is @currentProvider
                 return
             @currentProvider = provider
-            @resetView()
+            @resetProviderLevelView()
             @$rootScope.currentProvider = @currentProvider
             @requests.setDataProvider @currentProvider
             if @currentProvider
                 @getTableList()
 
-        resetView: () =>
-            @tableList = []
+        resetTableLevelView: () =>
             @tableData = {}
             @$scope.currentMeta = {}
+            @$scope.fieldDescription = {}
+            @currentField = ""
+
+        resetProviderLevelView: () =>
+            @resetTableLevelView()
+            @currentTable = ""
+            @tableList = []
             @currentTablePosition = 0
             @currentSearchPattern = ""
             @$scope.tableNamesFrom = 0
             @$scope.tableNamesTo = 0
             @$scope.tableNamesCount = 0
-            @currentField = ""
 
         getTableList: () =>
             @tableList = []
@@ -110,7 +115,7 @@ app.controller 'DataProviderController',
             return
 
         selectTable: (table) =>
-            @tableData = null
+            @resetTableLevelView()
             @currentTable = table
             @getMetaData()
             return
@@ -118,6 +123,7 @@ app.controller 'DataProviderController',
         selectField: (field) =>
             @currentField = field
             @$scope.currentMeta = fieldMeta for fieldMeta in @tableMetaData.Fields when fieldMeta.Name is field
+            @$scope.fieldDescription = @$scope.currentMeta.Desc
             return
 
         transposeData: () =>
