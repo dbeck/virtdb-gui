@@ -33,7 +33,7 @@ app.controller 'ConfigurationController', ['$scope', '$http', ($scope, $http) ->
     @config = {}
 
     @setConfig = () =>
-        $http.post("http://localhost:3045/save", @config)
+        $http.post("/api/set_app_config", @config)
 
     @getConfig = () =>
         $http.get("/api/get_app_config").success (data) =>
