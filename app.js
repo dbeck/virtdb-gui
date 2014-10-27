@@ -5,7 +5,7 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var argv = require('minimist')(process.argv.slice(2))
-var VirtDBLoader = require("./src/scripts/server/out/virtdb_loader.js")
+var VirtDBLoader = require("./src/scripts/server/out/virtdb_loader")
 
 var EXPRESS_PORT = argv["port"] || 3000;
 var LIVERELOAD_PORT = 3001;
