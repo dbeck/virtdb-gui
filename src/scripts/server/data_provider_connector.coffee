@@ -108,7 +108,8 @@ class DataProvider
                             tableList.push table.Schema + "." + table.Name
                         else
                             tableList.push table.Name
-                    @_tableNamesCache.set(provider, tableList)
+                    if tableList.length > 0
+                        @_tableNamesCache.set(provider, tableList)
                     onReady tableList
             catch ex
                 log.error "Couldn't fill table names cache.", provider, ex
