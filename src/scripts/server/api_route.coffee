@@ -16,7 +16,7 @@ log.setLevel "debug"
 require('source-map-support').install()
 
 onRequestTimeout = (res) =>
-    res.status(503).send('Request timeout occured')
+    res.status(503).send('Request timeout occurred')
 
 # GET home page.
 router.get "/", timeout(Config.Values.REQUEST_TIMEOUT, {respond: false}), (req, res) ->
@@ -34,14 +34,16 @@ router.get "/endpoints", timeout(Config.Values.REQUEST_TIMEOUT, {respond: false}
             res.json serviceConfig.getEndpoints()
     catch ex
         log.error ex
-        res.status(500).send "Error occured: " + ex
+        res.status(500).send "Error occurred: " + ex
 
-router.get "/data_provider/:provider/meta_data/table/:table/id/:id", timeout(Config.Values.REQUEST_TIMEOUT, {respond: false}), (req, res) ->
+router.post "/data_provider/meta_data/", timeout(Config.Values.REQUEST_TIMEOUT, {respond: false}), (req, res) ->
+
     req.on "timeout", () =>
         onRequestTimeout(res)
-    provider = req.params.provider
-    table = req.params.table
-    id = Number req.params.id
+
+    provider = req.body.provider
+    table = req.body.table
+    id = Number req.body.id
 
     try
         DataProvider.getTableMeta provider, table, (metaData) ->
@@ -61,17 +63,19 @@ router.get "/data_provider/:provider/meta_data/table/:table/id/:id", timeout(Con
                 res.json response
     catch ex
         log.error ex
-        res.status(500).send "Error occured: " + ex
+        res.status(500).send "Error occurred: " + ex
         return
 
-getTableNames = (req, res) ->
+router.post "/data_provider/table_list", timeout(Config.Values.REQUEST_TIMEOUT, {respond: false}), (req, res) =>
+
     req.on "timeout", () =>
         onRequestTimeout(res)
-    provider = req.params.provider
-    from = Number(req.params.from)
-    to = Number(req.params.to)
-    search = req.params.search
-    id = Number req.params.id
+
+    provider = req.body.provider
+    from = Number req.body.from
+    to = Number req.body.to
+    search = req.body.search
+    id = Number req.body.id
 
     try
         DataProvider.getTableNames provider, search, from, to, (result) ->
@@ -80,23 +84,20 @@ getTableNames = (req, res) ->
                     data: result
                     id: id
                 res.json response
-            return
+                return
     catch ex
         log.error ex
-        res.status(500).send "Error occured: " + ex
+        res.status(500).send "Error occurred: " + ex
         return
 
-router.get "/data_provider/:provider/meta_data/table_names/search/:search/from/:from/to/:to/id/:id", timeout(Config.Values.REQUEST_TIMEOUT, {respond: false}), getTableNames
-router.get "/data_provider/:provider/meta_data/table_names/search//from/:from/to/:to/id/:id", timeout(Config.Values.REQUEST_TIMEOUT, {respond: false}), getTableNames
-
-router.get "/data_provider/:provider/data/table/:table/count/:count/id/:id", timeout(Config.Values.REQUEST_TIMEOUT, {respond: false}), (req, res) ->
+router.post "/data_provider/data", timeout(Config.Values.REQUEST_TIMEOUT, {respond: false}), (req, res) ->
     req.on "timeout", () =>
         onRequestTimeout(res)
 
-    provider = req.params.provider
-    table = req.params.table
-    count = req.params.count
-    id = Number req.params.id
+    provider = req.body.provider
+    table = req.body.table
+    count = req.body.count
+    id = Number req.body.id
 
     try
         DataProvider.getData provider, table, count, (data) =>
@@ -107,17 +108,15 @@ router.get "/data_provider/:provider/data/table/:table/count/:count/id/:id", tim
                 res.json response
     catch ex
         log.error ex
-        res.status(500).send "Error occured: " + ex
+        res.status(500).send "Error occurred: " + ex
         return
 
 router.post "/db_config", timeout(Config.Values.REQUEST_TIMEOUT, {respond: false}), (req, res) ->
     req.on "timeout", () =>
         onRequestTimeout(res)
 
-    log.debug req.body
     table = req.body.table
     provider = req.body.provider
-    tableMeta = null
 
     try
         DataProvider.getTableMeta provider, table, (metaData) ->
@@ -126,7 +125,7 @@ router.post "/db_config", timeout(Config.Values.REQUEST_TIMEOUT, {respond: false
             return
     catch ex
         log.error ex
-        res.status(500).send "Error occured: " + ex
+        res.status(500).send "Error occurred: " + ex
         return
 
 router.post "/set_app_config", timeout(Config.Values.REQUEST_TIMEOUT, {respond: false}), (req, res) ->
@@ -177,7 +176,7 @@ router.get "/get_config/:component", timeout(Config.Values.REQUEST_TIMEOUT, {res
                 res.json {}
     catch ex
         log.error ex
-        res.status(500).send "Error occured: " + ex
+        res.status(500).send "Error occurred: " + ex
         return
 
 router.post "/set_config/:component", timeout(Config.Values.REQUEST_TIMEOUT, {respond: false}), (req, res) =>
@@ -206,7 +205,7 @@ router.post "/set_config/:component", timeout(Config.Values.REQUEST_TIMEOUT, {re
 
     catch ex
         log.error ex
-        res.status(500).send "Error occured: " + ex
+        res.status(500).send "Error occurred: " + ex
         return
 
 module.exports = router

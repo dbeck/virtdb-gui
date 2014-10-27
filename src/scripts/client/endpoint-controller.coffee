@@ -3,7 +3,7 @@ app.controller 'EndpointController',
 class EndpointController
     endpoints: null
 
-    constructor: (@$http, @$scope, @$rootScope) ->
+    constructor: (@ServerConnector, @$http, @$scope, @$rootScope) ->
         @endpoints = []
         @requestEndpoints()
         @setupWatches()
@@ -22,10 +22,11 @@ class EndpointController
         return
 
     requestEndpoints: () =>
-        @$http.get("/api/endpoints").success (data) =>
-            @endpoints = data
-            @$scope.componentList = @getComponentList()
-        return
+        @ServerConnector.getEndpoints(
+            (data) =>
+                @endpoints = data
+                @$scope.componentList = @getComponentList()
+        )
 
     getComponentList: () =>
         components = []

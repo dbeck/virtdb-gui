@@ -72,7 +72,7 @@ class DataProvider
         try
             @_fillTableNamesCache provider, (tableNameList) =>
                 results = []
-                if not search?
+                if not search? or search.length is 0
                     results = tableNameList
                 else
                     for table in tableNameList

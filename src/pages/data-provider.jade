@@ -3,9 +3,9 @@ div
         div.panel-heading
             div.panel-title Data providers
         div.panel-body
-            button.btn.btn-default(ng-repeat="provider in dataProvider.providers" ng-click="dataProvider.selectProvider(provider)" ng-class="{active: currentProvider == provider}") {{provider}}
+            button.btn.btn-default(ng-repeat="_provider in dataProvider.providers" ng-click="dataProvider.selectProvider(_provider)" ng-class="{active: provider == _provider}") {{_provider}}
     div.row
-        div.col-md-3(ng-controller='DBConfigController as dbConfig')
+        div.col-md-3
             h3 Tables
             div.row
                 div.col-md-3
@@ -19,15 +19,15 @@ div
                     div.input-group
                         span.input-group-addon
                             span.glyphicon.glyphicon-search
-                        input.form-control(type="text" ng-model="dataProvider.currentSearchPattern" ng-change="dataProvider.searchTableNames()")
-            div Count: {{tableNamesCount}} Displaying: {{tableNamesFrom}} - {{tableNamesTo}}
+                        input.form-control(type="text" ng-model="search" ng-change="dataProvider.searchTableNames()")
+            div Count: {{tableListCount}} Displaying: {{tableListFrom}} - {{tableListTo}}
             table.table
-                tr(ng-repeat="table in dataProvider.tableList" ng-class="{active: dataProvider.currentTable == table}")
+                tr(ng-repeat="_table in dataProvider.tableList" ng-class="{active: table == _table}")
                     td
-                        input(type="checkbox" ng-model="check" ng-change="dbConfig.selectTable(table)")
-                    td(ng-click="dataProvider.selectTable(table)") {{table}}
+                        input(type="checkbox" ng-model="check" ng-change="dataProvider.selectTableToDBConfig(_table)")
+                    td(ng-click="dataProvider.selectTable(_table)") {{_table}}
             p
-                button.btn.ntn-default(ng-click='dbConfig.addTables()') Add
+                button.btn.ntn-default(ng-click='dataProvider.addTablesToDBConfig()') Add
         div.col-md-6
             h3 Data
             div.data-table
@@ -35,33 +35,33 @@ div
                 table.table.table-bordered(ng-hide='dataProvider.isHeaderColumn')
                     tr
                         th(
-                            ng-repeat='field in dataProvider.tableData'
-                            ng-click="dataProvider.selectField(field.Name)"
-                            ng-class="{active: dataProvider.currentField === field.Name}") {{field.Name}}
-                    tr(ng-repeat='index in dataProvider.rowIndexes')
+                            ng-repeat='_field in dataHeader'
+                            ng-click="dataProvider.selectField(_field)"
+                            ng-class="{active: field === _field}") {{_field}}
+                    tr(ng-repeat='row in dataRows')
                         td(
-                            ng-repeat='field in dataProvider.tableData'
-                            ng-click="dataProvider.selectField(field.Name)"
-                            ng-class="{active: dataProvider.currentField === field.Name}") {{field.Data[index]}}
+                            ng-repeat="(index, _field) in row track by $index"
+                            ng-click="dataProvider.selectField(dataHeader[index])"
+                            ng-class="{active: field === dataHeader[index]}") {{_field}}
                 table.table.table-bordered(ng-show='dataProvider.isHeaderColumn')
                     tr(
-                        ng-repeat='field in dataProvider.tableData'
-                        ng-click="dataProvider.selectField(field.Name)"
-                        ng-class="{active: dataProvider.currentField == field.Name}")
-                        th {{field.Name}}
-                        td(ng-repeat='cell in field.Data track by $index') {{cell}}
+                        ng-repeat="(index, header) in dataHeader"
+                        ng-click="dataProvider.selectField(header)"
+                        ng-class="{active: field == header}")
+                        th {{header}}
+                        td(ng-repeat='row in dataRows track by $index') {{row[index]}}
         div.col-md-3
             h3 Meta data
                 h4 Description
                 table.table
-                    tr(ng-repeat='(key, value) in fieldDescription')
+                    tr(ng-repeat="(key, value) in metaData.Desc")
                         td {{key}}
                         td {{value}}
                 h4 Comments
-                div.container(ng-repeat='comment in currentMeta.Comments')
+                div.container(ng-repeat="comment in metaData.Comments")
                     div {{comment.Text}}
                 h4 Properties
                 table.table
-                    tr(ng-repeat='(key, value) in currentMeta.Properties')
+                    tr(ng-repeat="(key, value) in metaData.Properties")
                         td {{key}}
                         td {{value.Value[0]}}
