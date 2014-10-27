@@ -7,11 +7,6 @@ app.config ($routeProvider) ->
             controller  : 'DataProviderController',
             controllerAs: 'dataProvider',
         }
-        .when '/diagnostics', {
-            templateUrl : '../pages/diagnostics.html',
-            controller  : 'DiagnosticsController',
-            controllerAs: 'diag',
-        }
         .when '/endpoints', {
             templateUrl : '../pages/endpoints.html',
             controller  : 'EndpointController',
@@ -22,10 +17,6 @@ app.config ($routeProvider) ->
             controller  : 'ConfigurationController',
             controllerAs: 'cfg',
         }
-    return
-
-app.controller 'DiagnosticsController', ($scope) ->
-    @endpoint = 'diagnostics'
     return
 
 app.controller 'ConfigurationController', ['$scope', '$http', ($scope, $http) ->
