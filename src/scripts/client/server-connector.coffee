@@ -3,7 +3,7 @@ app.factory 'ServerConnector', ['$http', 'ErrorService', ($http, ErrorService) -
     new class ServerConnector
 
         constructor: () ->
-            @address = "http://localhost:3000"
+            @address = ""
             @obsoleteIdList = []
 
         getEndpoints: (onSuccess, onError) =>
