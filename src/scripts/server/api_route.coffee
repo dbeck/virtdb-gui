@@ -76,9 +76,10 @@ router.post "/data_provider/table_list", timeout(Config.Values.REQUEST_TIMEOUT, 
     to = Number req.body.to
     search = req.body.search
     id = Number req.body.id
+    tablesToFilter = req.body.tables
 
     try
-        DataProvider.getTableNames provider, search, from, to, (result) ->
+        DataProvider.getTableNames provider, search, from, to, tablesToFilter, (result) ->
             if not res.headersSent
                 response =
                     data: result

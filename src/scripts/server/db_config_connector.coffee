@@ -16,10 +16,14 @@ dbConfigProto = new protobuf(fs.readFileSync("common/proto/db_config.pb.desc"))
 class DBConfig
 
     @addTable: (provider, tableMeta) =>
-        log.debug "Adding table: #{tableMeta.Name} of provider: #{provider} to the db config"
+        if not tableMeta?
+            log.error "Couldn't add table to the db config due to a problem with the meta data:", tableMeta
+            return
+
         connection = DBConfigConnection.getConnection(Config.Values.DB_CONFIG_SERVICE)
         try
             connection.sendServerConfig provider, tableMeta
+            log.debug "Table added to the db config:", tableMeta.Name, provider
         catch ex
             return
 
