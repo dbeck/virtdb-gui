@@ -2,147 +2,139 @@ app = angular.module 'virtdb'
 app.controller 'DataProviderController',
     class DataProviderController
 
-        requests: null
-        currentProvider: null
-        providers: null
+        @TABLE_LIST_DISPLAY_COUNT = 10
+        @DATA_LIMIT = 20
 
-        tableMetaData: null
-        tableData: null
-        tableList: null
-        fieldList: null
-        currentTable: null
-        currentField: null
-        limit: null
-        rowIndexes: null
-        isHeaderColumn: null
+        constructor: (@$rootScope, @$scope, @$http, @ServerConnector) ->
 
-        currentTablePosition: null
-        isMoreTable: null
-        tableCount: null
-        currentSearchPattern: null
-
-        requestId: null
-
-        constructor: (@$rootScope, @$scope, @$http) ->
-            @requests = new Requests("")
-            @currentProvider = ''
+            @selectedTables = []
             @providers = []
+            @requestIds = {}
 
-            @tableMetaData = {}
-            @tableData = null
-            @tableList = []
-            @fieldList = []
-            @currentTable = ''
-            @currentField = ''
-            @limit = 10
-            @rowIndexes = [0..@limit-1]
+            @tableMetaData = null
+            @tableList = null
+
             @isHeaderColumn = false
-            @currentTablePosition = 0
+            @tableListPosition = 0
             @isMoreTable = true
-            @tableCount = 10
-            @currentSearchPattern = ""
-            @$rootScope.currentProvider = ""
+
             @getDataProviders()
 
-            @requestId = {}
-
-            return
-
         getDataProviders: () =>
-            @$http.get(@requests.endpoints()).success (data) =>
-                services = {}
-                for endpoint in data
-                    services[endpoint.Name] ?= []
-                    services[endpoint.Name].push(endpoint.SvcType)
-                for endpointName, serviceTypes of services
-                    if "META_DATA" in serviceTypes and "QUERY" in serviceTypes and "COLUMN" in serviceTypes
-                        @providers.push endpointName
-                @selectProvider(@providers[0])
+            @ServerConnector.getEndpoints(
+                (data) =>
+                    services = {}
+                    for endpoint in data
+                        services[endpoint.Name] ?= []
+                        services[endpoint.Name].push(endpoint.SvcType)
+                    for endpointName, serviceTypes of services
+                        if "META_DATA" in serviceTypes and "QUERY" in serviceTypes and "COLUMN" in serviceTypes
+                            @providers.push endpointName
+                    @selectProvider(@providers[0])
+            )
             return
 
         selectProvider: (provider) =>
-            if provider is @currentProvider
+            if provider is @$rootScope.provider
                 return
-            @currentProvider = provider
+            @$rootScope.provider = provider
             @resetProviderLevelView()
-            @$rootScope.currentProvider = @currentProvider
-            @requests.setDataProvider @currentProvider
-            if @currentProvider
-                @getTableList()
+            @requestTableList()
 
         resetTableLevelView: () =>
-            @tableData = {}
-            @$scope.currentMeta = {}
-            @$scope.fieldDescription = {}
-            @currentField = ""
+            @tableData = null
+            @$scope.dataHeader = []
+            @$scope.dataRows = []
+            @$scope.meta = null
+            @$scope.fieldDescription = null
+            @$scope.field = null
 
         resetProviderLevelView: () =>
             @resetTableLevelView()
-            @currentTable = ""
+
             @tableList = []
-            @currentTablePosition = 0
-            @currentSearchPattern = ""
-            @$scope.tableNamesFrom = 0
-            @$scope.tableNamesTo = 0
-            @$scope.tableNamesCount = 0
+            @tableListPosition = 0
 
-        getTableList: () =>
+            @$scope.table = null
+            @$scope.search = ""
+            @$scope.tableListFrom = 0
+            @$scope.tableListTo = 0
+            @$scope.tableListCount = 0
+
+        requestTableList: () =>
             @tableList = []
-            @requestId["tableList"] = @generateRequestId()
-            @$http.get(@requests.metaDataTableNames(@currentSearchPattern, @currentTablePosition + 1, @currentTablePosition + @tableCount, @requestId["tableList"])).success (response) =>
-                if response.id isnt @requestId["tableList"]
-                    console.log "Table list response outdated."
-                    return
-                data = response.data
-                @$scope.tableNamesCount = data.count
-                if data.count > 0
-                    @$scope.tableNamesFrom = data.from + 1
-                    @$scope.tableNamesTo = data.to + 1
-                else
-                    @$scope.tableNamesFrom = data.from
-                    @$scope.tableNamesTo = data.to
-
-                if data.results.length is 0
-                    @isMoreTable = false
-                    return
-
-                @isMoreTable = data.results.length is @tableCount
-                @tableList = data.results
+            requestData =
+                search: @$scope.search
+                provider: @$rootScope.provider
+                from: @tableListPosition + 1
+                to: @tableListPosition + DataProviderController.TABLE_LIST_DISPLAY_COUNT
+            @ServerConnector.obsoleteId @requestIds["tableList"]
+            @requestIds["tableList"] = @ServerConnector.getTableList(requestData, @onTableList)
             return
 
-        getMetaData: () =>
-            @requestId["metaData"] = @generateRequestId()
-            @$http.get(@requests.metaDataTable @currentTable, @requestId["metaData"]).success (response) =>
-                if response.id isnt @requestId["metaData"]
-                    console.log "Meta data response outdated."
-                    return
-                data = response.data
-                @tableMetaData = data
-                @$scope.currentMeta = data
-                @getData()
+        onTableList: (data) =>
+            @$scope.tableListCount = data.count
+            if data.count > 0
+                @$scope.tableListFrom = data.from + 1
+                @$scope.tableListTo = data.to + 1
+            else
+                @$scope.tableListFrom = data.from
+                @$scope.tableListTo = data.to
+
+            if data.results.length is 0
+                @isMoreTable = false
+                return
+
+            @isMoreTable = data.results.length is DataProviderController.TABLE_LIST_DISPLAY_COUNT
+            @tableList = data.results
+
+        requestMetaData: () =>
+            requestData =
+                provider: @$rootScope.provider
+                table: @$scope.table
+            @ServerConnector.obsoleteId @requestIds["metaData"]
+            @requestIds["metaData"] = @ServerConnector.getMetaData(requestData, @onMetaData)
             return
 
-        getData: () =>
-            @requestId["data"] = @generateRequestId()
-            @tableData = null
-            @$http.get(@requests.dataTable @currentTable, @limit, @requestId["data"]).success (response) =>
-                if response.id isnt @requestId["data"]
-                    console.log "Data response outdated."
-                    return
-                data = response.data
-                @tableData = data
+        onMetaData: (data) =>
+            @tableMetaData = data
+            @$scope.meta = data
+            @requestData()
+
+        requestData: () =>
+            requestData =
+                provider: @$rootScope.provider
+                table: @$scope.table
+                count: DataProviderController.DATA_LIMIT
+            @ServerConnector.obsoleteId @requestIds["data"]
+            @requestIds["data"] = @ServerConnector.getData(requestData, @onData)
             return
+
+        onData: (data) =>
+            if data.length is 0
+                return
+            dataRows = []
+            headerRow = []
+            for column in data
+                headerRow.push column.Name
+            for i in [0..data[0].Data.length-1]
+                row = []
+                for column in data
+                    row.push column.Data[i]
+                dataRows.push row
+            @$scope.dataHeader = headerRow
+            @$scope.dataRows = dataRows
+
 
         selectTable: (table) =>
+            @$scope.table = table
             @resetTableLevelView()
-            @currentTable = table
-            @getMetaData()
+            @requestMetaData()
             return
 
         selectField: (field) =>
-            @currentField = field
-            @$scope.currentMeta = fieldMeta for fieldMeta in @tableMetaData.Fields when fieldMeta.Name is field
-            @$scope.fieldDescription = @$scope.currentMeta.Desc
+            @$scope.field = field
+            @$scope.metaData = (fieldMeta for fieldMeta in @tableMetaData.Fields when fieldMeta.Name is field)[0]
             return
 
         transposeData: () =>
@@ -150,18 +142,28 @@ app.controller 'DataProviderController',
 
         getNextTables: () =>
             if @isMoreTable
-                @currentTablePosition = @currentTablePosition + @tableCount
-                @getTableList()
+                @tableListPosition = @tableListPosition + DataProviderController.TABLE_LIST_DISPLAY_COUNT
+                @requestTableList()
 
         getPreviousTables: () =>
-            if @currentTablePosition isnt 0
-                @currentTablePosition = @currentTablePosition - @tableCount
-                @getTableList()
+            if @tableListPosition isnt 0
+                @tableListPosition = @tableListPosition - DataProviderController.TABLE_LIST_DISPLAY_COUNT
+                @requestTableList()
 
         searchTableNames: () =>
-            @currentTablePosition = 0
-            @getTableList()
+            @tableListPosition = 0
+            @requestTableList()
 
-        generateRequestId: () =>
-            id = Math.floor(Math.random() * 1000000) + 1
-            return id
+        selectTableToDBConfig: (table) =>
+            if table not in @selectedTables
+                @selectedTables.push table
+            else
+                @selectedTables.splice @selectedTables.indexOf table, 1
+
+        addTablesToDBConfig: () =>
+            for table in @selectedTables
+                data =
+                    table: table
+                    provider: @$scope.provider
+                @ServerConnector.sendDBConfig(data)
+            return

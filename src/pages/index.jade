@@ -8,12 +8,14 @@ html(ng-app='virtdb')
     script(type='text/javascript' src='../libs/angular-route.js')
     script(type='text/javascript' src='../scripts/virtdb-app.js')
     script(type='text/javascript' src='../scripts/data-provider.js')
-    script(type='text/javascript' src='../scripts/db-config.js')
     script(type='text/javascript' src='../scripts/requests.js')
     script(type='text/javascript' src='../scripts/endpoint-controller.js')
     script(type='text/javascript' src='../scripts/config-controller.js')
+    script(type='text/javascript' src='../scripts/server-connector.js')
+    script(type='text/javascript' src='../scripts/error-controller.js')
+    script(type='text/javascript' src='../scripts/error-service.js')
 
-  body
+body
     div.navbar.navbar-inverse
         div.container
             div.navbar-header
@@ -26,4 +28,10 @@ html(ng-app='virtdb')
                         a(href='#endpoints') Endpoints
                     li
                         a(href='#config') Configuration
+
+    div.container-fluid(ng-controller="ErrorController")
+        div.alert.alert-danger(role="alert" ng-show="currentError")
+            strong Error!
+            |   {{currentError}}
+
     div.container-fluid(ng-View)
