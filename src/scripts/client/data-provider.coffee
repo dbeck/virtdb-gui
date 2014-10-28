@@ -2,12 +2,12 @@ app = angular.module 'virtdb'
 app.controller 'DataProviderController',
     class DataProviderController
 
-        @TABLE_LIST_DISPLAY_COUNT = 10
+        @TABLE_LIST_DISPLAY_COUNT = 50
         @DATA_LIMIT = 20
 
         constructor: (@$rootScope, @$scope, @$http, @ServerConnector) ->
 
-            @selectedTables = []
+            @tableSelection = {}
             @providers = []
             @requestIds = {}
 
@@ -17,6 +17,8 @@ app.controller 'DataProviderController',
             @isHeaderColumn = false
             @tableListPosition = 0
             @isMoreTable = true
+
+            @tablesToFilter = []
 
             @getDataProviders()
 
@@ -60,10 +62,13 @@ app.controller 'DataProviderController',
             @$scope.tableListFrom = 0
             @$scope.tableListTo = 0
             @$scope.tableListCount = 0
+            @$scope.selectionCounter = 0
+            @$scope.isAllTableSelected = false
 
         requestTableList: () =>
             @tableList = []
             requestData =
+                tables: @tablesToFilter
                 search: @$scope.search
                 provider: @$rootScope.provider
                 from: @tableListPosition + 1
@@ -87,6 +92,14 @@ app.controller 'DataProviderController',
 
             @isMoreTable = data.results.length is DataProviderController.TABLE_LIST_DISPLAY_COUNT
             @tableList = data.results
+            @resetTableSelection()
+
+        resetTableSelection: () =>
+            @$scope.isAllTableSelected = false
+            @$scope.selectionCounter = 0
+            @tableSelection = {}
+            for table in @tableList
+                @tableSelection[table] = false
 
         requestMetaData: () =>
             requestData =
@@ -154,16 +167,36 @@ app.controller 'DataProviderController',
             @tableListPosition = 0
             @requestTableList()
 
-        selectTableToDBConfig: (table) =>
-            if table not in @selectedTables
-                @selectedTables.push table
-            else
-                @selectedTables.splice @selectedTables.indexOf table, 1
-
         addTablesToDBConfig: () =>
-            for table in @selectedTables
-                data =
-                    table: table
-                    provider: @$scope.provider
-                @ServerConnector.sendDBConfig(data)
+            for table, isSelected of @tableSelection
+                if isSelected
+                    data =
+                        table: table
+                        provider: @$scope.provider
+                    console.log data
+                    @ServerConnector.sendDBConfig(data)
+            return
+
+        filterTableList: () =>
+            @$scope.search = ""
+            console.log @tablesToFilter
+            @tableListPosition = 0
+            @requestTableList()
+
+        checkTableFilter: () =>
+            @tablesToFilter = []
+            for item in @$scope.tableListFilter.split("\n") when item.length > 0
+                @tablesToFilter.push item
+
+        selectAllTableChanged: () =>
+            for table, isSelected of @tableSelection
+                @tableSelection[table] = @$scope.isAllTableSelected
+            @$scope.selectionCounter = if @$scope.isAllTableSelected then @tableList.length else 0
+            return
+
+        tableSelectionChanged: () =>
+            @$scope.selectionCounter = 0
+            for table, isSelected of @tableSelection when isSelected
+                @$scope.selectionCounter++
+            @$scope.isAllTableSelected = @$scope.selectionCounter is @tableList.length
             return

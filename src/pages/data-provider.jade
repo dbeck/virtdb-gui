@@ -7,6 +7,12 @@ div
     div.row
         div.col-md-3
             h3 Tables
+            div
+                h4 Filter text
+                p
+                    textarea.form-control(ng-model="tableListFilter" rows=10 ng-change="dataProvider.checkTableFilter()")
+                p
+                    button.btn.btn-default(ng-click="dataProvider.filterTableList()") Filter
             div.row
                 div.col-md-3
                     div.input-group
@@ -20,11 +26,17 @@ div
                         span.input-group-addon
                             span.glyphicon.glyphicon-search
                         input.form-control(type="text" ng-model="search" ng-change="dataProvider.searchTableNames()")
-            div Count: {{tableListCount}} Displaying: {{tableListFrom}} - {{tableListTo}}
+            p
+            p Count: {{tableListCount}} Displaying: {{tableListFrom}} - {{tableListTo}}
+            p {{selectionCounter}} table selected for adding to db config
+            p
+                label Select All
+                    input(type="checkbox" ng-model="isAllTableSelected" ng-change="dataProvider.selectAllTableChanged()")
+
             table.table
                 tr(ng-repeat="_table in dataProvider.tableList" ng-class="{active: table == _table}")
                     td
-                        input(type="checkbox" ng-model="check" ng-change="dataProvider.selectTableToDBConfig(_table)")
+                        input(type="checkbox" ng-model="dataProvider.tableSelection[_table]" ng-change="dataProvider.tableSelectionChanged()")
                     td(ng-click="dataProvider.selectTable(_table)") {{_table}}
             p
                 button.btn.ntn-default(ng-click='dataProvider.addTablesToDBConfig()') Add

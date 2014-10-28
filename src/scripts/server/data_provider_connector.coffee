@@ -68,11 +68,16 @@ class DataProvider
             catch e
                 onData []
 
-    @getTableNames: (provider, search, from, to, onReady) =>
+    @getTableNames: (provider, search, from, to, tables, onReady) =>
         try
             @_fillTableNamesCache provider, (tableNameList) =>
                 results = []
-                if not search? or search.length is 0
+                if tables.length > 0
+                    for table in tables
+                        for tableName in tableNameList
+                            if table is tableName or table is (tableName.split("."))[1]
+                                results.push tableName
+                else if not search? or search.length is 0
                     results = tableNameList
                 else
                     for table in tableNameList
