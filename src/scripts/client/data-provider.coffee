@@ -5,7 +5,7 @@ app.controller 'DataProviderController',
         @TABLE_LIST_DISPLAY_COUNT = 50
         @DATA_LIMIT = 20
 
-        constructor: (@$rootScope, @$scope, @$http, @ServerConnector) ->
+        constructor: (@$rootScope, @$scope, @$http, @$timeout, @ServerConnector) ->
 
             @providers = []
             @requestIds = {}
@@ -173,7 +173,10 @@ app.controller 'DataProviderController',
                     data =
                         table: table.name
                         provider: @$scope.provider
-                    @ServerConnector.sendDBConfig(data)
+                    table.selected = false
+                    table.configured = true
+                    @ServerConnector.sendDBConfig data, (data) =>
+                        @$timeout(@requestConfiguredTables, 1000)
             return
 
         requestConfiguredTables: () =>
