@@ -7,12 +7,17 @@ div
     div.row
         div.col-md-3
             h3 Tables
-            div
-                h4 Filter text
-                p
-                    textarea.form-control(ng-model="tableListFilter" rows=10 ng-change="dataProvider.checkTableFilter()")
-                p
-                    button.btn.btn-default(ng-click="dataProvider.filterTableList()") Filter
+            div.panel-group(id="accordion")
+                div.panel.panel-default
+                    div.panel-heading
+                        h4.panel-title
+                            a(data-toggle="collapse" data-parent="#accordion" target="_self" href="#collapseFilter") Filter
+                    div.panel-collapse.collapse(id="collapseFilter")
+                        div.panel-body
+                            p
+                                textarea.form-control(ng-model="tableListFilter" rows=10 ng-change="dataProvider.checkTableFilter()")
+                            p
+                                button.btn.btn-default(ng-click="dataProvider.filterTableList()") Filter
             div.row
                 div.col-md-3
                     div.input-group
