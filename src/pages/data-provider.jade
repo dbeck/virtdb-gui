@@ -3,7 +3,7 @@ div
         div.panel-heading
             div.panel-title Data providers
         div.panel-body
-            button.btn.btn-default(ng-repeat="_provider in dataProvider.providers" ng-click="dataProvider.selectProvider(_provider)" ng-class="{active: provider == _provider}") {{_provider}}
+            button.btn.btn-default(ng-repeat="_provider in dataProvider.providers | orderBy : name" ng-click="dataProvider.selectProvider(_provider)" ng-class="{active: provider == _provider}") {{_provider}}
     div.row
         div.col-md-3
             h3 Tables
