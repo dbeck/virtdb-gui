@@ -58,8 +58,9 @@ app.factory 'ServerConnector', ['$http', 'ErrorService', ($http, ErrorService) -
             )
             return data.id
 
-        sendDBConfig: (data) =>
+        sendDBConfig: (data, onSuccess) =>
             $http.post(@address + "/api/db_config/add", data)
+            .success(onSuccess)
             .error( () =>
                     ErrorService.errorHappened "Couldn't add table to db config! "  + JSON.stringify data
                     console.error data

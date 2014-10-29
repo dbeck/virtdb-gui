@@ -2,6 +2,9 @@ zmq = require "zmq"
 fs = require "fs"
 protobuf = require "node-protobuf"
 log = require "loglevel"
+NodeCache = require "node-cache"
+ms = require "ms"
+util = require "util"
 
 Config = require "./config"
 Const = (require "virtdb-connector").Constants
@@ -13,7 +16,14 @@ log.setLevel "debug"
 
 dbConfigProto = new protobuf(fs.readFileSync("common/proto/db_config.pb.desc"))
 
+CACHE_TTL = ms(Config.Values.CACHE_TTL)/1000
+CACHE_CHECK_PERIOD = ms(Config.Values.CACHE_CHECK_PERIOD)/1000
+
 class DBConfig
+
+    @_configuredTablesCache = new NodeCache({ stdTTL: CACHE_TTL, checkperiod: CACHE_CHECK_PERIOD})
+    @_configuredTablesCache.on "expired", (key, value) =>
+        log.debug "DB config cache expired:", key
 
     @addTable: (provider, tableMeta) =>
         if not tableMeta?
@@ -24,17 +34,31 @@ class DBConfig
         try
             connection.sendServerConfig provider, tableMeta
             log.debug "Table added to the db config:", tableMeta.Name, provider
+            @_configuredTablesCache.del(provider)
         catch ex
             return
 
     @getTables: (provider, onReady) =>
-        connection = DBConfigConnection.getConnection(Config.Values.DB_CONFIG_SERVICE)
         try
-            connection.getTables provider, (msg) =>
-                onReady msg
+            tableList = @_configuredTablesCache.get(provider)[provider]
+            if tableList? and util.isArray tableList
+                log.debug "Serving list of already added tables from cache.", provider
+                onReady tableList
+            else
+                log.debug "Serving list of already added tables from db config.", provider
+                connection = DBConfigConnection.getConnection(Config.Values.DB_CONFIG_SERVICE)
+                connection.getTables provider, (msg) =>
+                        if msg?.Servers[0]?.Tables?
+                            tableList = []
+                            for table in msg.Servers[0].Tables
+                                tableList.push table.Schema + "." + table.Name
+                            if tableList.length > 0
+                                @_configuredTablesCache.set(provider, tableList)
+                            onReady tableList
         catch ex
-            return
-
+            log.error "Couldn't fill cache.", provider, ex
+            onReady []
+        return
 
 module.exports = DBConfig
 
