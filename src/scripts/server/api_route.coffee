@@ -119,11 +119,12 @@ router.post "/db_config/get", timeout(Config.Values.REQUEST_TIMEOUT, {respond: f
     provider = req.body.provider
     try
         DBConfig.getTables provider, (data) =>
-            tableList = []
-            for table in data.Servers[0].Tables
-                tableList.push table.Schema + "." + table.Name
-            res.json tableList
-            return
+            if data?.Servers[0]?.Tables?
+                tableList = []
+                for table in data.Servers[0].Tables
+                    tableList.push table.Schema + "." + table.Name
+                res.json tableList
+                return
     catch ex
         log.error ex
         res.status(500).send "Error occurred: " + ex

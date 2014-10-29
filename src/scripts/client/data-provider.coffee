@@ -168,12 +168,11 @@ app.controller 'DataProviderController',
             @requestTableList()
 
         addTablesToDBConfig: () =>
-            for table of @tableList
-                if table.selected
+            for table in @tableList
+                if table.selected and not table.configured
                     data =
-                        table: table
+                        table: table.name
                         provider: @$scope.provider
-                    console.log data
                     @ServerConnector.sendDBConfig(data)
             return
 
