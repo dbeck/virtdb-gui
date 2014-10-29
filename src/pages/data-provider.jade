@@ -3,16 +3,21 @@ div
         div.panel-heading
             div.panel-title Data providers
         div.panel-body
-            button.btn.btn-default(ng-repeat="_provider in dataProvider.providers" ng-click="dataProvider.selectProvider(_provider)" ng-class="{active: provider == _provider}") {{_provider}}
+            button.btn.btn-default(ng-repeat="_provider in dataProvider.providers | orderBy : name" ng-click="dataProvider.selectProvider(_provider)" ng-class="{active: provider == _provider}") {{_provider}}
     div.row
         div.col-md-3
             h3 Tables
-            div
-                h4 Filter text
-                p
-                    textarea.form-control(ng-model="tableListFilter" rows=10 ng-change="dataProvider.checkTableFilter()")
-                p
-                    button.btn.btn-default(ng-click="dataProvider.filterTableList()") Filter
+            div.panel-group(id="accordion")
+                div.panel.panel-default
+                    div.panel-heading
+                        h4.panel-title
+                            a(data-toggle="collapse" data-parent="#accordion" target="_self" href="#collapseFilter") Filter
+                    div.panel-collapse.collapse(id="collapseFilter")
+                        div.panel-body
+                            p
+                                textarea.form-control(ng-model="tableListFilter" rows=10 ng-change="dataProvider.checkTableFilter()")
+                            p
+                                button.btn.btn-default(ng-click="dataProvider.filterTableList()") Filter
             div.row
                 div.col-md-3
                     div.input-group
@@ -34,10 +39,10 @@ div
                     input(type="checkbox" ng-model="isAllTableSelected" ng-change="dataProvider.selectAllTableChanged()")
 
             table.table
-                tr(ng-repeat="_table in dataProvider.tableList" ng-class="{active: table == _table}")
+                tr(ng-repeat="_table in dataProvider.tableList" ng-class="{active: table == _table.name}")
                     td
-                        input(type="checkbox" ng-model="dataProvider.tableSelection[_table]" ng-change="dataProvider.tableSelectionChanged()")
-                    td(ng-click="dataProvider.selectTable(_table)") {{_table}}
+                        input(type="checkbox" ng-model="_table.selected" ng-disabled="_table.configured" ng-change="dataProvider.tableSelectionChanged()")
+                    td(ng-click="dataProvider.selectTable(_table.name)") {{_table.name}}
             p
                 button.btn.ntn-default(ng-click='dataProvider.addTablesToDBConfig()') Add
         div.col-md-6

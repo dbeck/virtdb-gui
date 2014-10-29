@@ -112,7 +112,24 @@ router.post "/data_provider/data", timeout(Config.Values.REQUEST_TIMEOUT, {respo
         res.status(500).send "Error occurred: " + ex
         return
 
-router.post "/db_config", timeout(Config.Values.REQUEST_TIMEOUT, {respond: false}), (req, res) ->
+router.post "/db_config/get", timeout(Config.Values.REQUEST_TIMEOUT, {respond: false}), (req, res) ->
+    req.on "timeout", () =>
+        onRequestTimeout(res)
+
+    provider = req.body.provider
+    try
+        DBConfig.getTables provider, (data) =>
+            tableList = []
+            for table in data.Servers[0].Tables
+                tableList.push table.Schema + "." + table.Name
+            res.json tableList
+            return
+    catch ex
+        log.error ex
+        res.status(500).send "Error occurred: " + ex
+        return
+
+router.post "/db_config/add", timeout(Config.Values.REQUEST_TIMEOUT, {respond: false}), (req, res) ->
     req.on "timeout", () =>
         onRequestTimeout(res)
 

@@ -90,9 +90,18 @@ gulp.task('prepare-files', [
 )
 
 gulp.task('collect-libs', function() {
+    var destDir = 'static/libs';
+
     var files = mainBowerFiles();
     gulp.src(files)
-        .pipe(gulp.dest('static/libs'));
+        .pipe(gulp.dest(destDir));
+
+    var bootstrap_js = [
+        "bower_components/bootstrap/js/collapse.js",
+        "bower_components/bootstrap/js/transition.js"
+    ];
+    gulp.src(bootstrap_js)
+        .pipe(gulp.dest(destDir))
 });
 
 gulp.task('watch', function()

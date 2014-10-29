@@ -59,10 +59,20 @@ app.factory 'ServerConnector', ['$http', 'ErrorService', ($http, ErrorService) -
             return data.id
 
         sendDBConfig: (data) =>
-            $http.post(@address + "/api/db_config", data)
+            $http.post(@address + "/api/db_config/add", data)
             .error( () =>
                     ErrorService.errorHappened "Couldn't add table to db config! "  + JSON.stringify data
                     console.error data
+            )
+
+        getDBConfig: (data, onSuccess) =>
+            $http.post(@address + "/api/db_config/get", data)
+            .success( (response) =>
+                onSuccess response
+            )
+            .error( () =>
+                ErrorService.errorHappened "Couldn't get table list from db config! "  + JSON.stringify data
+                console.error data
             )
 
         generateRequestId = () =>
