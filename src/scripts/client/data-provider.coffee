@@ -7,7 +7,6 @@ app.controller 'DataProviderController',
 
         constructor: (@$rootScope, @$scope, @$http, @ServerConnector) ->
 
-            @tableSelection = {}
             @providers = []
             @requestIds = {}
 
@@ -91,15 +90,16 @@ app.controller 'DataProviderController',
                 return
 
             @isMoreTable = data.results.length is DataProviderController.TABLE_LIST_DISPLAY_COUNT
-            @tableList = data.results
-            @resetTableSelection()
+            @tableList = []
+            for tableName in data.results
+                table =
+                    name: tableName
+                    selected: false
+                    configured: false
+                @tableList.push table
 
-        resetTableSelection: () =>
-            @$scope.isAllTableSelected = false
-            @$scope.selectionCounter = 0
-            @tableSelection = {}
-            for table in @tableList
-                @tableSelection[table] = false
+            @tableSelectionChanged()
+            @requestConfiguredTables()
 
         requestMetaData: () =>
             requestData =
@@ -168,14 +168,24 @@ app.controller 'DataProviderController',
             @requestTableList()
 
         addTablesToDBConfig: () =>
-            for table, isSelected of @tableSelection
-                if isSelected
+            for table of @tableList
+                if table.selected
                     data =
                         table: table
                         provider: @$scope.provider
                     console.log data
                     @ServerConnector.sendDBConfig(data)
             return
+
+        requestConfiguredTables: () =>
+            data = provider: @$scope.provider
+            @ServerConnector.getDBConfig(data, @onConfiguredTables)
+
+        onConfiguredTables: (configuredTableList) =>
+            for table in configuredTableList
+                for _table in @tableList when _table.name is table
+                    _table.configured = true
+                    _table.selected = true
 
         filterTableList: () =>
             @$scope.search = ""
@@ -189,14 +199,17 @@ app.controller 'DataProviderController',
                 @tablesToFilter.push item
 
         selectAllTableChanged: () =>
-            for table, isSelected of @tableSelection
-                @tableSelection[table] = @$scope.isAllTableSelected
-            @$scope.selectionCounter = if @$scope.isAllTableSelected then @tableList.length else 0
-            return
+            for table in @tableList when not table.configured
+                table.selected = @$scope.isAllTableSelected
+            @updateSelectionCounter()
 
         tableSelectionChanged: () =>
+            @$scope.isAllTableSelected = true
+            for _table in @tableList when not _table.selected and not _table.configured
+                @$scope.isAllTableSelected = false
+            @updateSelectionCounter()
+
+        updateSelectionCounter: () =>
             @$scope.selectionCounter = 0
-            for table, isSelected of @tableSelection when isSelected
+            for _table in @tableList when _table.selected and not _table.configured
                 @$scope.selectionCounter++
-            @$scope.isAllTableSelected = @$scope.selectionCounter is @tableList.length
-            return

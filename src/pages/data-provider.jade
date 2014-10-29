@@ -34,10 +34,10 @@ div
                     input(type="checkbox" ng-model="isAllTableSelected" ng-change="dataProvider.selectAllTableChanged()")
 
             table.table
-                tr(ng-repeat="_table in dataProvider.tableList" ng-class="{active: table == _table}")
+                tr(ng-repeat="_table in dataProvider.tableList" ng-class="{active: table == _table.name}")
                     td
-                        input(type="checkbox" ng-model="dataProvider.tableSelection[_table]" ng-change="dataProvider.tableSelectionChanged()")
-                    td(ng-click="dataProvider.selectTable(_table)") {{_table}}
+                        input(type="checkbox" ng-model="_table.selected" ng-disabled="_table.configured" ng-change="dataProvider.tableSelectionChanged()")
+                    td(ng-click="dataProvider.selectTable(_table.name)") {{_table.name}}
             p
                 button.btn.ntn-default(ng-click='dataProvider.addTablesToDBConfig()') Add
         div.col-md-6
