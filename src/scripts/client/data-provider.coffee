@@ -185,9 +185,9 @@ app.controller 'DataProviderController',
 
         onConfiguredTables: (configuredTableList) =>
             for table in configuredTableList
-                for _table in @tableList when _table.name is table
-                    _table.configured = true
-                    _table.selected = true
+                for _table in @tableList
+                    _table.configured = _table.name is table
+                    _table.selected = _table.name is table
 
         filterTableList: () =>
             @$scope.search = ""
