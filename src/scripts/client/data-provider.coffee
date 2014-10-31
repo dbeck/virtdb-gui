@@ -135,7 +135,11 @@ app.controller 'DataProviderController',
                 for i in [0..firstColumn.length-1]
                     row = []
                     for column in data
-                        row.push column.Data[i]
+                        fieldValue = column.Data[i]
+                        if fieldValue?
+                            row.push fieldValue
+                        else
+                            row.push JSON.stringify(fieldValue)
                     dataRows.push row
             @$scope.dataHeader = headerRow
             @$scope.dataRows = dataRows

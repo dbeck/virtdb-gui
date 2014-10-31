@@ -18,8 +18,6 @@ DataProto = new protobuf(fs.readFileSync("common/proto/data.pb.desc"))
 MetaDataProto = new protobuf(fs.readFileSync("common/proto/meta_data.pb.desc"))
 CommonProto = new protobuf(fs.readFileSync("common/proto/common.pb.desc"))
 
-CACHE_TTL = ms(Config.Values.CACHE_TTL)/1000
-CACHE_CHECK_PERIOD = ms(Config.Values.CACHE_CHECK_PERIOD)/1000
 
 
 class DataProvider
@@ -29,6 +27,9 @@ class DataProvider
         log.debug "Table names cache expired:", key
 
     @_tableMetaCache = []
+
+    CACHE_TTL = ms(Config.Values.CACHE_TTL)/1000
+    CACHE_CHECK_PERIOD = ms(Config.Values.CACHE_CHECK_PERIOD)/1000
 
     @checkTableMetaCache: (provider) =>
         if not @_tableMetaCache[provider]?
