@@ -4,22 +4,11 @@ app.controller 'ErrorController',
             constructor: (@$timeout, @$scope, @ErrorService) ->
                 @ErrorService.addErrorListener(@onError)
                 @errorList = []
-                @$scope.currentError = null
 
             onError: (error) =>
                 @errorList.push error
-                if not @$scope.currentError?
-                    @processErrors()
 
-            processErrors: () =>
-                if @errorList.length > 0
-                    @$scope.currentError = @errorList[0]
-                    @errorList.splice(0,1);
-                    @$timeout(@processErrors, 3000)
-                else
-                    @$scope.currentError = null
-
-            showError: () =>
-                return @$scope.currentError isnt null
-
-
+            removeError: (error) =>
+                index = @errorList.indexOf(error)
+                if index > -1
+                    @errorList.splice(index,1)

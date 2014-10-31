@@ -98,7 +98,8 @@ gulp.task('collect-libs', function() {
 
     var bootstrap_js = [
         "bower_components/bootstrap/js/collapse.js",
-        "bower_components/bootstrap/js/transition.js"
+        "bower_components/bootstrap/js/transition.js",
+        "bower_components/bootstrap/js/alert.js"
     ];
     gulp.src(bootstrap_js)
         .pipe(gulp.dest(destDir))

@@ -16,7 +16,7 @@ log.setLevel "debug"
 require('source-map-support').install()
 
 onRequestTimeout = (res) =>
-    res.status(503).send('Request timeout occurred')
+    res.status(503).send('Request timeouted')
 
 # GET home page.
 router.get "/", timeout(Config.Values.REQUEST_TIMEOUT, {respond: false}), (req, res) ->
