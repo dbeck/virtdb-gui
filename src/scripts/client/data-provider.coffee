@@ -130,11 +130,13 @@ app.controller 'DataProviderController',
             headerRow = []
             for column in data
                 headerRow.push column.Name
-            for i in [0..data[0].Data.length-1]
-                row = []
-                for column in data
-                    row.push column.Data[i]
-                dataRows.push row
+            firstColumn = data[0].Data
+            if firstColumn.length > 0
+                for i in [0..firstColumn.length-1]
+                    row = []
+                    for column in data
+                        row.push column.Data[i]
+                    dataRows.push row
             @$scope.dataHeader = headerRow
             @$scope.dataRows = dataRows
 
