@@ -8,6 +8,7 @@ head
     script(type='text/javascript' src='../libs/angular.js')
     script(type='text/javascript' src='../libs/collapse.js')
     script(type='text/javascript' src='../libs/transition.js')
+    script(type='text/javascript' src='../libs/alert.js')
     script(type='text/javascript' src='../libs/angular-route.js')
     script(type='text/javascript' src='../scripts/virtdb-app.js')
     script(type='text/javascript' src='../scripts/data-provider.js')
@@ -32,9 +33,11 @@ body
                     li
                         a(href='#config') Configuration
 
-    div.container-fluid(ng-controller="ErrorController")
-        div.alert.alert-danger(role="alert" ng-show="currentError")
+    div.container-fluid(ng-controller="ErrorController as errors" ng-hide="errors.errorList.length === 0")
+        div.alert.alert-danger.alert-dismissible.fade.in(role="alert" ng-repeat="error in errors.errorList")
+            button.close(data-dismiss="alert" ng-click="errors.removeError(error)")
+                span(aria-hidden="true")&times;
             strong Error!
-            |   {{currentError}}
+            |   {{error}}
 
     div.container-fluid(ng-View)

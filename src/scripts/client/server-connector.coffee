@@ -9,8 +9,8 @@ app.factory 'ServerConnector', ['$http', 'ErrorService', ($http, ErrorService) -
         getEndpoints: (onSuccess, onError) =>
             $http.get(@address + "/api/endpoints").success(onSuccess)
             .error(
-                () =>
-                    ErrorService.errorHappened "Couldn't get endpoint list from server!"
+                (response, status) =>
+                    ErrorService.errorHappened "Couldn't get endpoint list from server! response: " + response
             )
 
         getTableList: (data, onSuccess) =>
@@ -22,8 +22,8 @@ app.factory 'ServerConnector', ['$http', 'ErrorService', ($http, ErrorService) -
                 else
                     console.warn "Table list request outdated. id=" + response.id
             )
-            .error( () =>
-                ErrorService.errorHappened "Couldn't get table list! " + JSON.stringify data
+            .error( (response, status) =>
+                ErrorService.errorHappened "Couldn't get table list! " + JSON.stringify(data) + " response: " + response
                 console.error data
             )
             return data.id
@@ -37,8 +37,8 @@ app.factory 'ServerConnector', ['$http', 'ErrorService', ($http, ErrorService) -
                 else
                     console.warn "Meta data request outdated. id=" + response.id
             )
-            .error( () =>
-                ErrorService.errorHappened "Couldn't get meta data! " + JSON.stringify data
+            .error( (response, status) =>
+                ErrorService.errorHappened "Couldn't get meta data! " + JSON.stringify(data) + " response: " + response
                 console.error data
             )
             return data.id
@@ -52,8 +52,8 @@ app.factory 'ServerConnector', ['$http', 'ErrorService', ($http, ErrorService) -
                     else
                         console.warn "Data request outdated. id=" + response.id
             )
-            .error( () =>
-                    ErrorService.errorHappened "Couldn't get data! "  + JSON.stringify data
+            .error( (response, status) =>
+                    ErrorService.errorHappened "Couldn't get data! " + JSON.stringify(data) + " response: " + response
                     console.error data
             )
             return data.id
@@ -61,8 +61,8 @@ app.factory 'ServerConnector', ['$http', 'ErrorService', ($http, ErrorService) -
         sendDBConfig: (data, onSuccess) =>
             $http.post(@address + "/api/db_config/add", data)
             .success(onSuccess)
-            .error( () =>
-                    ErrorService.errorHappened "Couldn't add table to db config! "  + JSON.stringify data
+            .error( (response, status) =>
+                    ErrorService.errorHappened "Couldn't add table to db config! " + JSON.stringify(data) + " response: " + response
                     console.error data
             )
 
@@ -71,8 +71,8 @@ app.factory 'ServerConnector', ['$http', 'ErrorService', ($http, ErrorService) -
             .success( (response) =>
                 onSuccess response
             )
-            .error( () =>
-                ErrorService.errorHappened "Couldn't get table list from db config! "  + JSON.stringify data
+            .error( (response, status) =>
+                ErrorService.errorHappened "Couldn't get table list from db config! " + JSON.stringify(data) + " response: " + response
                 console.error data
             )
 

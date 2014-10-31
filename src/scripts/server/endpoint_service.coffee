@@ -65,7 +65,6 @@ class EndpointService
         connect: =>
             try
                 @reqrepSocket.connect(@address)
-                log.debug "Connected to the endpoint service!"
             catch ex
                 log.error "Error during connecting to endpoint service!", ex
 
@@ -80,8 +79,10 @@ class EndpointService
                     Name: ""
                     SvcType: Const.ENDPOINT_TYPE.NONE
                 ]
-
-            @reqrepSocket.send serviceConfigProto.serialize endpointMessage, "virtdb.interface.pb.Endpoint"
+            try
+                @reqrepSocket.send serviceConfigProto.serialize endpointMessage, "virtdb.interface.pb.Endpoint"
+            catch ex
+                log.debug "Error during requesting endpoint list!"
             return
 
         _onPublishedMessage: (channelId, message) =>
