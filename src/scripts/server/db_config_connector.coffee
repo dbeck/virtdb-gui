@@ -36,7 +36,8 @@ class DBConfig
             log.debug "Table added to the db config:", tableMeta.Name, provider
             @_configuredTablesCache.del(provider)
         catch ex
-            return
+            log.error ex
+            throw new Error "Couldn't add table to the db config"
 
     @getTables: (provider, onReady) =>
         try
@@ -56,8 +57,8 @@ class DBConfig
                                 @_configuredTablesCache.set(provider, tableList)
                             onReady tableList
         catch ex
-            log.error "Couldn't fill cache.", provider, ex
-            onReady []
+            log.error ex
+            throw new Error "Couldn't fill cache for already configured tables"
         return
 
 module.exports = DBConfig
@@ -71,7 +72,8 @@ class DBConfigConnection
             dbConfigQueryAddress = addresses[Const.ENDPOINT_TYPE.DB_CONFIG_QUERY][Const.SOCKET_TYPE.REQ_REP][0]
             return new DBConfigConnection(serverConfigAddress, dbConfigQueryAddress)
         catch ex
-            log.error "Couldn't find addresses for db config: #{service}!"
+            log.error ex
+            throw new Error "Couldn't find addresses for db config:", service
         return null
 
     _pushPullSocket: null

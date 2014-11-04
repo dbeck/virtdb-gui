@@ -74,15 +74,15 @@ class EndpointService
             return
 
         _requestEndpoints: () =>
-            endpointMessage =
-                Endpoints: [
-                    Name: ""
-                    SvcType: Const.ENDPOINT_TYPE.NONE
-                ]
             try
+                endpointMessage =
+                    Endpoints: [
+                        Name: ""
+                        SvcType: Const.ENDPOINT_TYPE.NONE
+                    ]
                 @reqrepSocket.send serviceConfigProto.serialize endpointMessage, "virtdb.interface.pb.Endpoint"
             catch ex
-                log.debug "Error during requesting endpoint list!"
+                log.error "Error during requesting endpoint list!"
             return
 
         _onPublishedMessage: (channelId, message) =>
@@ -107,6 +107,6 @@ class EndpointService
                 @pubsubSocket.subscribe Const.EVERY_CHANNEL
                 log.debug "Subscribed to endpoint service", address
             catch ex
-                log.debug "Couldn't subscribe to endpoint service", ex
+                log.error "Couldn't subscribe to endpoint service", ex
 
 module.exports = EndpointService

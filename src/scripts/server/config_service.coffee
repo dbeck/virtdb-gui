@@ -24,27 +24,16 @@ class ConfigService
             connection = new ConfigServiceConnector(@_address)
             connection.getConfig component, onConfig
         catch ex
-            log.error "Couldn't get config of component:", component, ex
-            onConfig {}
+            log.error ex
+            throw new Error "Couldn't get config of component"
 
     @sendConfig: (config) =>
         try
             connection = new ConfigServiceConnector(@_address)
             connection.sendConfig(config)
         catch ex
-            log.error "Couldn't send config of component:", component, ex
-
-    # @convertTemplateToOld: (source) ->
-    #     Convert.TemplateToOld source
-    #
-    # @convertTemplateToNew: (source) ->
-    #     Convert.TemplateToNew source
-    #
-    # @convertToOld: (source) ->
-    #     Convert.ToOld source
-    #
-    # @convertToNew: (source) ->
-    #     Convert.ToNew source
+            log.error ex
+            throw new Error "Couldn't send config of component"
 
     class ConfigServiceConnector
 
@@ -70,7 +59,8 @@ class ConfigService
                 @_reqRepSocket.send serviceConfigProto.serialize config, "virtdb.interface.pb.Config"
                 log.debug "Config sent to the config service:", util.inspect config, {depth: null}
             catch ex
-                log.error "Error during sending config!", ex
+                log.error ex
+                throw new Error "Error during sending config!"
 
         _onMessage: (message) =>
             configMessage = serviceConfigProto.parse message, "virtdb.interface.pb.Config"
