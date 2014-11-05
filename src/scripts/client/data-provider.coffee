@@ -190,10 +190,14 @@ app.controller 'DataProviderController',
             @ServerConnector.getDBConfig(data, @onConfiguredTables)
 
         onConfiguredTables: (configuredTableList) =>
-            for table in configuredTableList
-                for _table in @tableList
-                    _table.configured = _table.name is table
-                    _table.selected = _table.name is table
+            console.log configuredTableList
+            for _table in @tableList
+                _table.configured = false
+                _table.selected = false
+                for table in configuredTableList
+                    if table is _table.name
+                        _table.configured = true
+                        _table.selected = true
 
         filterTableList: () =>
             @$scope.search = ""
