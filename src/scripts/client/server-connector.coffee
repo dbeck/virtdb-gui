@@ -25,6 +25,7 @@ app.factory 'ServerConnector', ['$http', 'ErrorService', ($http, ErrorService) -
             .error( (response, status) =>
                 ErrorService.errorHappened "Couldn't get table list! " + JSON.stringify(data) + " response: " + response
                 console.error data
+                onSuccess []
             )
             return data.id
 
@@ -40,6 +41,7 @@ app.factory 'ServerConnector', ['$http', 'ErrorService', ($http, ErrorService) -
             .error( (response, status) =>
                 ErrorService.errorHappened "Couldn't get meta data! " + JSON.stringify(data) + " response: " + response
                 console.error data
+                onSuccess []
             )
             return data.id
 
@@ -55,6 +57,7 @@ app.factory 'ServerConnector', ['$http', 'ErrorService', ($http, ErrorService) -
             .error( (response, status) =>
                     ErrorService.errorHappened "Couldn't get data! " + JSON.stringify(data) + " response: " + response
                     console.error data
+                    onSuccess []
             )
             return data.id
 
@@ -68,12 +71,11 @@ app.factory 'ServerConnector', ['$http', 'ErrorService', ($http, ErrorService) -
 
         getDBConfig: (data, onSuccess) =>
             $http.post(@address + "/api/db_config/get", data)
-            .success( (response) =>
-                onSuccess response
-            )
+            .success(onSuccess)
             .error( (response, status) =>
                 ErrorService.errorHappened "Couldn't get table list from db config! " + JSON.stringify(data) + " response: " + response
                 console.error data
+                onSuccess []
             )
 
         generateRequestId = () =>

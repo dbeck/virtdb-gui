@@ -1,5 +1,6 @@
 ConfigService = require "./config_service"
 EndpointService = require "./endpoint_service"
+DiagConnector = require "./diag_connector"
 VirtDBConnector = require "virtdb-connector"
 Const = VirtDBConnector.Constants
 Config = require "./config"
@@ -35,10 +36,14 @@ class VirtDBLoader
                                 ,
                                 () ->
                                     callback null
+            ,
+            (callback) ->
+                DiagConnector.connect("diag-service")
+                callback null
             ], (err, results) ->
-            if err
-                console.error err
-            if startCallback?
-                startCallback()
+                if err
+                    console.error err
+                if startCallback?
+                    startCallback()
 
 module.exports = VirtDBLoader

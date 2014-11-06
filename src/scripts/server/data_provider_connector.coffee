@@ -1,3 +1,4 @@
+Config = require "./config"
 zmq = require "zmq"
 fs = require "fs"
 protobuf = require "node-protobuf"
@@ -6,7 +7,6 @@ lz4 = require "lz4"
 EndpointService = require "./endpoint_service"
 FieldData = require "./fieldData"
 Const = (require "virtdb-connector").Constants
-Config = require "./config"
 util = require "util"
 NodeCache = require "node-cache"
 ms = require "ms"
@@ -17,8 +17,6 @@ require("source-map-support").install()
 DataProto = new protobuf(fs.readFileSync("common/proto/data.pb.desc"))
 MetaDataProto = new protobuf(fs.readFileSync("common/proto/meta_data.pb.desc"))
 CommonProto = new protobuf(fs.readFileSync("common/proto/common.pb.desc"))
-
-
 
 class DataProvider
 
@@ -53,8 +51,8 @@ class DataProvider
                     @_tableMetaCache[provider].set(tableName, tableMeta)
                     onReady tableMeta
             catch ex
-                log.error "Couldn't get table meta.", ex
-                onReady []
+                log.error ex
+                throw new Error "Couldn't get table meta."
         else
             log.debug "The requested table is in cache."
             onReady cachedTable[tableName]
@@ -66,8 +64,9 @@ class DataProvider
                 connection.getData tableMeta.Schema, tableMeta.Name, tableMeta.Fields, count, (data) =>
                     log.debug "Data received", tableMeta.Name
                     onData data
-            catch e
-                onData []
+            catch ex
+                log.error ex
+                throw new Error "Couldn't get data"
 
     @getTableNames: (provider, search, from, to, tables, onReady) =>
         try
@@ -93,8 +92,8 @@ class DataProvider
                     results: results[realFrom..realTo]
                 onReady result
         catch ex
-            log.error "Couldn't get table names.", ex
-            onReady []
+            log.error ex
+            throw new Error "Couldn't get table list."
 
     @_fillTableNamesCache: (provider, onReady) =>
         # @checkTableNamesCache(provider)
@@ -118,8 +117,8 @@ class DataProvider
                         @_tableNamesCache.set(provider, tableList)
                     onReady tableList
             catch ex
-                log.error "Couldn't fill table names cache.", provider, ex
-                throw ex
+                log.error ex
+                throw new Error "Couldn't fill table list cache."
         return
 
     @_processTableName: (tableDesc) =>
@@ -133,7 +132,7 @@ class DataProvider
             table.Name ?= tableElements[1]
             table.Schema ?= tableElements[0]
         else
-            throw "Something wrong with the format of the table name."
+            throw Error "Something wrong with the format of the table name."
         return table
 
 class DataProviderConnection
@@ -146,7 +145,8 @@ class DataProviderConnection
             queryAddress = addresses[Const.ENDPOINT_TYPE.QUERY][Const.SOCKET_TYPE.PUSH_PULL][0]
             return new DataProviderConnection(metaDataAddress, columnAddress, queryAddress)
         catch ex
-            log.error "Couldn't find addresses for provider!", provider
+            log.error ex
+            throw new Error "Couldn't find addresses for provider!"
         return null
 
     _metaDataSocket: null
@@ -171,11 +171,8 @@ class DataProviderConnection
             onMetaData metaData
             return
 
-        try
-            log.debug "Sending MetaDataRequest message:", JSON.stringify metaDataRequest
-            @_metaDataSocket.send MetaDataProto.serialize metaDataRequest, "virtdb.interface.pb.MetaDataRequest"
-        catch e
-            log.error e
+        log.debug "Sending MetaDataRequest message:", JSON.stringify metaDataRequest
+        @_metaDataSocket.send MetaDataProto.serialize metaDataRequest, "virtdb.interface.pb.MetaDataRequest"
 
     getData: (schema, table, fields, count, onColumn) =>
 
@@ -211,11 +208,8 @@ class DataProviderConnection
         @_querySocket = zmq.socket(Const.ZMQ_PUSH)
         @_querySocket.connect(@queryAddress)
 
-        try
-            log.debug "Sending Query message: id=#{@queryId} table=#{table}"
-            @_querySocket.send DataProto.serialize query, "virtdb.interface.pb.Query"
-        catch e
-            log.error e
+        log.debug "Sending Query message:", @queryId, table
+        @_querySocket.send DataProto.serialize query, "virtdb.interface.pb.Query"
 
     close: () =>
         if @_metaDataSocket?

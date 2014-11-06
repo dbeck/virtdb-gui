@@ -11,23 +11,19 @@ KeyValue = require "./key_value"
 ConfigService = require "./config_service"
 EndpointService = require "./endpoint_service"
 timeout = require "connect-timeout"
+ok = require "okay"
 
 log.setLevel "debug"
 require('source-map-support').install()
 
-onRequestTimeout = (res) =>
-    res.status(503).send('Request timeouted')
+router.use require 'express-domain-middleware'
 
 # GET home page.
-router.get "/", timeout(Config.Values.REQUEST_TIMEOUT, {respond: false}), (req, res) ->
-    req.on "timeout", () =>
-        onRequestTimeout(res)
+router.get "/", timeout(Config.Values.REQUEST_TIMEOUT), (req, res, next) ->
     res.json "{message: virtdb api}"
     return
 
-router.get "/endpoints", timeout(Config.Values.REQUEST_TIMEOUT, {respond: false}), (req, res) ->
-    req.on "timeout", () =>
-        onRequestTimeout(res)
+router.get "/endpoints", timeout(Config.Values.REQUEST_TIMEOUT), (req, res, next) ->
     serviceConfig = EndpointService.getInstance()
     try
         if not res.headersSent
@@ -36,11 +32,7 @@ router.get "/endpoints", timeout(Config.Values.REQUEST_TIMEOUT, {respond: false}
         log.error ex
         res.status(500).send "Error occurred: " + ex
 
-router.post "/data_provider/meta_data/", timeout(Config.Values.REQUEST_TIMEOUT, {respond: false}), (req, res) ->
-
-    req.on "timeout", () =>
-        onRequestTimeout(res)
-
+router.post "/data_provider/meta_data/", timeout(Config.Values.REQUEST_TIMEOUT), (req, res, next) ->
     provider = req.body.provider
     table = req.body.table
     id = Number req.body.id
@@ -66,11 +58,7 @@ router.post "/data_provider/meta_data/", timeout(Config.Values.REQUEST_TIMEOUT, 
         res.status(500).send "Error occurred: " + ex
         return
 
-router.post "/data_provider/table_list", timeout(Config.Values.REQUEST_TIMEOUT, {respond: false}), (req, res) =>
-
-    req.on "timeout", () =>
-        onRequestTimeout(res)
-
+router.post "/data_provider/table_list", timeout(Config.Values.REQUEST_TIMEOUT), (req, res, next) =>
     provider = req.body.provider
     from = Number req.body.from
     to = Number req.body.to
@@ -91,31 +79,19 @@ router.post "/data_provider/table_list", timeout(Config.Values.REQUEST_TIMEOUT, 
         res.status(500).send "Error occurred: " + ex
         return
 
-router.post "/data_provider/data", timeout(Config.Values.REQUEST_TIMEOUT, {respond: false}), (req, res) ->
-    req.on "timeout", () =>
-        onRequestTimeout(res)
-
+router.post "/data_provider/data", timeout(Config.Values.REQUEST_TIMEOUT), (req, res, next) ->
     provider = req.body.provider
     table = req.body.table
     count = req.body.count
     id = Number req.body.id
+    DataProvider.getData provider, table, count, (data) =>
+        if not res.headersSent
+            response =
+                data: data
+                id: id
+            res.json response
 
-    try
-        DataProvider.getData provider, table, count, (data) =>
-            if not res.headersSent
-                response =
-                    data: data
-                    id: id
-                res.json response
-    catch ex
-        log.error ex
-        res.status(500).send "Error occurred: " + ex
-        return
-
-router.post "/db_config/get", timeout(Config.Values.REQUEST_TIMEOUT, {respond: false}), (req, res) ->
-    req.on "timeout", () =>
-        onRequestTimeout(res)
-
+router.post "/db_config/get", timeout(Config.Values.REQUEST_TIMEOUT), (req, res, next) ->
     provider = req.body.provider
     try
         DBConfig.getTables provider, (tableList) =>
@@ -125,10 +101,7 @@ router.post "/db_config/get", timeout(Config.Values.REQUEST_TIMEOUT, {respond: f
         res.status(500).send "Error occurred: " + ex
         return
 
-router.post "/db_config/add", timeout(Config.Values.REQUEST_TIMEOUT, {respond: false}), (req, res) ->
-    req.on "timeout", () =>
-        onRequestTimeout(res)
-
+router.post "/db_config/add", timeout(Config.Values.REQUEST_TIMEOUT), (req, res, next) ->
     table = req.body.table
     provider = req.body.provider
 
@@ -142,27 +115,18 @@ router.post "/db_config/add", timeout(Config.Values.REQUEST_TIMEOUT, {respond: f
         res.status(500).send "Error occurred: " + ex
         return
 
-router.post "/set_app_config", timeout(Config.Values.REQUEST_TIMEOUT, {respond: false}), (req, res) ->
-    req.on "timeout", () =>
-        onRequestTimeout(res)
-
-    log.debug "Set config"
+router.post "/set_app_config", timeout(Config.Values.REQUEST_TIMEOUT), (req, res) ->
     for key, value of req.body
         Config.Values[key] = value
     VirtDBLoader.start()
     res.status(200).send()
     return
 
-router.get "/get_app_config", timeout(Config.Values.REQUEST_TIMEOUT, {respond: false}), (req, res) ->
-    req.on "timeout", () =>
-        onRequestTimeout(res)
-    log.debug "Get config"
+router.get "/get_app_config", timeout(Config.Values.REQUEST_TIMEOUT, {respond: true}), (req, res, next) ->
     res.json Config.Values
     return
 
-router.get "/get_config/:component", timeout(Config.Values.REQUEST_TIMEOUT, {respond: false}), (req, res) =>
-    req.on "timeout", () =>
-        onRequestTimeout(res)
+router.get "/get_config/:component", timeout(Config.Values.REQUEST_TIMEOUT), (req, res, next) =>
     try
         component = req.params.component
         log.debug "Getting config:", component
@@ -193,9 +157,7 @@ router.get "/get_config/:component", timeout(Config.Values.REQUEST_TIMEOUT, {res
         res.status(500).send "Error occurred: " + ex
         return
 
-router.post "/set_config/:component", timeout(Config.Values.REQUEST_TIMEOUT, {respond: false}), (req, res) =>
-    req.on "timeout", () =>
-        onRequestTimeout(res)
+router.post "/set_config/:component", timeout(Config.Values.REQUEST_TIMEOUT), (req, res, next) =>
     try
         component = req.params.component
         config = req.body
@@ -221,5 +183,9 @@ router.post "/set_config/:component", timeout(Config.Values.REQUEST_TIMEOUT, {re
         log.error ex
         res.status(500).send "Error occurred: " + ex
         return
+
+router.use (err, req, res, next) =>
+    log.error 'Error on request', req.method, req.url, req.body, err
+    res.status(if err.status? then err.status else 500).send(err.message)
 
 module.exports = router

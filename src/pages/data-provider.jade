@@ -5,7 +5,7 @@ div
         div.panel-body
             button.btn.btn-default(ng-repeat="_provider in dataProvider.providers | orderBy : name" ng-click="dataProvider.selectProvider(_provider)" ng-class="{active: provider == _provider}") {{_provider}}
     div.row
-        div.col-md-3
+        div.col-md-4
             h3 Tables
             div.panel-group(id="accordion")
                 div.panel.panel-default
@@ -69,7 +69,7 @@ div
                         ng-class="{info: field == header}")
                         th {{header}}
                         td(ng-repeat='row in dataRows track by $index' ng-class="{'null-value': row[index] === 'null'}") {{row[index]}}
-        div.col-md-3
+        div.col-md-2
             h3 Meta data
                 h4 Description
                 table.table
