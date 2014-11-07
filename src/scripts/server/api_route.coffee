@@ -10,6 +10,7 @@ VirtDBLoader = require "./virtdb_loader"
 KeyValue = require "./key_value"
 ConfigService = require "./config_service"
 EndpointService = require "./endpoint_service"
+DiagConnector = require "./diag_connector"
 timeout = require "connect-timeout"
 ok = require "okay"
 
@@ -183,6 +184,11 @@ router.post "/set_config/:component", timeout(Config.Values.REQUEST_TIMEOUT), (r
         log.error ex
         res.status(500).send "Error occurred: " + ex
         return
+
+router.post "/get_diag", timeout(Config.Values.REQUEST_TIMEOUT), (req, res, next) =>
+    from = Number req.body.from
+    levels = req.body.levels
+    res.json DiagConnector.getRecords from, levels
 
 router.use (err, req, res, next) =>
     log.error 'Error on request', req.method, req.url, req.body, err
