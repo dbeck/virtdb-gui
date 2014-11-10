@@ -78,6 +78,16 @@ app.factory 'ServerConnector', ['$http', 'ErrorService', ($http, ErrorService) -
                 onSuccess []
             )
 
+        getLogs: (data, onDiagMessage) =>
+            $http.post(@address + "/api/get_diag/", data)
+            .success(onDiagMessage)
+            .error( (response, status) =>
+                ErrorService.errorHappened "Couldn't get diag messages! " + JSON.stringify(data) + " response: " + response
+                console.error data
+                onDiagMessage []
+            )
+
+
         generateRequestId = () =>
             return Math.floor(Math.random() * 1000000) + 1
 

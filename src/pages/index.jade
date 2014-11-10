@@ -18,6 +18,8 @@ head
     script(type='text/javascript' src='../scripts/server-connector.js')
     script(type='text/javascript' src='../scripts/error-controller.js')
     script(type='text/javascript' src='../scripts/error-service.js')
+    script(type='text/javascript' src='../scripts/diagnostics-controller.js')
+    script(type='text/javascript' src='../scripts/status-controller.js')
 
 body
     div.navbar.navbar-inverse
@@ -27,14 +29,18 @@ body
             div.collaps.navbar-collapse
                 ul.nav.navbar-nav
                     li
-                        a(href='#data-providers') Data providers
+                        a(href='#data-providers') Data sources
                     li
-                        a(href='#endpoints') Endpoints
+                        a(href='#component-config') Component config
                     li
-                        a(href='#config') Configuration
+                        a(href='#status') Status
+                    li
+                        a(href='#diag') Diagnostics
+                    li
+                        a(href='#config') GUI config
 
     div.container-fluid(ng-controller="ErrorController as errors" ng-hide="errors.errorList.length === 0")
-        div.alert.alert-danger.alert-dismissible.fade.in(role="alert" ng-repeat="error in errors.errorList")
+        div.alert.alert-danger.alert-dismissible.fade.in(role="alert" ng-repeat="error in errors.errorList track by $index")
             button.close(data-dismiss="alert" ng-click="errors.removeError(error)")
                 span(aria-hidden="true")&times;
             strong Error!

@@ -190,7 +190,6 @@ app.controller 'DataProviderController',
             @ServerConnector.getDBConfig(data, @onConfiguredTables)
 
         onConfiguredTables: (configuredTableList) =>
-            console.log configuredTableList
             for _table in @tableList
                 _table.configured = false
                 _table.selected = false

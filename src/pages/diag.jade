@@ -1,0 +1,18 @@
+div
+    table.table
+        tr
+            th Time
+            th Level
+            th Component
+            th File
+            th Line
+            th Function
+            th Message
+        tr(ng-repeat="entry in diag.logEntries" ng-class='{"text-danger": entry-level === "VIRTDB_ERROR", "text-info": entry.level === "VIRTDB_INFO"}')
+            td {{entry.time}}
+            td {{entry.level}}
+            td {{entry.component}}
+            td {{entry.file}}
+            td {{entry.line}}
+            td {{entry.function}}
+            td {{entry.message}}

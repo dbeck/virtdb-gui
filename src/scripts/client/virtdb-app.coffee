@@ -7,7 +7,7 @@ app.config ($routeProvider) ->
             controller  : 'DataProviderController',
             controllerAs: 'dataProvider',
         }
-        .when '/endpoints', {
+        .when '/component-config', {
             templateUrl : '../pages/endpoints.html',
             controller  : 'EndpointController',
             controllerAs: 'endpointController',
@@ -16,6 +16,16 @@ app.config ($routeProvider) ->
             templateUrl : '../pages/configuration.html',
             controller  : 'ConfigurationController',
             controllerAs: 'cfg',
+        }
+        .when '/diag', {
+            templateUrl : '../pages/diag.html',
+            controller  : 'DiagnosticsController',
+            controllerAs: 'diag',
+        }
+        .when '/status', {
+            templateUrl : '../pages/status.html',
+            controller  : 'StatusController',
+            controllerAs  : 'statusController',
         }
     return
 

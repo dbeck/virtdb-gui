@@ -25,37 +25,47 @@ class DiagConnector
             @_logRecordSocket.on "message", @_onRecord
             @_logRecordSocket.connect(logRecordAddress)
             @_logRecordSocket.subscribe Const.EVERY_CHANNEL
+            @_records = []
         catch ex
             log.error ex
             log.error "Couldn't find address for diag service!"
         return null
 
+    @getRecords = (from, levels) =>
+        records = []
+        if @_records.length > 0
+            for i in [@_records.length - 1..0]
+                rec = @_records[i]
+                if rec.time >= from and rec.level in levels
+                    records.push rec
+        return records
+
     @_onRecord: (channel, data) =>
-        log.debug "Log MSG!", (new Buffer(channel)).toString()
-        record = DiagProto.parse data, "virtdb.interface.pb.LogRecord"
-        @_processLogRecord record
+        log.debug "Diag message on the channel:", (new Buffer(channel)).toString()
+        try
+            record = DiagProto.parse data, "virtdb.interface.pb.LogRecord"
+            processedRecord = @_processLogRecord record
+            # log.debug util.inspect processedRecord, {depth: null}
+            @_records.push processedRecord
+        catch ex
+            log.debug "Couldn't process diag message", ex
+            log.debug util.inspect record, {depth: null}
 
     @_processLogRecord: (record) =>
         logRecord = {}
         logRecord.process = @_processProcessInfo record
-        logRecord.time = moment().unix()
-        logRecord.entries = []
-        for header in record.Headers
-            logRecord.entries.push @_processLogEntry header, record
-        log.debug util.inspect logRecord, {depth: null}
-
-    @_processLogEntry: (header, record) =>
-        entry = {}
-        data = {}
+        logRecord.time = (new Date).getTime()
+        logRecord.entry = []
+        header =  record.Headers[0]
         for _data in record.Data when _data.HeaderSeqNo is header.SeqNo
             data = _data
             break
-        entry.level = header.Level
-        entry.location =
+        logRecord.level = header.Level
+        logRecord.location =
                 file: @_findSymbolValue(record.Symbols, header.FileNameSymbol)
                 function: @_findSymbolValue(record.Symbols, header.FunctionNameSymbol)
                 line: header.LineNumber
-        entry.parts = []
+        logRecord.parts = []
         index = 0
         for part in header.Parts
             if part.IsVariable && part.HasData
@@ -63,19 +73,19 @@ class DiagConnector
                     name: @_findSymbolValue record.Symbols, part.PartSymbol
                     value: @_findValue data.Values[index]
                 index++
-                entry.parts.push _part
+                logRecord.parts.push _part
             else if part.HasData
                 _part =
                     name: null
                     value: @_findValue data.Values[index]
                 index++
-                entry.parts.push _part
+                logRecord.parts.push _part
             else if part.PartSymbol?
                 _part =
                     name: @_findSymbolValue record.Symbols, part.PartSymbol
                     value: null
-                entry.parts.push _part
-        return entry
+                logRecord.parts.push _part
+        return logRecord
 
     @_processProcessInfo: (record) =>
         dateFormat = "YYYYMMDDHHmmss"
