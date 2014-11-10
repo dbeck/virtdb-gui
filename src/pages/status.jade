@@ -7,8 +7,8 @@ div
             th Status
             th Row count
             th Seconds
-        tr(ng-repeat="status in statusController.statusMessages track by $index | orderBy:time")
-            td {{status.time}}
+        tr(ng-repeat="status in statusController.statusMessages | orderBy:'time':true track by $index")
+            td {{status.time | date:'medium'}}
             td {{status.component}}
             td {{status.table_name}}
             td {{status.status}}

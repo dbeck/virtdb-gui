@@ -27,8 +27,8 @@ app.controller 'DiagnosticsController',
             for entry in entries
                 log = {}
                 log.component = entry.process.name
-                log.time = (new Date (entry.time)).toLocaleString()
-                log.level = entry.level
+                log.time = entry.time
+                log.level = entry.level.split("_")[1]
                 log.file = entry.location.file
                 log.line = entry.location.line
                 log.function = entry.location.function
