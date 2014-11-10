@@ -22,6 +22,7 @@
     "ms": "^0.6.2",
     "node-cache": "^1.0.2",
     "node-protobuf": "1.2.0",
+    "okay": "^0.3.0",
     "source-map-support": "^0.2.7",
     "static-favicon": "~1.0.0",
     "stylus": "0.42.3",
