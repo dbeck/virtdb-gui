@@ -41,7 +41,7 @@ class DiagConnector
         return records
 
     @_onRecord: (channel, data) =>
-        log.debug "Log MSG!", (new Buffer(channel)).toString()
+        log.debug "Diag message on the channel:", (new Buffer(channel)).toString()
         try
             record = DiagProto.parse data, "virtdb.interface.pb.LogRecord"
             processedRecord = @_processLogRecord record
@@ -49,6 +49,7 @@ class DiagConnector
             @_records.push processedRecord
         catch ex
             log.debug "Couldn't process diag message", ex
+            log.debug util.inspect record, {depth: null}
 
     @_processLogRecord: (record) =>
         logRecord = {}

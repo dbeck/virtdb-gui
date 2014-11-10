@@ -22,6 +22,11 @@ app.config ($routeProvider) ->
             controller  : 'DiagnosticsController',
             controllerAs: 'diag',
         }
+        .when '/status', {
+            templateUrl : '../pages/status.html',
+            controller  : 'StatusController',
+            controllerAs  : 'statusController',
+        }
     return
 
 app.controller 'ConfigurationController', ['$scope', '$http', ($scope, $http) ->
