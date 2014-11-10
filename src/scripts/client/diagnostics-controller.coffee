@@ -5,6 +5,7 @@ app.controller 'DiagnosticsController',
         @REQUEST_INTERVAL = 2000
         logEntries: null
         lastLogRequestTime: null
+        @MAX_DISPLAYED_DIAG_MSG = 2000
 
         constructor: (@$rootScope, @$scope, @$http, @$interval, @ServerConnector) ->
             @logEntries = []
@@ -41,3 +42,5 @@ app.controller 'DiagnosticsController',
                         parts.push part.name + "=" + part.value
                 log.message = parts.join ", "
                 @logEntries.push log
+                if @logEntries.length > DiagnosticsController.MAX_DISPLAYED_DIAG_MSG
+                    @logEntries.splice 0,1
