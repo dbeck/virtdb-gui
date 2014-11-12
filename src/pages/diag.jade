@@ -8,7 +8,7 @@ div
             th Line
             th Function
             th Message
-        tr(ng-repeat="entry in diag.logEntries | orderBy:'time':true" ng-class='{"text-danger": entry-level === "ERROR", "text-info": entry.level === "INFO"}')
+        tr(ng-repeat="entry in diag.logEntries | orderBy:'time':true" ng-class='{"text-danger": entry.level === "ERROR", "text-info": entry.level === "INFO"}')
             td {{entry.time | date:'medium'}}
             td {{entry.level}}
             td {{entry.component}}
