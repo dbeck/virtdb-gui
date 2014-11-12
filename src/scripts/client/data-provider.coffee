@@ -31,6 +31,7 @@ app.controller 'DataProviderController',
                     for endpointName, serviceTypes of services
                         if "META_DATA" in serviceTypes and "QUERY" in serviceTypes and "COLUMN" in serviceTypes
                             @providers.push endpointName
+                    @providers.sort()
                     @selectProvider(@providers[0])
             )
             return

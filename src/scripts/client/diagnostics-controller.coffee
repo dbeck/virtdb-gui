@@ -5,6 +5,7 @@ app.controller 'DiagnosticsController',
         @REQUEST_INTERVAL = 2000
         logEntries: null
         lastLogRequestTime: null
+        @MAX_DISPLAYED_DIAG_MSG = 2000
 
         constructor: (@$rootScope, @$scope, @$http, @$interval, @ServerConnector) ->
             @logEntries = []
@@ -26,8 +27,8 @@ app.controller 'DiagnosticsController',
             for entry in entries
                 log = {}
                 log.component = entry.process.name
-                log.time = (new Date (entry.time)).toLocaleString()
-                log.level = entry.level
+                log.time = entry.time
+                log.level = entry.level.split("_")[1]
                 log.file = entry.location.file
                 log.line = entry.location.line
                 log.function = entry.location.function
@@ -41,3 +42,5 @@ app.controller 'DiagnosticsController',
                         parts.push part.name + "=" + part.value
                 log.message = parts.join ", "
                 @logEntries.push log
+                if @logEntries.length > DiagnosticsController.MAX_DISPLAYED_DIAG_MSG
+                    @logEntries.splice 0,1
