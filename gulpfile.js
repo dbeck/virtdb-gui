@@ -56,9 +56,7 @@ gulp.task('compile-client-coffee', function() {
     var sources = './src/scripts/client/*.coffee';
     var destDir = './static/scripts/';
     gulp.src(sources)
-        .pipe(sourcemaps.init())
         .pipe(coffee({bare: true}).on('error', console.error))
-        .pipe(sourcemaps.write('.'))
         .pipe(gulp.dest(destDir))
 });
 
