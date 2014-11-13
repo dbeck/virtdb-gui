@@ -34,8 +34,7 @@ class DiagConnector
     @getRecords = (from, levels) =>
         records = []
         if @_records.length > 0
-            for i in [@_records.length - 1..0]
-                rec = @_records[i]
+            for rec in @_records
                 if rec.time >= from and rec.level in levels
                     records.push rec
         return records
