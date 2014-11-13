@@ -6,18 +6,19 @@ app.controller 'StatusController',
         @DONE_OBSOLETE_TIME = 10 * 60 * 1000
         @DONE_OBSOLETE_CHECK_INTERVAL = 10 * 1000
         statusMessages: null
+        incomingMessages: null
         lastStatusRequestTime: null
 
         constructor: (@$rootScope, @$scope, @$http, @$interval, @ServerConnector) ->
             @statusMessages = []
+            @incomingMessages = []
             @lastStatusRequestTime = 0
             @startTimers()
 
         startTimers: () =>
+            @$interval @processIncomingMessages, 500
             @requestStatuses()
             @$interval @requestStatuses, DiagnosticsController.REQUEST_INTERVAL
-            @cleanObsoleteDones()
-            @$interval @cleanObsoleteDones, StatusController.DONE_OBSOLETE_CHECK_INTERVAL
 
         cleanObsoleteDones: () =>
             now = new Date
@@ -40,16 +41,21 @@ app.controller 'StatusController',
         onStatusMessage: (entries) =>
             @lastStatusRequestTime = (new Date).getTime()
             if entries.length isnt 0
-                for i in [entries.length - 1..0]
-                    entry = entries[i]
+                for entry in entries
                     log = {}
                     log.component = entry.process.name
                     log.time = entry.time
                     parts = []
                     for part in entry.parts
                         log[part.name] = part.value
-                    @placeStatusMessage log
-                    @cleanObsoleteDones()
+                    @incomingMessages.push log
+
+        processIncomingMessages: () =>
+            @cleanObsoleteDones()
+            while @incomingMessages.length > 0
+                msg = @incomingMessages[0]
+                @incomingMessages.splice 0,1
+                @placeStatusMessage msg
 
         placeStatusMessage: (newStatus) =>
             if @statusMessages.length isnt 0
