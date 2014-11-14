@@ -52,7 +52,10 @@ class DBConfig
                         if msg?.Servers[0]?.Tables?
                             tableList = []
                             for table in msg.Servers[0].Tables
-                                tableList.push table.Schema + "." + table.Name
+                                if not table.Schema? or table.Schema is ""
+                                    tableList.push table.Name
+                                else
+                                    tableList.push table.Schema + "." + table.Name
                             if tableList.length > 0
                                 @_configuredTablesCache.set(provider, tableList)
                             onReady tableList
@@ -100,4 +103,3 @@ class DBConfigConnection
         @_reqRepSocket.on "message", (msg) =>
             onReady dbConfigProto.parse msg, "virtdb.interface.pb.DbConfigReply"
         @_reqRepSocket.send dbConfigProto.serialize dbConfigQueryMessage, "virtdb.interface.pb.DbConfigQuery"
-
