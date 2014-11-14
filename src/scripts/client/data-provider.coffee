@@ -8,6 +8,7 @@ app.controller 'DataProviderController',
         constructor: (@$rootScope, @$scope, @$http, @$timeout, @ServerConnector) ->
 
             @providers = []
+            @$rootScope.provider = null
             @requestIds = {}
 
             @tableMetaData = null
