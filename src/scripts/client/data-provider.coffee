@@ -41,6 +41,7 @@ app.controller 'DataProviderController',
             if provider is @$rootScope.provider
                 return
             @$rootScope.provider = provider
+            angular.element("#searchInput").focus()
             @resetProviderLevelView()
             @requestTableList()
 
