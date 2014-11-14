@@ -39,7 +39,8 @@ body
                     li
                         a(href='#config') GUI config
 
-    div.container-fluid(ng-controller="ErrorController as errors" ng-hide="errors.errorList.length === 0")
+    div.container-fluid(ng-controller="ErrorController as errors")
+    // - div.container-fluid(ng-controller="ErrorController as errors" ng-hide="errors.errorList.length === 0")
         div.alert.alert-danger.alert-dismissible.fade.in(role="alert" ng-repeat="error in errors.errorList track by $index")
             button.close(data-dismiss="alert" ng-click="errors.removeError(error)")
                 span(aria-hidden="true")&times;
