@@ -58,9 +58,13 @@ app.controller 'StatusController',
                 @placeStatusMessage msg
 
         placeStatusMessage: (newStatus) =>
-            if @statusMessages.length isnt 0
-                for i in [0..@statusMessages.length - 1]
-                    status = @statusMessages[i]
-                    if status.table_name == newStatus.table_name and status.component == newStatus.component and status.query_id == newStatus.query_id
-                        @statusMessages.splice i, 1
+            if @statusMessages.length is 0
+                @statusMessages.push newStatus
+                return
+
+            for i in [0..@statusMessages.length - 1]
+                status = @statusMessages[i]
+                if status.table_name == newStatus.table_name and status.component == newStatus.component and status.query_id == newStatus.query_id
+                    @statusMessages[i] = newStatus
+                    return
             @statusMessages.push newStatus
