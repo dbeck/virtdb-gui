@@ -24,7 +24,6 @@ app.factory 'ServerConnector', ['$http', 'ErrorService', ($http, ErrorService) -
             )
             .error( (response, status) =>
                 ErrorService.errorHappened "Couldn't get table list! " + JSON.stringify(data) + " response: " + response
-                console.error data
                 onSuccess []
             )
             return data.id
@@ -40,7 +39,6 @@ app.factory 'ServerConnector', ['$http', 'ErrorService', ($http, ErrorService) -
             )
             .error( (response, status) =>
                 ErrorService.errorHappened "Couldn't get meta data! " + JSON.stringify(data) + " response: " + response
-                console.error data
                 onSuccess []
             )
             return data.id
@@ -56,7 +54,6 @@ app.factory 'ServerConnector', ['$http', 'ErrorService', ($http, ErrorService) -
             )
             .error( (response, status) =>
                     ErrorService.errorHappened "Couldn't get data! " + JSON.stringify(data) + " response: " + response
-                    console.error data
                     onSuccess []
             )
             return data.id
@@ -66,7 +63,6 @@ app.factory 'ServerConnector', ['$http', 'ErrorService', ($http, ErrorService) -
             .success(onSuccess)
             .error( (response, status) =>
                     ErrorService.errorHappened "Couldn't add table to db config! " + JSON.stringify(data) + " response: " + response
-                    console.error data
             )
 
         getDBConfig: (data, onSuccess) =>
@@ -74,7 +70,6 @@ app.factory 'ServerConnector', ['$http', 'ErrorService', ($http, ErrorService) -
             .success(onSuccess)
             .error( (response, status) =>
                 ErrorService.errorHappened "Couldn't get table list from db config! " + JSON.stringify(data) + " response: " + response
-                console.error data
                 onSuccess []
             )
 
@@ -83,10 +78,8 @@ app.factory 'ServerConnector', ['$http', 'ErrorService', ($http, ErrorService) -
             .success(onDiagMessage)
             .error( (response, status) =>
                 ErrorService.errorHappened "Couldn't get diag messages! " + JSON.stringify(data) + " response: " + response
-                console.error data
                 onDiagMessage []
             )
-
 
         generateRequestId = () =>
             return Math.floor(Math.random() * 1000000) + 1
