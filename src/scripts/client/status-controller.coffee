@@ -21,16 +21,18 @@ app.controller 'StatusController',
             @$interval @requestStatuses, DiagnosticsController.REQUEST_INTERVAL
 
         cleanObsoleteDones: () =>
-            now = new Date
             copyStatusMessages = @statusMessages.slice 0
             if copyStatusMessages.length > 0
                 for i in [0..copyStatusMessages.length - 1]
                     status = copyStatusMessages[i]
-                    isObsolete =  now - status.time > StatusController.DONE_OBSOLETE_TIME
-                    containsDone = status.status.indexOf("DONE") > -1
-                    if containsDone and isObsolete
+                    containsDone = status?.status?.indexOf("DONE") > -1
+                    if containsDone and @isStatusObsolete(status)
                         index = @statusMessages.indexOf status
                         @statusMessages.splice index, 1
+
+        isStatusObsolete: (status) =>
+            now = new Date
+            return now - status?.time > StatusController.DONE_OBSOLETE_TIME
 
         requestStatuses: () =>
             data =
@@ -55,7 +57,8 @@ app.controller 'StatusController',
             while @incomingMessages.length > 0
                 msg = @incomingMessages[0]
                 @incomingMessages.splice 0,1
-                @placeStatusMessage msg
+                if not @isStatusObsolete msg
+                    @placeStatusMessage msg
 
         placeStatusMessage: (newStatus) =>
             if @statusMessages.length is 0
@@ -64,7 +67,7 @@ app.controller 'StatusController',
 
             for i in [0..@statusMessages.length - 1]
                 status = @statusMessages[i]
-                if status.table_name == newStatus.table_name and status.component == newStatus.component and status.query_id == newStatus.query_id
+                if status?.table_name is newStatus?.table_name and status?.component is newStatus?.component and status?.query_id is newStatus?.query_id
                     @statusMessages[i] = newStatus
                     return
             @statusMessages.push newStatus

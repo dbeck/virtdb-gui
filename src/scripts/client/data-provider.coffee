@@ -8,6 +8,7 @@ app.controller 'DataProviderController',
         constructor: (@$rootScope, @$scope, @$http, @$timeout, @ServerConnector) ->
 
             @providers = []
+            @$rootScope.provider = null
             @requestIds = {}
 
             @tableMetaData = null
@@ -40,6 +41,7 @@ app.controller 'DataProviderController',
             if provider is @$rootScope.provider
                 return
             @$rootScope.provider = provider
+            angular.element("#searchInput").focus()
             @resetProviderLevelView()
             @requestTableList()
 

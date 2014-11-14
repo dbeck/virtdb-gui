@@ -30,7 +30,7 @@ div
                     div.input-group
                         span.input-group-addon
                             span.glyphicon.glyphicon-search
-                        input.form-control(type="text" ng-model="search" ng-change="dataProvider.searchTableNames()")
+                        input.form-control(type="text" ng-model="search" ng-change="dataProvider.searchTableNames()" id="searchInput")
             p
             p Count: {{tableListCount}} Displaying: {{tableListFrom}} - {{tableListTo}}
             p {{selectionCounter}} table selected for adding to db config
