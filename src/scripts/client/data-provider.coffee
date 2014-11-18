@@ -80,6 +80,9 @@ app.controller 'DataProviderController',
             return
 
         onTableList: (data) =>
+            if data.length is 0
+                console.warn "table list is empty"
+                return
             @$scope.tableListCount = data.count
             if data.count > 0
                 @$scope.tableListFrom = data.from + 1
