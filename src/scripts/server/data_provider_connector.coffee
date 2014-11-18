@@ -2,7 +2,8 @@ Config = require "./config"
 zmq = require "zmq"
 fs = require "fs"
 protobuf = require "node-protobuf"
-log = require "loglevel"
+log = (require "virtdb-connector").log
+V_ = log.Variable
 lz4 = require "lz4"
 EndpointService = require "./endpoint_service"
 FieldData = require "./fieldData"
@@ -11,7 +12,6 @@ util = require "util"
 NodeCache = require "node-cache"
 ms = require "ms"
 
-log.setLevel "debug"
 require("source-map-support").install()
 
 DataProto = new protobuf(fs.readFileSync("common/proto/data.pb.desc"))
@@ -22,7 +22,7 @@ class DataProvider
 
     @_tableNamesCache = new NodeCache({ stdTTL: CACHE_TTL, checkperiod: CACHE_CHECK_PERIOD})
     @_tableNamesCache.on "expired", (key, value) =>
-        log.debug "Table names cache expired:", key
+        log.trace "table names cache expired", V_(key)
 
     @_tableMetaCache = []
 
@@ -30,43 +30,47 @@ class DataProvider
     CACHE_CHECK_PERIOD = ms(Config.Values.CACHE_CHECK_PERIOD)/1000
 
     @checkTableMetaCache: (provider) =>
-        if not @_tableMetaCache[provider]?
-            log.debug "Table meta cache for the provider: #{provider} is not existing yet."
-            @_tableMetaCache[provider] = new NodeCache({ stdTTL: CACHE_TTL, checkperiod: CACHE_CHECK_PERIOD })
-            @_tableMetaCache[provider].on "expired", (key, value) =>
-                    log.debug "Table meta cache expired:", provider, ":", key
+        try
+            if not @_tableMetaCache[provider]?
+                log.trace "table meta cache is not existing yet", V_(provider)
+                @_tableMetaCache[provider] = new NodeCache({ stdTTL: CACHE_TTL, checkperiod: CACHE_CHECK_PERIOD })
+                @_tableMetaCache[provider].on "expired", (key, value) =>
+                        log.trace "table meta cache expired", V_(provider), V_(key)
+        catch ex
+            log.error V_(ex)
+            throw ex
 
     @getTableMeta: (provider, tableName, onReady) =>
-        @checkTableMetaCache(provider)
+        try
+            @checkTableMetaCache(provider)
 
-        cachedTable = @_tableMetaCache[provider].get(tableName)
-        if cachedTable? and Object.keys(cachedTable).length is 0
-            log.debug "The requested table is not in cache."
-            log.debug "Requesting table meta from provider"
-            connection = DataProviderConnection.getConnection(provider)
-            try
+            cachedTable = @_tableMetaCache[provider].get(tableName)
+            if cachedTable? and Object.keys(cachedTable).length is 0
+                log.debug "requested meta data is not in cache."
+                log.debug "getting table meta from provider"
+                connection = DataProviderConnection.getConnection(provider)
                 table = @_processTableName tableName
                 connection.getMetadata table.Schema, table.Name, true, (metaData) =>
                     tableMeta = metaData.Tables[0]
                     @_tableMetaCache[provider].set(tableName, tableMeta)
                     onReady tableMeta
-            catch ex
-                log.error ex
-                throw new Error "Couldn't get table meta."
-        else
-            log.debug "The requested table is in cache."
-            onReady cachedTable[tableName]
+            else
+                log.debug "requested meta data is in cache."
+                onReady cachedTable[tableName]
+        catch ex
+            log.error V_(ex)
+            throw ex
 
     @getData: (provider, tableName, count, onData) =>
-        @getTableMeta provider, tableName, (tableMeta) =>
-            connection = DataProviderConnection.getConnection(provider)
-            try
+        try
+            @getTableMeta provider, tableName, (tableMeta) =>
+                connection = DataProviderConnection.getConnection(provider)
                 connection.getData tableMeta.Schema, tableMeta.Name, tableMeta.Fields, count, (data) =>
-                    log.debug "Data received", tableMeta.Name
+                    log.debug "meta data received", V_(tableMeta.Name)
                     onData data
-            catch ex
-                log.error ex
-                throw new Error "Couldn't get data"
+        catch ex
+            log.error V_(ex)
+            throw ex
 
     @getTableNames: (provider, search, from, to, tables, onReady) =>
         try
@@ -92,20 +96,19 @@ class DataProvider
                     results: results[realFrom..realTo]
                 onReady result
         catch ex
-            log.error ex
-            throw new Error "Couldn't get table list."
+            log.error V_(ex)
+            throw ex
 
     @_fillTableNamesCache: (provider, onReady) =>
-        # @checkTableNamesCache(provider)
-        tableNameList = @_tableNamesCache.get(provider)[provider]
-        if util.isArray tableNameList
-            log.debug "Serving table names from cache.", provider
-            onReady tableNameList
-        else
-            log.debug "Cache for the current provider is empty."
-            log.debug "Requesting table names from provider"
-            connection = DataProviderConnection.getConnection(provider)
-            try
+        try
+            tableNameList = @_tableNamesCache.get(provider)[provider]
+            if util.isArray tableNameList
+                log.debug "getting table list from cache.", V_(provider)
+                onReady tableNameList
+            else
+                log.debug "cache for the current provider is empty.", V_(provider)
+                log.debug "getting table list from provider", V_(provider)
+                connection = DataProviderConnection.getConnection(provider)
                 connection.getMetadata ".*", ".*", false, (metaData) =>
                     tableList = []
                     for table in metaData.Tables
@@ -116,24 +119,28 @@ class DataProvider
                     if tableList.length > 0
                         @_tableNamesCache.set(provider, tableList)
                     onReady tableList
-            catch ex
-                log.error ex
-                throw new Error "Couldn't fill table list cache."
-        return
+            return
+        catch ex
+            log.error V_(ex)
+            throw ex
 
     @_processTableName: (tableDesc) =>
-        table = {}
-        tableElements = tableDesc.split(".")
-        #if no schema
-        if tableElements.length is 1
-            table.Name ?= tableElements[0]
-        #if schema and tablename is also exist
-        else if tableElements.length is 2
-            table.Name ?= tableElements[1]
-            table.Schema ?= tableElements[0]
-        else
-            throw Error "Something wrong with the format of the table name."
-        return table
+        try
+            table = {}
+            tableElements = tableDesc.split(".")
+            #if no schema
+            if tableElements.length is 1
+                table.Name ?= tableElements[0]
+            #if schema and tablename is also exist
+            else if tableElements.length is 2
+                table.Name ?= tableElements[1]
+                table.Schema ?= tableElements[0]
+            else
+                throw Error "something wrong with the format of the table name."
+            return table
+        catch ex
+            log.error V_(ex)
+            throw ex
 
 class DataProviderConnection
 
@@ -145,79 +152,91 @@ class DataProviderConnection
             queryAddress = addresses[Const.ENDPOINT_TYPE.QUERY][Const.SOCKET_TYPE.PUSH_PULL][0]
             return new DataProviderConnection(metaDataAddress, columnAddress, queryAddress)
         catch ex
-            log.error ex
-            throw new Error "Couldn't find addresses for provider!"
-        return null
+            log.error V_(ex)
+            throw ex
 
     _metaDataSocket: null
     _querySocket: null
     _columnSocket: null
-
     _columnReceiver: null
 
     constructor: (@metaDataAddress, @columnAddress, @queryAddress) ->
 
     getMetadata: (schema, table, withFields, onMetaData) =>
-        metaDataRequest =
-            Name: table
-            Schema: schema
-            WithFields: withFields
+        try
+            metaDataRequest =
+                Name: table
+                Schema: schema
+                WithFields: withFields
+            @_metaDataSocket = zmq.socket(Const.ZMQ_REQ)
+            @_metaDataSocket.connect(@metaDataAddress)
+            @_metaDataSocket.on "message", (data) =>
+                try
+                    metaData = MetaDataProto.parse data, "virtdb.interface.pb.MetaData"
+                    log.trace "got metadata", V_(schema), V_(table)
+                    onMetaData metaData
+                    return
+                catch ex
+                    log.error V_(ex)
+                    throw ex
 
-        @_metaDataSocket = zmq.socket(Const.ZMQ_REQ)
-        @_metaDataSocket.connect(@metaDataAddress)
-        @_metaDataSocket.on "message", (data) =>
-            metaData = MetaDataProto.parse data, "virtdb.interface.pb.MetaData"
-            log.debug "Got metadata"
-            onMetaData metaData
-            return
-
-        log.debug "Sending MetaDataRequest message:", JSON.stringify metaDataRequest
-        @_metaDataSocket.send MetaDataProto.serialize metaDataRequest, "virtdb.interface.pb.MetaDataRequest"
+            log.trace "sending MetaDataRequest message", V_(metaDataRequest)
+            @_metaDataSocket.send MetaDataProto.serialize metaDataRequest, "virtdb.interface.pb.MetaDataRequest"
+        catch ex
+            log.error V_(ex)
+            throw ex
 
     getData: (schema, table, fields, count, onColumn) =>
+        try
+            schema ?= ""
+            @queryId = Math.floor((Math.random() * 100000) + 1)
 
-        if not schema?
-            schema = ""
+            query =
+                QueryId: @queryId
+                Table: table
+                Fields: fields
+                Limit: count
+                Schema: schema
 
-        @queryId = Math.floor((Math.random() * 100000) + 1)
+            @_columnReceiver = new ColumnReceiver(onColumn, fields)
+            @_columnSocket = zmq.socket(Const.ZMQ_SUB)
+            @_columnSocket.connect(@columnAddress)
+            @_columnSocket.subscribe @queryId.toString()
+            @_columnSocket.on "message", (channel, data) =>
+                try
+                    column = DataProto.parse data, "virtdb.interface.pb.Column"
+                    log.trace "got column", V_(channel), V_(column.fields)
+                    if column.CompType is "LZ4_COMPRESSION"
+                        uncompressedData = new Buffer(column.UncompressedSize)
+                        size = lz4.decodeBlock(column.CompressedData, uncompressedData)
+                        uncompressedData = uncompressedData.slice(0, size)
+                        column.Data = CommonProto.parse uncompressedData, "virtdb.interface.pb.ValueType"
+                    @_columnReceiver.add column
+                    return
+                catch ex
+                    log.error V_(ex)
+                    throw ex
 
-        query =
-            QueryId: @queryId
-            Table: table
-            Fields: fields
-            Limit: count
-            Schema: schema
+            @_querySocket = zmq.socket(Const.ZMQ_PUSH)
+            @_querySocket.connect(@queryAddress)
 
-        @_columnReceiver = new ColumnReceiver(onColumn, fields)
-        @_columnSocket = zmq.socket(Const.ZMQ_SUB)
-        @_columnSocket.connect(@columnAddress)
-        @_columnSocket.subscribe @queryId.toString()
-        @_columnSocket.on "message", (channel, data) =>
-            column = DataProto.parse data, "virtdb.interface.pb.Column"
-            log.trace "Got column on channel: channel=" + channel.toString() + " column=#{column.Name}"
-            if column.CompType is "LZ4_COMPRESSION"
-                uncompressedData = new Buffer(column.UncompressedSize)
-                size = lz4.decodeBlock(column.CompressedData, uncompressedData)
-                uncompressedData = uncompressedData.slice(0, size)
-                column.Data = CommonProto.parse uncompressedData, "virtdb.interface.pb.ValueType"
-            log.trace "Column: ", column
-
-            @_columnReceiver.add column
-            return
-
-        @_querySocket = zmq.socket(Const.ZMQ_PUSH)
-        @_querySocket.connect(@queryAddress)
-
-        log.debug "Sending Query message:", @queryId, table
-        @_querySocket.send DataProto.serialize query, "virtdb.interface.pb.Query"
+            log.trace "sending Query message", V_(@queryId), V_(table)
+            @_querySocket.send DataProto.serialize query, "virtdb.interface.pb.Query"
+        catch ex
+            log.error V_(ex)
+            throw ex
 
     close: () =>
-        if @_metaDataSocket?
-            @_metaDataSocket.close()
-        if @_columnSocket?
-            @_columnSocket.close()
-        if @_querySocket?
-            @_querySocket.close()
+        try
+            if @_metaDataSocket?
+                @_metaDataSocket.close()
+            if @_columnSocket?
+                @_columnSocket.close()
+            if @_querySocket?
+                @_querySocket.close()
+        catch ex
+            log.error V_(ex)
+            throw ex
 
 class ColumnReceiver
     _columns: null
@@ -234,8 +253,6 @@ class ColumnReceiver
     add: (column) =>
         @_add column.Name, FieldData.get column
 
-        if not column.EndOfData
-            log.trace "More data will come in this column."
         @_columnEndOfData[column.Name] = column.EndOfData
 
         if @_checkReceivedColumns()
@@ -250,13 +267,9 @@ class ColumnReceiver
         return false
 
     _add: (columnName, data) =>
-        if @_contains columnName
-            #TODO append data properly
-            log.trace "Append data to the already received ones"
-        else
-            @_columns.push
-                Name: columnName
-                Data: data
+        @_columns.push
+            Name: columnName
+            Data: data
 
     _checkReceivedColumns: () =>
         @_fields.length == @_columns.length

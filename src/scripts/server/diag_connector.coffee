@@ -2,7 +2,6 @@ Config = require "./config"
 zmq = require "zmq"
 fs = require "fs"
 protobuf = require "node-protobuf"
-log = require "loglevel"
 FieldData = require "./fieldData"
 
 EndpointService = require "./endpoint_service"
@@ -10,12 +9,15 @@ FieldData = require "./fieldData"
 Const = (require "virtdb-connector").Constants
 util = require "util"
 moment = require "moment"
+log = (require "virtdb-connector").log
+V_ = log.Variable
 
 DiagProto = new protobuf(fs.readFileSync("common/proto/diag.pb.desc"))
 class DiagConnector
 
     @_records: null
     @_logRecordSocket: null
+
 
     @connect: (diagServiceName) =>
         try
@@ -27,8 +29,8 @@ class DiagConnector
             @_logRecordSocket.subscribe Const.EVERY_CHANNEL
             @_records = []
         catch ex
-            log.error ex
-            log.error "Couldn't find address for diag service!"
+            console.error "couldn't find address for diag service!"
+            console.error ex
         return null
 
     @getRecords = (from, levels) =>
@@ -40,15 +42,12 @@ class DiagConnector
         return records
 
     @_onRecord: (channel, data) =>
-        log.debug "Diag message on the channel:", (new Buffer(channel)).toString()
         try
             record = DiagProto.parse data, "virtdb.interface.pb.LogRecord"
             processedRecord = @_processLogRecord record
-            # log.debug util.inspect processedRecord, {depth: null}
             @_records.push processedRecord
         catch ex
-            log.debug "Couldn't process diag message", ex
-            log.debug util.inspect record, {depth: null}
+            log.debug "Couldn't process diag message", ex, V_(record)
 
     @_processLogRecord: (record) =>
         logRecord = {}

@@ -1,11 +1,12 @@
+require("source-map-support").install()
 zmq = require "zmq"
 fs = require "fs"
 protobuf = require "node-protobuf"
 log = require "loglevel"
-Const = (require "virtdb-connector").Constants
-
-require("source-map-support").install()
-log.setLevel "debug"
+VirtDBConnector = require "virtdb-connector"
+Const = VirtDBConnector.Constants
+log = VirtDBConnector.log
+V_ = log.Variable
 
 serviceConfigProto = new protobuf(fs.readFileSync("common/proto/svc_config.pb.desc"))
 
@@ -66,7 +67,7 @@ class EndpointService
             try
                 @reqrepSocket.connect(@address)
             catch ex
-                log.error "Error during connecting to endpoint service!", ex
+                console.error "Error during connecting to endpoint service!", ex
 
         _onMessage: (reply) =>
             @endpoints = (serviceConfigProto.parse reply, "virtdb.interface.pb.Endpoint").Endpoints
@@ -82,20 +83,21 @@ class EndpointService
                     ]
                 @reqrepSocket.send serviceConfigProto.serialize endpointMessage, "virtdb.interface.pb.Endpoint"
             catch ex
-                log.error "Error during requesting endpoint list!"
+                console.error "Error during requesting endpoint list!"
             return
 
         _onPublishedMessage: (channelId, message) =>
-            data = serviceConfigProto.parse message, "virtdb.interface.pb.Endpoint"
-            log.debug "Got published message from endpoint service."
-            log.debug "channel:", channelId.toString()
-            log.debug "data:", data
-            for newEndpoint in data.Endpoints
-                for endpoint in @endpoints
-                    if endpoint.Name == newEndpoint.Name and endpoint.SvcType == newEndpoint.SvcType
-                        @endpoints.splice @endpoints.indexOf(endpoint), 1
-                        break
-                @endpoints = @endpoints.concat newEndpoint
+            try
+                data = serviceConfigProto.parse message, "virtdb.interface.pb.Endpoint"
+                log.debug "got published message from endpoint service.", V_(channelId)
+                for newEndpoint in data.Endpoints
+                    for endpoint in @endpoints
+                        if endpoint.Name == newEndpoint.Name and endpoint.SvcType == newEndpoint.SvcType
+                            @endpoints.splice @endpoints.indexOf(endpoint), 1
+                            break
+                    @endpoints = @endpoints.concat newEndpoint
+            catch ex
+                log.error V_(ex)
 
         _subscribeEndpoints: () =>
             try
@@ -105,8 +107,8 @@ class EndpointService
                 address = connections[Const.ENDPOINT_TYPE.ENDPOINT][Const.SOCKET_TYPE.PUB_SUB][0]
                 @pubsubSocket.connect address
                 @pubsubSocket.subscribe Const.EVERY_CHANNEL
-                log.debug "Subscribed to endpoint service", address
+                log.trace "subscribed to endpoint service", address
             catch ex
-                log.error "Couldn't subscribe to endpoint service", ex
+                log.trace "couldn't subscribe to endpoint service", ex
 
 module.exports = EndpointService

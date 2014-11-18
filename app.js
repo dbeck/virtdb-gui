@@ -16,7 +16,6 @@ app.set('view engine', 'jade');
 app.set('views', path.join(__dirname, 'static/pages'));
 
 app.use(favicon());
-app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded());
 app.use(cookieParser());

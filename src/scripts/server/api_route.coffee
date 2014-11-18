@@ -1,6 +1,5 @@
 express = require "express"
 router = express.Router()
-log = require "loglevel"
 util = require "util"
 DataProvider = require "./data_provider_connector"
 DBConfig = require "./db_config_connector"
@@ -13,8 +12,9 @@ EndpointService = require "./endpoint_service"
 DiagConnector = require "./diag_connector"
 timeout = require "connect-timeout"
 ok = require "okay"
+log = VirtDBConnector.log
+V_ = log.Variable
 
-log.setLevel "debug"
 require('source-map-support').install()
 
 router.use require 'express-domain-middleware'
@@ -30,8 +30,8 @@ router.get "/endpoints", timeout(Config.Values.REQUEST_TIMEOUT), (req, res, next
         if not res.headersSent
             res.json serviceConfig.getEndpoints()
     catch ex
-        log.error ex
-        res.status(500).send "Error occurred: " + ex
+        log.error V_(ex)
+        throw ex
 
 router.post "/data_provider/meta_data/", timeout(Config.Values.REQUEST_TIMEOUT), (req, res, next) ->
     provider = req.body.provider
@@ -55,9 +55,8 @@ router.post "/data_provider/meta_data/", timeout(Config.Values.REQUEST_TIMEOUT),
                     id: id
                 res.json response
     catch ex
-        log.error ex
-        res.status(500).send "Error occurred: " + ex
-        return
+        log.error V_(ex)
+        throw ex
 
 router.post "/data_provider/table_list", timeout(Config.Values.REQUEST_TIMEOUT), (req, res, next) =>
     provider = req.body.provider
@@ -66,7 +65,6 @@ router.post "/data_provider/table_list", timeout(Config.Values.REQUEST_TIMEOUT),
     search = req.body.search
     id = Number req.body.id
     tablesToFilter = req.body.tables
-
     try
         DataProvider.getTableNames provider, search, from, to, tablesToFilter, (result) ->
             if not res.headersSent
@@ -76,21 +74,24 @@ router.post "/data_provider/table_list", timeout(Config.Values.REQUEST_TIMEOUT),
                 res.json response
                 return
     catch ex
-        log.error ex
-        res.status(500).send "Error occurred: " + ex
-        return
+        log.error V_(ex)
+        throw ex
 
 router.post "/data_provider/data", timeout(Config.Values.REQUEST_TIMEOUT), (req, res, next) ->
-    provider = req.body.provider
-    table = req.body.table
-    count = req.body.count
-    id = Number req.body.id
-    DataProvider.getData provider, table, count, (data) =>
-        if not res.headersSent
-            response =
-                data: data
-                id: id
-            res.json response
+    try
+        provider = req.body.provider
+        table = req.body.table
+        count = req.body.count
+        id = Number req.body.id
+        DataProvider.getData provider, table, count, (data) =>
+            if not res.headersSent
+                response =
+                    data: data
+                    id: id
+                res.json response
+    catch ex
+        log.error V_(ex)
+        throw ex
 
 router.post "/db_config/get", timeout(Config.Values.REQUEST_TIMEOUT), (req, res, next) ->
     provider = req.body.provider
@@ -98,9 +99,8 @@ router.post "/db_config/get", timeout(Config.Values.REQUEST_TIMEOUT), (req, res,
         DBConfig.getTables provider, (tableList) =>
             res.json tableList
     catch ex
-        log.error ex
-        res.status(500).send "Error occurred: " + ex
-        return
+        log.error V_(ex)
+        throw ex
 
 router.post "/db_config/add", timeout(Config.Values.REQUEST_TIMEOUT), (req, res, next) ->
     table = req.body.table
@@ -112,9 +112,8 @@ router.post "/db_config/add", timeout(Config.Values.REQUEST_TIMEOUT), (req, res,
             res.status(200).send()
             return
     catch ex
-        log.error ex
-        res.status(500).send "Error occurred: " + ex
-        return
+        log.error V_(ex)
+        throw ex
 
 router.post "/set_app_config", timeout(Config.Values.REQUEST_TIMEOUT), (req, res) ->
     for key, value of req.body
@@ -130,7 +129,6 @@ router.get "/get_app_config", timeout(Config.Values.REQUEST_TIMEOUT, {respond: t
 router.get "/get_config/:component", timeout(Config.Values.REQUEST_TIMEOUT), (req, res, next) =>
     try
         component = req.params.component
-        log.debug "Getting config:", component
         ConfigService.getConfig component, (config) =>
             "Got response from the endpoint service."
             template = {}
@@ -154,9 +152,8 @@ router.get "/get_config/:component", timeout(Config.Values.REQUEST_TIMEOUT), (re
             else
                 res.json {}
     catch ex
-        log.error ex
-        res.status(500).send "Error occurred: " + ex
-        return
+        log.error V_(ex)
+        throw ex
 
 router.post "/set_config/:component", timeout(Config.Values.REQUEST_TIMEOUT), (req, res, next) =>
     try
@@ -181,9 +178,8 @@ router.post "/set_config/:component", timeout(Config.Values.REQUEST_TIMEOUT), (r
             res.status(200).send()
 
     catch ex
-        log.error ex
-        res.status(500).send "Error occurred: " + ex
-        return
+        log.error V_(ex)
+        throw ex
 
 router.post "/get_diag", timeout(Config.Values.REQUEST_TIMEOUT), (req, res, next) =>
     from = Number req.body.from
@@ -191,7 +187,7 @@ router.post "/get_diag", timeout(Config.Values.REQUEST_TIMEOUT), (req, res, next
     res.json DiagConnector.getRecords from, levels
 
 router.use (err, req, res, next) =>
-    log.error 'Error on request', req.method, req.url, req.body, err
+    log.error req.url, V_(err), JSON.stringify req.body
     res.status(if err.status? then err.status else 500).send(err.message)
 
 module.exports = router
