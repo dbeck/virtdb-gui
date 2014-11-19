@@ -9,9 +9,10 @@ function release {
   cp --parents -R src/scripts/server/out $RELEASE_PATH
   cp --parents common/proto/*.desc $RELEASE_PATH
   cp -R static $RELEASE_PATH
+  cp -R node_modules $RELEASE_PATH
   cp app.js $RELEASE_PATH
   mkdir -p $RELEASE_PATH/lib
-  cp /usr/lib64/libzmq.so.3 $RELEASE_PATH/lib 
+  cp /usr/lib64/libzmq.so.3 $RELEASE_PATH/lib
   cp /usr/local/lib/libprotobuf.so.9 $RELEASE_PATH/lib
   tar -czvf virtdb-gui-$BUILD_NUMBER.tar.gz -C $RELEASE_PATH .
 }
