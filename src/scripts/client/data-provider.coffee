@@ -11,6 +11,8 @@ app.controller 'DataProviderController',
             @$rootScope.provider = null
             @requestIds = {}
 
+            @tableListEndTimerPromise = null
+
             @tableMetaData = null
             @tableList = null
 
@@ -80,6 +82,13 @@ app.controller 'DataProviderController',
             return
 
         onTableList: (data) =>
+            if @tableListEndTimerPromise?
+                @$timeout.cancel(@tableListEndTimerPromise)
+                @tableListEndTimerPromise = null
+
+            if data.length is 0
+                console.warn "table list is empty"
+                return
             @$scope.tableListCount = data.count
             if data.count > 0
                 @$scope.tableListFrom = data.from + 1
@@ -101,8 +110,12 @@ app.controller 'DataProviderController',
                     configured: false
                 @tableList.push table
 
-            @tableSelectionChanged()
-            @requestConfiguredTables()
+            @tableListEndTimerPromise = @$timeout(() =>
+                console.log "timer run"
+                @tableSelectionChanged()
+                @requestConfiguredTables()
+            , 500)
+            return
 
         requestMetaData: () =>
             requestData =
@@ -191,6 +204,7 @@ app.controller 'DataProviderController',
         requestConfiguredTables: () =>
             data = provider: @$scope.provider
             @ServerConnector.getDBConfig(data, @onConfiguredTables)
+            return
 
         onConfiguredTables: (configuredTableList) =>
             for _table in @tableList

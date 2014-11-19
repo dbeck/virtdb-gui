@@ -1,11 +1,11 @@
 zmq = require "zmq"
 fs = require "fs"
 protobuf = require "node-protobuf"
-log = require "loglevel"
 util = require "util"
 VirtDBConnector = (require "virtdb-connector")
 Const = VirtDBConnector.Constants
-# Convert = require "./convert"
+log = VirtDBConnector.log
+V_ = log.Variable
 
 require("source-map-support").install()
 log.setLevel "debug"
@@ -20,20 +20,12 @@ class ConfigService
         @_address = address
 
     @getConfig: (component, onConfig) =>
-        try
-            connection = new ConfigServiceConnector(@_address)
-            connection.getConfig component, onConfig
-        catch ex
-            log.error ex
-            throw new Error "Couldn't get config of component"
+        connection = new ConfigServiceConnector(@_address)
+        connection.getConfig component, onConfig
 
     @sendConfig: (config) =>
-        try
-            connection = new ConfigServiceConnector(@_address)
-            connection.sendConfig(config)
-        catch ex
-            log.error ex
-            throw new Error "Couldn't send config of component"
+        connection = new ConfigServiceConnector(@_address)
+        connection.sendConfig(config)
 
     class ConfigServiceConnector
 
@@ -48,33 +40,40 @@ class ConfigService
             @_connect()
 
         getConfig: (component, readyCallback) =>
-            @_onConfig = readyCallback
-            configReq =
-                Name: component
-            log.debug "Sending config request message:", configReq
-            @_reqRepSocket.send serviceConfigProto.serialize configReq, "virtdb.interface.pb.Config"
+            try
+                @_onConfig = readyCallback
+                configReq =
+                    Name: component
+                log.debug "sending config request message:", configReq
+                @_reqRepSocket.send serviceConfigProto.serialize configReq, "virtdb.interface.pb.Config"
+            catch ex
+                log.error V_(ex)
+                throw ex
 
         sendConfig: (config) =>
             try
                 @_reqRepSocket.send serviceConfigProto.serialize config, "virtdb.interface.pb.Config"
-                log.debug "Config sent to the config service:", util.inspect config, {depth: null}
+                log.debug "config sent to the config service:", V_(config)
             catch ex
-                log.error ex
-                throw new Error "Error during sending config!"
+                log.error V_(ex)
+                throw ex
 
         _onMessage: (message) =>
-            configMessage = serviceConfigProto.parse message, "virtdb.interface.pb.Config"
-            log.debug "Got config message: ", (util.inspect configMessage, {depth: null})
-            if @_onConfig?
-                @_onConfig configMessage
-            return
+            try
+                configMessage = serviceConfigProto.parse message, "virtdb.interface.pb.Config"
+                log.trace "got config message: ", (util.inspect configMessage, {depth: null})
+                if @_onConfig?
+                    @_onConfig configMessage
+                return
+            catch ex
+                log.error V_(ex)
+                throw ex
 
         _connect: =>
             try
                 @_reqRepSocket.connect(@_address)
-                log.debug "Connected to the config service!"
             catch ex
-                log.error "Error during connecting to config service!", ex, @_address
+                log.error V_(ex)
                 throw ex
 
 module.exports = ConfigService

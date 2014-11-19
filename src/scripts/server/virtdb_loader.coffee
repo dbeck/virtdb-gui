@@ -18,7 +18,7 @@ class VirtDBLoader
                 try
                     VirtDBConnector.connect(Config.Values.GUI_ENDPOINT_NAME, address)
                     VirtDBConnector.onAddress Const.ENDPOINT_TYPE.CONFIG, Const.SOCKET_TYPE.REQ_REP, (name, address) =>
-                        log.debug "Got config service address:", address
+                        console.log "Got config service address:", address
                         ConfigService.setAddress(address)
                     callback null
                 catch ex
