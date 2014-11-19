@@ -10,6 +10,11 @@ var commandLine = require("nomnom")
       default: 3000,
       help: 'the port where the server listen'
    })
+   .option('service-config', {
+      abbr: 's',
+      default: "tcp://192.168.221.11:12345",
+      help: 'the zmq address of the service config'
+   })
    .parse();
 
 var express = require('express');
@@ -53,4 +58,4 @@ var startApp = function () {
     });
 }
 
-VirtDBLoader.start(null, startApp);
+VirtDBLoader.start(commandLine["service-config"], startApp);

@@ -10,9 +10,7 @@ log.setLevel "debug"
 
 class VirtDBLoader
 
-    @start: (address = Config.Values.CONFIG_SERVICE_ADDRESS, startCallback) =>
-        if address?
-            Config.Values.CONFIG_SERVICE_ADDRESS = address
+    @start: (address, startCallback) =>
         async.series [
             (callback) ->
                 try
