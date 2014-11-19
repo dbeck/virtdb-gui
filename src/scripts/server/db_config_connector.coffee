@@ -33,9 +33,6 @@ class DBConfig
 
             connection = DBConfigConnection.getConnection(Config.Values.DB_CONFIG_SERVICE)
             connection.sendServerConfig provider, tableMeta
-            log.debug "Table added to the db config:", tableMeta.Name, provider
-            @_configuredTablesCache.del(provider)
-            connection.sendServerConfig provider, tableMeta
             log.info "table added to the db config", V_(tableMeta.Name), V_(provider)
             @_configuredTablesCache.del(provider)
             log.debug "db config cache were emptied", V_(tableMeta.Name), V_(provider)

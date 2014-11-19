@@ -1,13 +1,32 @@
+var commandLine = require("nomnom")
+   .option('name', {
+      abbr: 'n',
+      help: 'Name of the component',
+      required: false,
+      default: "virtdb-gui"
+   })
+   .option('port', {
+      abbr: 'p',
+      default: 3000,
+      help: 'the port where the server listen'
+   })
+   .option('service-config', {
+      abbr: 's',
+      default: "tcp://192.168.221.11:12345",
+      help: 'the zmq address of the service config'
+   })
+   .parse();
+
 var express = require('express');
 var path = require('path');
 var favicon = require('static-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
-var argv = require('minimist')(process.argv.slice(2))
 var VirtDBLoader = require("./src/scripts/server/out/virtdb_loader")
 
-var EXPRESS_PORT = argv["port"] || 3000;
+
+var EXPRESS_PORT = commandLine.port
 var LIVERELOAD_PORT = 3001;
 
 var app = module.exports.app = exports.app = express();
@@ -39,4 +58,4 @@ var startApp = function () {
     });
 }
 
-VirtDBLoader.start(argv["service-config-address"], startApp);
+VirtDBLoader.start(commandLine["service-config"], startApp);

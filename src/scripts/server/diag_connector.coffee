@@ -18,6 +18,7 @@ class DiagConnector
     @_records: null
     @_logRecordSocket: null
 
+    @MAX_STORED_MESSAGE_COUNT = 2000
 
     @connect: (diagServiceName) =>
         try
@@ -45,9 +46,13 @@ class DiagConnector
         try
             record = DiagProto.parse data, "virtdb.interface.pb.LogRecord"
             processedRecord = @_processLogRecord record
-            @_records.push processedRecord
+            if processedRecord.level in ["VIRTDB_STATUS", "VIRTDB_ERROR", "VIRTDB_INFO"]
+                @_records.push processedRecord
+            if @_records.length > DiagConnector.MAX_STORED_MESSAGE_COUNT
+                @_records.splice 0, 1
+
         catch ex
-            log.debug "Couldn't process diag message", ex, V_(record)
+            log.debug "Couldn't process diag message", V_(ex), V_(record)
 
     @_processLogRecord: (record) =>
         logRecord = {}

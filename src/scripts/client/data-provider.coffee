@@ -70,7 +70,6 @@ app.controller 'DataProviderController',
             @$scope.isAllTableSelected = false
 
         requestTableList: () =>
-            @tableList = []
             requestData =
                 tables: @tablesToFilter
                 search: @$scope.search
@@ -82,13 +81,14 @@ app.controller 'DataProviderController',
             return
 
         onTableList: (data) =>
+            @tableList = []
+            if not data?
+                return
+
             if @tableListEndTimerPromise?
                 @$timeout.cancel(@tableListEndTimerPromise)
                 @tableListEndTimerPromise = null
 
-            if data.length is 0
-                console.warn "table list is empty"
-                return
             @$scope.tableListCount = data.count
             if data.count > 0
                 @$scope.tableListFrom = data.from + 1
@@ -110,9 +110,8 @@ app.controller 'DataProviderController',
                     configured: false
                 @tableList.push table
 
+            @tableSelectionChanged()
             @tableListEndTimerPromise = @$timeout(() =>
-                console.log "timer run"
-                @tableSelectionChanged()
                 @requestConfiguredTables()
             , 500)
             return
