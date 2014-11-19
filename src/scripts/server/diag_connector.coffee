@@ -47,7 +47,7 @@ class DiagConnector
             processedRecord = @_processLogRecord record
             @_records.push processedRecord
         catch ex
-            log.debug "Couldn't process diag message", ex, V_(record)
+            log.debug "Couldn't process diag message", V_(ex), V_(record)
 
     @_processLogRecord: (record) =>
         logRecord = {}

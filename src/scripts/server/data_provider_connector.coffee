@@ -46,8 +46,7 @@ class DataProvider
 
             cachedTable = @_tableMetaCache[provider].get(tableName)
             if cachedTable? and Object.keys(cachedTable).length is 0
-                log.debug "requested meta data is not in cache."
-                log.debug "getting table meta from provider"
+                log.debug "requested meta data is not in cache, getting table meta from provider", V_(provider), V_(tableName)
                 connection = DataProviderConnection.getConnection(provider)
                 table = @_processTableName tableName
                 connection.getMetadata table.Schema, table.Name, true, (metaData) =>
@@ -55,7 +54,7 @@ class DataProvider
                     @_tableMetaCache[provider].set(tableName, tableMeta)
                     onReady tableMeta
             else
-                log.debug "requested meta data is in cache."
+                log.debug "requested meta data is in cache", V_(provider), V_(tableName)
                 onReady cachedTable[tableName]
         catch ex
             log.error V_(ex)
@@ -106,8 +105,7 @@ class DataProvider
                 log.debug "getting table list from cache.", V_(provider)
                 onReady tableNameList
             else
-                log.debug "cache for the current provider is empty.", V_(provider)
-                log.debug "getting table list from provider", V_(provider)
+                log.debug "cache for the current provider is empty, getting table list from provider", V_(provider)
                 connection = DataProviderConnection.getConnection(provider)
                 connection.getMetadata ".*", ".*", false, (metaData) =>
                     tableList = []

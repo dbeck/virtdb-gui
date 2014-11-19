@@ -107,8 +107,8 @@ class EndpointService
                 address = connections[Const.ENDPOINT_TYPE.ENDPOINT][Const.SOCKET_TYPE.PUB_SUB][0]
                 @pubsubSocket.connect address
                 @pubsubSocket.subscribe Const.EVERY_CHANNEL
-                log.trace "subscribed to endpoint service", address
+                log.trace "subscribed to endpoint service", V_(address)
             catch ex
-                log.trace "couldn't subscribe to endpoint service", ex
+                log.trace "couldn't subscribe to endpoint service", V_(ex)
 
 module.exports = EndpointService
