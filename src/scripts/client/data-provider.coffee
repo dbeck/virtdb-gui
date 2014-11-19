@@ -111,7 +111,6 @@ app.controller 'DataProviderController',
                 @tableList.push table
 
             @tableListEndTimerPromise = @$timeout(() =>
-                console.log "timer run"
                 @tableSelectionChanged()
                 @requestConfiguredTables()
             , 500)
