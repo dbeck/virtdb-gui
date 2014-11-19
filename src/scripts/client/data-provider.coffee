@@ -82,13 +82,13 @@ app.controller 'DataProviderController',
             return
 
         onTableList: (data) =>
+            if not data?
+                return
+
             if @tableListEndTimerPromise?
                 @$timeout.cancel(@tableListEndTimerPromise)
                 @tableListEndTimerPromise = null
 
-            if data.length is 0
-                console.warn "table list is empty"
-                return
             @$scope.tableListCount = data.count
             if data.count > 0
                 @$scope.tableListFrom = data.from + 1

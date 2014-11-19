@@ -24,7 +24,7 @@ app.factory 'ServerConnector', ['$http', 'ErrorService', ($http, ErrorService) -
             )
             .error( (response, status) =>
                 ErrorService.errorHappened "Couldn't get table list! " + JSON.stringify(data) + " response: " + response
-                onSuccess []
+                onSuccess null
             )
             return data.id
 
