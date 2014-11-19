@@ -70,7 +70,6 @@ app.controller 'DataProviderController',
             @$scope.isAllTableSelected = false
 
         requestTableList: () =>
-            @tableList = []
             requestData =
                 tables: @tablesToFilter
                 search: @$scope.search
@@ -82,6 +81,7 @@ app.controller 'DataProviderController',
             return
 
         onTableList: (data) =>
+            @tableList = []
             if not data?
                 return
 
