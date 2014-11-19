@@ -187,7 +187,7 @@ router.post "/get_diag", timeout(Config.Values.REQUEST_TIMEOUT), (req, res, next
     res.json DiagConnector.getRecords from, levels
 
 router.use (err, req, res, next) =>
-    log.error req.url, V_(err), JSON.stringify req.body
+    log.error V_(req.url), V_(req.body), V_(err)
     res.status(if err.status? then err.status else 500).send(err.message)
 
 module.exports = router
