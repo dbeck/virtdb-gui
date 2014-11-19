@@ -110,8 +110,8 @@ app.controller 'DataProviderController',
                     configured: false
                 @tableList.push table
 
+            @tableSelectionChanged()
             @tableListEndTimerPromise = @$timeout(() =>
-                @tableSelectionChanged()
                 @requestConfiguredTables()
             , 500)
             return
