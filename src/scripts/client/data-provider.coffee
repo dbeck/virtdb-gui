@@ -76,7 +76,11 @@ app.controller 'DataProviderController',
                 provider: @$rootScope.provider
                 from: @tableListPosition + 1
                 to: @tableListPosition + DataProviderController.TABLE_LIST_DISPLAY_COUNT
-            @ServerConnector.obsoleteId @requestIds["tableList"]
+
+            if @requestIds["tableList"]?
+                @ServerConnector.cancelRequest @requestIds["tableList"]
+                @ServerConnector.obsoleteId @requestIds["tableList"]
+            
             @requestIds["tableList"] = @ServerConnector.getTableList(requestData, @onTableList)
             return
 
