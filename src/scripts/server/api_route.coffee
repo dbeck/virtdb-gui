@@ -119,7 +119,7 @@ router.post "/db_config/add", timeout(commandLine.timeout), (req, res, next) ->
 router.post "/set_app_config", timeout(commandLine.timeout), (req, res) ->
     for key, value of req.body
         Config.Values[key] = value
-    VirtDBLoader.start(commandLine["service-config"])
+    VirtDBLoader.start()
     res.status(200).send()
     return
 

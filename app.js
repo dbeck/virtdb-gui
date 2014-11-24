@@ -63,4 +63,4 @@ var startApp = function () {
     });
 }
 
-VirtDBLoader.start(commandLine["service-config"], startApp);
+VirtDBLoader.start(startApp);

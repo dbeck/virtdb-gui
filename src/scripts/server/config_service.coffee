@@ -27,6 +27,10 @@ class ConfigService
         connection = new ConfigServiceConnector(@_address)
         connection.sendConfig(config)
 
+    @onPublishedConfig: (appName, config) =>
+        log.info "config message received", V_(appName)
+        console.log "config message recv"
+
     class ConfigServiceConnector
 
         _reqRepSocket: null
