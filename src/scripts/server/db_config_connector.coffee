@@ -51,16 +51,19 @@ class DBConfig
                 connection = DBConfigConnection.getConnection(Config.Values.DB_CONFIG_SERVICE)
                 connection.getTables provider, (msg) =>
                         try
-                            if msg?.Servers[0]?.Tables?
-                                tableList = []
-                                for table in msg.Servers[0].Tables
-                                    if not table.Schema? or table.Schema is ""
-                                        tableList.push table.Name
-                                    else
-                                        tableList.push table.Schema + "." + table.Name
-                                if tableList.length > 0
-                                    @_configuredTablesCache.set(provider, tableList)
+                            if msg.Servers.length > 0
+                                if msg?.Servers[0]?.Tables?
+                                    tableList = []
+                                    for table in msg.Servers[0].Tables
+                                        if not table.Schema? or table.Schema is ""
+                                            tableList.push table.Name
+                                        else
+                                            tableList.push table.Schema + "." + table.Name
+                                    if tableList.length > 0
+                                        @_configuredTablesCache.set(provider, tableList)
                                     onReady tableList
+                            else
+                                onReady []
                         catch ex
                             log.error V_(ex)
                             throw ex
@@ -102,7 +105,8 @@ class DBConfigConnection
         @_reqRepSocket.connect(@dbConfigQueryAddress)
         @_reqRepSocket.on "message", (msg) =>
             try
-                onReady dbConfigProto.parse msg, "virtdb.interface.pb.DbConfigReply"
+                confMsg = dbConfigProto.parse msg, "virtdb.interface.pb.DbConfigReply"
+                onReady confMsg
             catch ex
                 log.error V_(ex)
                 throw ex
