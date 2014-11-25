@@ -77,10 +77,7 @@ app.controller 'DataProviderController',
                 from: @tableListPosition + 1
                 to: @tableListPosition + DataProviderController.TABLE_LIST_DISPLAY_COUNT
 
-            if @requestIds["tableList"]?
-                @ServerConnector.cancelRequest @requestIds["tableList"]
-                @ServerConnector.obsoleteId @requestIds["tableList"]
-            
+            @stopPreviousRequest "tableList"
             @requestIds["tableList"] = @ServerConnector.getTableList(requestData, @onTableList)
             return
 
@@ -124,7 +121,8 @@ app.controller 'DataProviderController',
             requestData =
                 provider: @$rootScope.provider
                 table: @$scope.table
-            @ServerConnector.obsoleteId @requestIds["metaData"]
+
+            @stopPreviousRequest "metaData"
             @requestIds["metaData"] = @ServerConnector.getMetaData(requestData, @onMetaData)
             return
 
@@ -138,7 +136,8 @@ app.controller 'DataProviderController',
                 provider: @$rootScope.provider
                 table: @$scope.table
                 count: DataProviderController.DATA_LIMIT
-            @ServerConnector.obsoleteId @requestIds["data"]
+
+            @stopPreviousRequest "data"
             @requestIds["data"] = @ServerConnector.getData(requestData, @onData)
             return
 
@@ -220,7 +219,6 @@ app.controller 'DataProviderController',
 
         filterTableList: () =>
             @$scope.search = ""
-            console.log @tablesToFilter
             @tableListPosition = 0
             @requestTableList()
 
@@ -244,3 +242,8 @@ app.controller 'DataProviderController',
             @$scope.selectionCounter = 0
             for _table in @tableList when _table.selected and not _table.configured
                 @$scope.selectionCounter++
+
+        stopPreviousRequest: (type) =>
+            if @requestIds[type]?
+                @ServerConnector.obsoleteId @requestIds[type]
+                @ServerConnector.cancelRequest @requestIds[type]

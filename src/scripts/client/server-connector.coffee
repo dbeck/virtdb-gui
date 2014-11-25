@@ -17,10 +17,7 @@ app.factory 'ServerConnector', ['$http', 'ErrorService', '$q', ($http, ErrorServ
         getTableList: (data, onSuccess) =>
             data.id = generateRequestId()
 
-            canceller = $q.defer()
-            @pendingRequestCancellers[data.id] = canceller
-
-            $http.post(@address + "/api/data_provider/table_list", data, { timeout: canceller.promise})
+            $http.post(@address + "/api/data_provider/table_list", data, {timeout: @createCanceler data.id})
             .success( (response) =>
                 if @checkResponseId(response.id)
                     onSuccess response.data
@@ -35,7 +32,7 @@ app.factory 'ServerConnector', ['$http', 'ErrorService', '$q', ($http, ErrorServ
 
         getMetaData: (data, onSuccess) =>
             data.id = generateRequestId()
-            $http.post(@address + "/api/data_provider/meta_data", data)
+            $http.post(@address + "/api/data_provider/meta_data", data, {timeout: @createCanceler data.id})
             .success( (response) =>
                 if @checkResponseId(response.id)
                     onSuccess response.data
@@ -50,7 +47,7 @@ app.factory 'ServerConnector', ['$http', 'ErrorService', '$q', ($http, ErrorServ
 
         getData: (data, onSuccess) =>
             data.id = generateRequestId()
-            $http.post(@address + "/api/data_provider/data", data)
+            $http.post(@address + "/api/data_provider/data", data, {timeout: @createCanceler data.id})
             .success( (response) =>
                     if @checkResponseId(response.id)
                         onSuccess response.data
@@ -102,5 +99,10 @@ app.factory 'ServerConnector', ['$http', 'ErrorService', '$q', ($http, ErrorServ
         cancelRequest: (id) =>
             console.error "Cancel request: " + id
             @pendingRequestCancellers[id].resolve "Request outdated"
+
+        createCanceler: (id) =>
+            canceller = $q.defer()
+            @pendingRequestCancellers[id] = canceller
+            return canceller.promise
 
 ]
