@@ -4,6 +4,9 @@ app.controller 'DataProviderController',
 
         @TABLE_LIST_DISPLAY_COUNT = 50
         @DATA_LIMIT = 20
+        TABLE_LIST = "tablelist"
+        DATA = "data"
+        META_DATA = "metadata"
 
         constructor: (@$rootScope, @$scope, @$http, @$timeout, @ServerConnector) ->
 
@@ -77,11 +80,12 @@ app.controller 'DataProviderController',
                 from: @tableListPosition + 1
                 to: @tableListPosition + DataProviderController.TABLE_LIST_DISPLAY_COUNT
 
-            @stopPreviousRequest "tableList"
-            @requestIds["tableList"] = @ServerConnector.getTableList(requestData, @onTableList)
+            @stopPreviousRequest @TABLE_LIST
+            @requestIds[@TABLE_LIST] = @ServerConnector.getTableList(requestData, @onTableList)
             return
 
         onTableList: (data) =>
+            delete @requestIds[@TABLE_LIST]
             @tableList = []
             if not data?
                 return
@@ -122,11 +126,12 @@ app.controller 'DataProviderController',
                 provider: @$rootScope.provider
                 table: @$scope.table
 
-            @stopPreviousRequest "metaData"
-            @requestIds["metaData"] = @ServerConnector.getMetaData(requestData, @onMetaData)
+            @stopPreviousRequest @META_DATA
+            @requestIds[@META_DATA] = @ServerConnector.getMetaData(requestData, @onMetaData)
             return
 
         onMetaData: (data) =>
+            delete @requestIds[@META_DATA]
             @tableMetaData = data
             @$scope.meta = data
             @requestData()
@@ -137,11 +142,12 @@ app.controller 'DataProviderController',
                 table: @$scope.table
                 count: DataProviderController.DATA_LIMIT
 
-            @stopPreviousRequest "data"
-            @requestIds["data"] = @ServerConnector.getData(requestData, @onData)
+            @stopPreviousRequest @DATA
+            @requestIds[@DATA] = @ServerConnector.getData(requestData, @onData)
             return
 
         onData: (data) =>
+            delete @requestIds[@DATA]
             if data.length is 0
                 return
             dataRows = []
@@ -245,5 +251,4 @@ app.controller 'DataProviderController',
 
         stopPreviousRequest: (type) =>
             if @requestIds[type]?
-                @ServerConnector.obsoleteId @requestIds[type]
                 @ServerConnector.cancelRequest @requestIds[type]

@@ -4,8 +4,7 @@ app.factory 'ServerConnector', ['$http', 'ErrorService', '$q', ($http, ErrorServ
 
         constructor: () ->
             @address = ""
-            @obsoleteIdList = []
-            @pendingRequestCancellers = []
+            @pendingRequestIds = {}
 
         getEndpoints: (onSuccess, onError) =>
             $http.get(@address + "/api/endpoints").success(onSuccess)
@@ -19,10 +18,7 @@ app.factory 'ServerConnector', ['$http', 'ErrorService', '$q', ($http, ErrorServ
 
             $http.post(@address + "/api/data_provider/table_list", data, {timeout: @createCanceler data.id})
             .success( (response) =>
-                if @checkResponseId(response.id)
-                    onSuccess response.data
-                else
-                    console.warn "Table list request outdated. id=" + response.id
+                onSuccess response.data
             )
             .error( (response, status) =>
                 ErrorService.errorHappened "Couldn't get table list! " + JSON.stringify(data) + " response: " + response
@@ -34,10 +30,7 @@ app.factory 'ServerConnector', ['$http', 'ErrorService', '$q', ($http, ErrorServ
             data.id = generateRequestId()
             $http.post(@address + "/api/data_provider/meta_data", data, {timeout: @createCanceler data.id})
             .success( (response) =>
-                if @checkResponseId(response.id)
-                    onSuccess response.data
-                else
-                    console.warn "Meta data request outdated. id=" + response.id
+                onSuccess response.data
             )
             .error( (response, status) =>
                 ErrorService.errorHappened "Couldn't get meta data! " + JSON.stringify(data) + " response: " + response
@@ -49,14 +42,11 @@ app.factory 'ServerConnector', ['$http', 'ErrorService', '$q', ($http, ErrorServ
             data.id = generateRequestId()
             $http.post(@address + "/api/data_provider/data", data, {timeout: @createCanceler data.id})
             .success( (response) =>
-                    if @checkResponseId(response.id)
-                        onSuccess response.data
-                    else
-                        console.warn "Data request outdated. id=" + response.id
+                onSuccess response.data
             )
             .error( (response, status) =>
-                    ErrorService.errorHappened "Couldn't get data! " + JSON.stringify(data) + " response: " + response
-                    onSuccess []
+                ErrorService.errorHappened "Couldn't get data! " + JSON.stringify(data) + " response: " + response
+                onSuccess []
             )
             return data.id
 
@@ -86,23 +76,16 @@ app.factory 'ServerConnector', ['$http', 'ErrorService', '$q', ($http, ErrorServ
         generateRequestId = () =>
             return Math.floor(Math.random() * 1000000) + 1
 
-        checkResponseId: (id) =>
-            index = @obsoleteIdList.indexOf(id)
-            if index > -1
-                @obsoleteIdList.splice(index, 1);
-                return false
-            return true
-
-        obsoleteId: (id) =>
-            @obsoleteIdList.push id
-
         cancelRequest: (id) =>
-            console.error "Cancel request: " + id
-            @pendingRequestCancellers[id].resolve "Request outdated"
+            canceler = @pendingRequestIds[id]
+            if canceler?
+                console.warn "Cancel request: " + id
+                canceler.resolve "Request outdated"
+                delete @pendingRequestIds[id]
 
         createCanceler: (id) =>
             canceller = $q.defer()
-            @pendingRequestCancellers[id] = canceller
+            @pendingRequestIds[id] = canceller
             return canceller.promise
 
 ]
