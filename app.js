@@ -15,6 +15,11 @@ var commandLine = require("nomnom")
       default: "tcp://192.168.221.11:12345",
       help: 'the zmq address of the service config'
    })
+   .option('timeout', {
+      abbr: 't',
+      default: "15000",
+      help: 'request timeout'
+   })
    .parse();
 
 var express = require('express');

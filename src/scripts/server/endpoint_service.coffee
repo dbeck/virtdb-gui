@@ -45,7 +45,7 @@ class EndpointService
                     addresses[endpoint.SvcType][conn.Type] = conn.Address
             return addresses
 
-        getConfigServiceAddresses: () =>
+        getServiceConfigAddresses: () =>
             for endpoint in @endpoints
                 for conn in endpoint.Connections
                     if @address in conn.Address
@@ -103,7 +103,7 @@ class EndpointService
             try
                 @pubsubSocket = zmq.socket(Const.ZMQ_SUB)
                 @pubsubSocket.on "message", @_onPublishedMessage
-                connections = @getConfigServiceAddresses()
+                connections = @getServiceConfigAddresses()
                 address = connections[Const.ENDPOINT_TYPE.ENDPOINT][Const.SOCKET_TYPE.PUB_SUB][0]
                 @pubsubSocket.connect address
                 @pubsubSocket.subscribe Const.EVERY_CHANNEL

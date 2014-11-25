@@ -1,10 +1,11 @@
 app = angular.module 'virtdb'
-app.factory 'ServerConnector', ['$http', 'ErrorService', ($http, ErrorService) ->
+app.factory 'ServerConnector', ['$http', 'ErrorService', '$q', ($http, ErrorService, $q) ->
     new class ServerConnector
 
         constructor: () ->
             @address = ""
             @obsoleteIdList = []
+            @pendingRequestCancellers = []
 
         getEndpoints: (onSuccess, onError) =>
             $http.get(@address + "/api/endpoints").success(onSuccess)
@@ -15,7 +16,8 @@ app.factory 'ServerConnector', ['$http', 'ErrorService', ($http, ErrorService) -
 
         getTableList: (data, onSuccess) =>
             data.id = generateRequestId()
-            $http.post(@address + "/api/data_provider/table_list", data)
+
+            $http.post(@address + "/api/data_provider/table_list", data, {timeout: @createCanceler data.id})
             .success( (response) =>
                 if @checkResponseId(response.id)
                     onSuccess response.data
@@ -30,7 +32,7 @@ app.factory 'ServerConnector', ['$http', 'ErrorService', ($http, ErrorService) -
 
         getMetaData: (data, onSuccess) =>
             data.id = generateRequestId()
-            $http.post(@address + "/api/data_provider/meta_data", data)
+            $http.post(@address + "/api/data_provider/meta_data", data, {timeout: @createCanceler data.id})
             .success( (response) =>
                 if @checkResponseId(response.id)
                     onSuccess response.data
@@ -45,7 +47,7 @@ app.factory 'ServerConnector', ['$http', 'ErrorService', ($http, ErrorService) -
 
         getData: (data, onSuccess) =>
             data.id = generateRequestId()
-            $http.post(@address + "/api/data_provider/data", data)
+            $http.post(@address + "/api/data_provider/data", data, {timeout: @createCanceler data.id})
             .success( (response) =>
                     if @checkResponseId(response.id)
                         onSuccess response.data
@@ -93,5 +95,14 @@ app.factory 'ServerConnector', ['$http', 'ErrorService', ($http, ErrorService) -
 
         obsoleteId: (id) =>
             @obsoleteIdList.push id
+
+        cancelRequest: (id) =>
+            console.error "Cancel request: " + id
+            @pendingRequestCancellers[id].resolve "Request outdated"
+
+        createCanceler: (id) =>
+            canceller = $q.defer()
+            @pendingRequestCancellers[id] = canceller
+            return canceller.promise
 
 ]
