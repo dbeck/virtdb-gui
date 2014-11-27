@@ -12,11 +12,6 @@ app.config ($routeProvider) ->
             controller  : 'EndpointController',
             controllerAs: 'endpointController',
         }
-        .when '/config', {
-            templateUrl : '../pages/configuration.html',
-            controller  : 'ConfigurationController',
-            controllerAs: 'cfg',
-        }
         .when '/diag', {
             templateUrl : '../pages/diag.html',
             controller  : 'DiagnosticsController',
@@ -28,20 +23,3 @@ app.config ($routeProvider) ->
             controllerAs  : 'statusController',
         }
     return
-
-app.controller 'ConfigurationController', ['$scope', '$http', ($scope, $http) ->
-
-    @config = {}
-
-    @setConfig = () =>
-        $http.post("/api/set_app_config", @config)
-
-    @getConfig = () =>
-        $http.get("/api/get_app_config").success (data) =>
-            @config = data
-
-    @getConfig()
-
-    return
-
-]

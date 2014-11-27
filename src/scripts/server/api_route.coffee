@@ -116,17 +116,6 @@ router.post "/db_config/add", timeout(commandLine.timeout), (req, res, next) ->
         log.error V_(ex)
         throw ex
 
-router.post "/set_app_config", timeout(commandLine.timeout), (req, res) ->
-    for key, value of req.body
-        Config.Values[key] = value
-    VirtDBLoader.start()
-    res.status(200).send()
-    return
-
-router.get "/get_app_config", timeout(commandLine.timeout, {respond: true}), (req, res, next) ->
-    res.json Config.Values
-    return
-
 router.get "/get_config/:component", timeout(commandLine.timeout), (req, res, next) =>
     try
         component = req.params.component
