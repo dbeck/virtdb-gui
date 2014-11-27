@@ -17,7 +17,6 @@ class EndpointController
         if @$scope.selectedComponent?
             url = "/api/get_config/" + @$scope.selectedComponent
             @$http.get(url).success (data) =>
-                console.log data
                 @$scope.componentConfig = data
         return
 
@@ -38,13 +37,14 @@ class EndpointController
     updateComponentInfo: () =>
         @$scope.componentInfo = []
         for ep in @endpoints when ep.Name is @$scope.selectedComponent
-            for connection in ep.Connections
-                for addr in connection.Address
-                    infoRow =
-                        SvcType: ep.SvcType
-                        SocketType: connection.Type
-                        Address: addr
-                    @$scope.componentInfo.push infoRow
+            if ep.Connections?
+                for connection in ep.Connections
+                    for addr in connection.Address
+                        infoRow =
+                            SvcType: ep.SvcType
+                            SocketType: connection.Type
+                            Address: addr
+                        @$scope.componentInfo.push infoRow
         return
 
     sendConfig: () =>
