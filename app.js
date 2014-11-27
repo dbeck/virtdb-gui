@@ -20,6 +20,12 @@ var commandLine = require("nomnom")
       default: "15000",
       help: 'request timeout'
    })
+   .option('trace', {
+      abbr: 'r',
+      flag: true,
+      default: "false",
+      help: 'if set gui will display trace logs'
+   })
    .parse();
 
 var express = require('express');

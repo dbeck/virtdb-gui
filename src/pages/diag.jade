@@ -5,7 +5,7 @@ div
             th Component
             th Location
             th Message
-        tr(ng-repeat="entry in diag.logEntries | orderBy:'time':true" ng-class='{"text-danger": entry.level === "ERROR", "text-info": entry.level === "INFO"}')
+        tr(ng-repeat="entry in diag.logEntries | orderBy:'time':true" ng-class='{"text-danger": entry.level === "ERROR", "text-info": entry.level === "INFO", "text-muted": entry.level === "SIMPLE_TRACE"}')
             td {{entry.time | date:'medium'}}
             td {{entry.component}}
             td {{entry.file}}:{{entry.line}}:{{entry.function}}
