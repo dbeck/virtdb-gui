@@ -19,7 +19,7 @@ app.controller 'DiagnosticsController',
         requestLogs: () =>
             data =
                 from: @lastLogRequestTime
-                levels: ["VIRTDB_INFO", "VIRTDB_ERROR"]
+                levels: ["VIRTDB_INFO", "VIRTDB_ERROR", "VIRTDB_SIMPLE_TRACE"]
             @ServerConnector.getLogs(data, @onDiagMessage)
 
         onDiagMessage: (entries) =>

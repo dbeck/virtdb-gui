@@ -15,6 +15,7 @@ serviceConfigProto = new protobuf(fs.readFileSync("common/proto/svc_config.pb.de
 class ConfigService
 
     @_address: null
+    @_subscriptionListeners = []
 
     @setAddress: (address) ->
         @_address = address
@@ -26,6 +27,17 @@ class ConfigService
     @sendConfig: (config) =>
         connection = new ConfigServiceConnector(@_address)
         connection.sendConfig(config)
+
+    @sendConfigTemplate: (template) =>
+        @sendConfig VirtDBConnector.Convert.TemplateToOld template
+
+    @onPublishedConfig: (appName, message) =>
+        config = serviceConfigProto.parse message, "virtdb.interface.pb.Config"
+        for callback in @_subscriptionListeners
+            callback config
+
+    @subscribeToConfigs: (listener) =>
+        @_subscriptionListeners.push listener
 
     class ConfigServiceConnector
 
@@ -44,7 +56,7 @@ class ConfigService
                 @_onConfig = readyCallback
                 configReq =
                     Name: component
-                log.debug "sending config request message:", configReq
+                log.debug "sending config request message:", V_(configReq)
                 @_reqRepSocket.send serviceConfigProto.serialize configReq, "virtdb.interface.pb.Config"
             catch ex
                 log.error V_(ex)
@@ -52,8 +64,8 @@ class ConfigService
 
         sendConfig: (config) =>
             try
+                log.debug "sending config to the config service:", V_(config)
                 @_reqRepSocket.send serviceConfigProto.serialize config, "virtdb.interface.pb.Config"
-                log.debug "config sent to the config service:", V_(config)
             catch ex
                 log.error V_(ex)
                 throw ex
@@ -61,7 +73,7 @@ class ConfigService
         _onMessage: (message) =>
             try
                 configMessage = serviceConfigProto.parse message, "virtdb.interface.pb.Config"
-                log.trace "got config message: ", (util.inspect configMessage, {depth: null})
+                log.debug "got config message: ", V_(configMessage)
                 if @_onConfig?
                     @_onConfig configMessage
                 return

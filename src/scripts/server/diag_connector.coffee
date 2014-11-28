@@ -19,9 +19,13 @@ class DiagConnector
     @_logRecordSocket: null
 
     @MAX_STORED_MESSAGE_COUNT = 2000
+    @LEVELS: null
 
     @connect: (diagServiceName) =>
         try
+            @LEVELS = ["VIRTDB_STATUS", "VIRTDB_ERROR", "VIRTDB_INFO"]
+            if Config.getCommandLineParameter("trace") then @LEVELS.push "VIRTDB_SIMPLE_TRACE"
+
             addresses = EndpointService.getInstance().getComponentAddresses diagServiceName
             logRecordAddress = addresses[Const.ENDPOINT_TYPE.LOG_RECORD][Const.SOCKET_TYPE.PUB_SUB][0]
             @_logRecordSocket = zmq.socket(Const.ZMQ_SUB)
@@ -46,7 +50,7 @@ class DiagConnector
         try
             record = DiagProto.parse data, "virtdb.interface.pb.LogRecord"
             processedRecord = @_processLogRecord record
-            if processedRecord.level in ["VIRTDB_STATUS", "VIRTDB_ERROR", "VIRTDB_INFO"]
+            if processedRecord.level in @LEVELS
                 @_records.push processedRecord
             if @_records.length > DiagConnector.MAX_STORED_MESSAGE_COUNT
                 @_records.splice 0, 1

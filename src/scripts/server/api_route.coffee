@@ -14,18 +14,17 @@ timeout = require "connect-timeout"
 ok = require "okay"
 log = VirtDBConnector.log
 V_ = log.Variable
-commandLine = require("nomnom").parse()
 
 require('source-map-support').install()
 
 router.use require 'express-domain-middleware'
 
 # GET home page.
-router.get "/", timeout(commandLine.timeout), (req, res, next) ->
+router.get "/", timeout(Config.getCommandLineParameter("timeout")), (req, res, next) ->
     res.json "{message: virtdb api}"
     return
 
-router.get "/endpoints", timeout(commandLine.timeout), (req, res, next) ->
+router.get "/endpoints", timeout(Config.getCommandLineParameter("timeout")), (req, res, next) ->
     serviceConfig = EndpointService.getInstance()
     try
         if not res.headersSent
@@ -34,7 +33,7 @@ router.get "/endpoints", timeout(commandLine.timeout), (req, res, next) ->
         log.error V_(ex)
         throw ex
 
-router.post "/data_provider/meta_data/", timeout(commandLine.timeout), (req, res, next) ->
+router.post "/data_provider/meta_data/", timeout(Config.getCommandLineParameter("timeout")), (req, res, next) ->
     provider = req.body.provider
     table = req.body.table
     id = Number req.body.id
@@ -59,7 +58,7 @@ router.post "/data_provider/meta_data/", timeout(commandLine.timeout), (req, res
         log.error V_(ex)
         throw ex
 
-router.post "/data_provider/table_list", timeout(commandLine.timeout), (req, res, next) =>
+router.post "/data_provider/table_list", timeout(Config.getCommandLineParameter("timeout")), (req, res, next) =>
     provider = req.body.provider
     from = Number req.body.from
     to = Number req.body.to
@@ -78,7 +77,7 @@ router.post "/data_provider/table_list", timeout(commandLine.timeout), (req, res
         log.error V_(ex)
         throw ex
 
-router.post "/data_provider/data", timeout(commandLine.timeout), (req, res, next) ->
+router.post "/data_provider/data", timeout(Config.getCommandLineParameter("timeout")), (req, res, next) ->
     try
         provider = req.body.provider
         table = req.body.table
@@ -94,7 +93,7 @@ router.post "/data_provider/data", timeout(commandLine.timeout), (req, res, next
         log.error V_(ex)
         throw ex
 
-router.post "/db_config/get", timeout(commandLine.timeout), (req, res, next) ->
+router.post "/db_config/get", timeout(Config.getCommandLineParameter("timeout")), (req, res, next) ->
     provider = req.body.provider
     try
         DBConfig.getTables provider, (tableList) =>
@@ -103,7 +102,7 @@ router.post "/db_config/get", timeout(commandLine.timeout), (req, res, next) ->
         log.error V_(ex)
         throw ex
 
-router.post "/db_config/add", timeout(commandLine.timeout), (req, res, next) ->
+router.post "/db_config/add", timeout(Config.getCommandLineParameter("timeout")), (req, res, next) ->
     table = req.body.table
     provider = req.body.provider
 
@@ -116,22 +115,10 @@ router.post "/db_config/add", timeout(commandLine.timeout), (req, res, next) ->
         log.error V_(ex)
         throw ex
 
-router.post "/set_app_config", timeout(commandLine.timeout), (req, res) ->
-    for key, value of req.body
-        Config.Values[key] = value
-    VirtDBLoader.start(commandLine["service-config"])
-    res.status(200).send()
-    return
-
-router.get "/get_app_config", timeout(commandLine.timeout, {respond: true}), (req, res, next) ->
-    res.json Config.Values
-    return
-
-router.get "/get_config/:component", timeout(commandLine.timeout), (req, res, next) =>
+router.get "/get_config/:component", timeout(Config.getCommandLineParameter("timeout")), (req, res, next) =>
     try
         component = req.params.component
         ConfigService.getConfig component, (config) =>
-            "Got response from the endpoint service."
             template = {}
             if config.ConfigData.length isnt 0
                 newObject = VirtDBConnector.Convert.ToObject VirtDBConnector.Convert.ToNew config
@@ -156,7 +143,7 @@ router.get "/get_config/:component", timeout(commandLine.timeout), (req, res, ne
         log.error V_(ex)
         throw ex
 
-router.post "/set_config/:component", timeout(commandLine.timeout), (req, res, next) =>
+router.post "/set_config/:component", timeout(Config.getCommandLineParameter("timeout")), (req, res, next) =>
     try
         component = req.params.component
         config = req.body
@@ -182,7 +169,7 @@ router.post "/set_config/:component", timeout(commandLine.timeout), (req, res, n
         log.error V_(ex)
         throw ex
 
-router.post "/get_diag", timeout(commandLine.timeout), (req, res, next) =>
+router.post "/get_diag", timeout(Config.getCommandLineParameter("timeout")), (req, res, next) =>
     from = Number req.body.from
     levels = req.body.levels
     res.json DiagConnector.getRecords from, levels

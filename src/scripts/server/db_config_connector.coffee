@@ -16,14 +16,36 @@ EndpointService = require "./endpoint_service"
 
 dbConfigProto = new protobuf(fs.readFileSync("common/proto/db_config.pb.desc"))
 
-CACHE_TTL = ms(Config.Values.CACHE_TTL)/1000
-CACHE_CHECK_PERIOD = ms(Config.Values.CACHE_CHECK_PERIOD)/1000
 
 class DBConfig
 
-    @_configuredTablesCache = new NodeCache({ stdTTL: CACHE_TTL, checkperiod: CACHE_CHECK_PERIOD})
-    @_configuredTablesCache.on "expired", (key, value) =>
-        log.debug "db config cache expired", V_(key)
+    @_dbConfigService = null
+    @_cacheTTL = null
+    @_cacheCheckPeriod = null
+    @_configuredTablesCache = null
+
+    Config.addConfigListener Config.DB_CONFIG_SERVICE, (name) =>
+        @_dbConfigService = name
+        @_initCache()
+
+    Config.addConfigListener Config.CACHE_TTL, (ttl) =>
+        @_cacheTTL = ttl
+        @_initCache()
+
+    Config.addConfigListener Config.CACHE_PERIOD, (checkPeriod) =>
+        @_cacheCheckPeriod = checkPeriod
+        @_initCache()
+
+    @_initCache: =>
+        options = {}
+        if @_cacheCheckPeriod?
+            options["checkperiod"] = @_cacheCheckPeriod
+        if @_cacheTTL?
+            options["stdTTL"] = @_cacheTTL
+        @_configuredTablesCache = new NodeCache(options)
+        @_configuredTablesCache.on "expired", (key, value) =>
+            log.debug "db config cache expired", V_(key)
+
 
     @addTable: (provider, tableMeta) =>
         try
@@ -31,7 +53,7 @@ class DBConfig
                 log.error "couldn't add table to the db config due to a problem with the meta data", V_(tableMeta)
                 return
 
-            connection = DBConfigConnection.getConnection(Config.Values.DB_CONFIG_SERVICE)
+            connection = DBConfigConnection.getConnection(@_dbConfigService)
             connection.sendServerConfig provider, tableMeta
             log.info "table added to the db config", V_(tableMeta.Name), V_(provider)
             @_configuredTablesCache.del(provider)
@@ -48,7 +70,7 @@ class DBConfig
                 onReady tableList
             else
                 log.debug "getting list of already added tables from db config.", V_(provider)
-                connection = DBConfigConnection.getConnection(Config.Values.DB_CONFIG_SERVICE)
+                connection = DBConfigConnection.getConnection(@_dbConfigService)
                 connection.getTables provider, (msg) =>
                         try
                             if msg.Servers.length > 0
@@ -60,6 +82,8 @@ class DBConfig
                                         else
                                             tableList.push table.Schema + "." + table.Name
                                     if tableList.length > 0
+                                        if not @_configuredTablesCache?
+                                            @_initCache()
                                         @_configuredTablesCache.set(provider, tableList)
                                     onReady tableList
                             else

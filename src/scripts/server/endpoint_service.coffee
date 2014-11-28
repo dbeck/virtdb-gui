@@ -7,6 +7,7 @@ VirtDBConnector = require "virtdb-connector"
 Const = VirtDBConnector.Constants
 log = VirtDBConnector.log
 V_ = log.Variable
+Config = require "./config"
 
 serviceConfigProto = new protobuf(fs.readFileSync("common/proto/svc_config.pb.desc"))
 
@@ -54,7 +55,7 @@ class EndpointService
             return @getComponentAddresses(@name)
 
         getEndpoints: () =>
-            @endpoints
+            return @endpoints
 
         getComponents: () =>
             components = []
@@ -71,6 +72,7 @@ class EndpointService
 
         _onMessage: (reply) =>
             @endpoints = (serviceConfigProto.parse reply, "virtdb.interface.pb.Endpoint").Endpoints
+            @endpoints.push {Name: Config.getCommandLineParameter("name")}
             @_subscribeEndpoints() unless @pubsubSocket?
             return
 
@@ -95,7 +97,7 @@ class EndpointService
                         if endpoint.Name == newEndpoint.Name and endpoint.SvcType == newEndpoint.SvcType
                             @endpoints.splice @endpoints.indexOf(endpoint), 1
                             break
-                    @endpoints = @endpoints.concat newEndpoint
+                    @endpoints = @endpoints.push newEndpoint
             catch ex
                 log.error V_(ex)
 

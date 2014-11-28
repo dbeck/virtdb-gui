@@ -1,23 +1,27 @@
+Configuration = require "./config"
 ConfigService = require "./config_service"
 EndpointService = require "./endpoint_service"
 DiagConnector = require "./diag_connector"
 VirtDBConnector = require "virtdb-connector"
 Const = VirtDBConnector.Constants
-Config = require "./config"
 async = require "async"
 log = require "loglevel"
 log.setLevel "debug"
 
 class VirtDBLoader
 
-    @start: (address, startCallback) =>
+    @start: (startCallback) =>
+        address = Configuration.getCommandLineParameter("service-config")
+        name = Configuration.getCommandLineParameter("name")
         async.series [
             (callback) ->
                 try
-                    VirtDBConnector.connect(Config.Values.GUI_ENDPOINT_NAME, address)
                     VirtDBConnector.onAddress Const.ENDPOINT_TYPE.CONFIG, Const.SOCKET_TYPE.REQ_REP, (name, address) =>
                         console.log "Got config service address:", address
                         ConfigService.setAddress(address)
+                        Configuration.init()
+                    VirtDBConnector.subscribe Const.ENDPOINT_TYPE.CONFIG, Const.SOCKET_TYPE.PUB_SUB, ConfigService.onPublishedConfig, name
+                    VirtDBConnector.connect(name, address)
                     callback null
                 catch ex
                     callback ex
