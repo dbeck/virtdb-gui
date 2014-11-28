@@ -1,33 +1,4 @@
-var commandLine = require("nomnom")
-   .option('name', {
-      abbr: 'n',
-      help: 'Name of the component',
-      required: false,
-      default: "virtdb-gui"
-   })
-   .option('port', {
-      abbr: 'p',
-      default: 3000,
-      help: 'the port where the server listen'
-   })
-   .option('service-config', {
-      abbr: 's',
-      default: "tcp://192.168.221.11:12345",
-      help: 'the zmq address of the service config'
-   })
-   .option('timeout', {
-      abbr: 't',
-      default: "15000",
-      help: 'request timeout'
-   })
-   .option('trace', {
-      abbr: 'r',
-      flag: true,
-      default: "false",
-      help: 'if set gui will display trace logs'
-   })
-   .parse();
-
+var config = require("./src/scripts/server/out/config")
 var express = require('express');
 var path = require('path');
 var favicon = require('static-favicon');
@@ -37,7 +8,7 @@ var bodyParser = require('body-parser');
 var VirtDBLoader = require("./src/scripts/server/out/virtdb_loader")
 
 
-var EXPRESS_PORT = commandLine.port
+var EXPRESS_PORT = config.getCommandLineParameter("port")
 var LIVERELOAD_PORT = 3001;
 
 var app = module.exports.app = exports.app = express();

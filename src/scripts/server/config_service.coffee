@@ -15,6 +15,7 @@ serviceConfigProto = new protobuf(fs.readFileSync("common/proto/svc_config.pb.de
 class ConfigService
 
     @_address: null
+    @_subscriptionListeners = []
 
     @setAddress: (address) ->
         @_address = address
@@ -26,6 +27,17 @@ class ConfigService
     @sendConfig: (config) =>
         connection = new ConfigServiceConnector(@_address)
         connection.sendConfig(config)
+
+    @sendConfigTemplate: (template) =>
+        @sendConfig VirtDBConnector.Convert.TemplateToOld template
+
+    @onPublishedConfig: (appName, message) =>
+        config = serviceConfigProto.parse message, "virtdb.interface.pb.Config"
+        for callback in @_subscriptionListeners
+            callback config
+
+    @subscribeToConfigs: (listener) =>
+        @_subscriptionListeners.push listener
 
     class ConfigServiceConnector
 

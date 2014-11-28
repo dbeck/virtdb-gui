@@ -20,22 +20,45 @@ CommonProto = new protobuf(fs.readFileSync("common/proto/common.pb.desc"))
 
 class DataProvider
 
-    @_tableNamesCache = new NodeCache({ stdTTL: CACHE_TTL, checkperiod: CACHE_CHECK_PERIOD})
-    @_tableNamesCache.on "expired", (key, value) =>
-        log.trace "table names cache expired", V_(key)
+    @_cacheTTL = null
+    @_cacheCheckPeriod = null
+    @_tableListCache = null
+    @_tableMetaCache = null
 
-    @_tableMetaCache = []
+    Config.addConfigListener Config.CACHE_TTL, (ttl) =>
+        @_cacheTTL = ttl
+        @_initTableListCache()
 
-    CACHE_TTL = ms(Config.Values.CACHE_TTL)/1000
-    CACHE_CHECK_PERIOD = ms(Config.Values.CACHE_CHECK_PERIOD)/1000
+    Config.addConfigListener Config.CACHE_PERIOD, (checkPeriod) =>
+        @_cacheCheckPeriod = checkPeriod
+        @_initTableListCache()
+
+    @_createCache: =>
+        options = {}
+        if @_cacheCheckPeriod?
+            options["checkperiod"] = @_cacheCheckPeriod
+        if @_cacheTTL?
+            options["stdTTL"] = @_cacheTTL
+        cache = new NodeCache(options)
+
+    @_initTableListCache: =>
+        @_tableListCache = @_createCache()
+        @_tableListCache.on "expired", (key, value) =>
+            log.debug "table list cache expired", V_(key)
+
+    @_initTableMetaCache: (provider) =>
+        if not @_tableMetaCache?
+            @_tableMetaCache = {}
+        @_tableMetaCache[provider] = @_createCache()
+        @_tableMetaCache[provider].on "expired", (key, value) =>
+            log.debug "table meta cache expired", V_(key)
 
     @checkTableMetaCache: (provider) =>
         try
-            if not @_tableMetaCache[provider]?
-                log.trace "table meta cache is not existing yet", V_(provider)
-                @_tableMetaCache[provider] = new NodeCache({ stdTTL: CACHE_TTL, checkperiod: CACHE_CHECK_PERIOD })
-                @_tableMetaCache[provider].on "expired", (key, value) =>
-                        log.trace "table meta cache expired", V_(provider), V_(key)
+            if @_tableMetaCache? and @_tableMetaCache[provider]?
+                return
+            log.trace "table meta cache is not existing yet", V_(provider)
+            @_initTableMetaCache(provider)
         catch ex
             log.error V_(ex)
             throw ex
@@ -100,7 +123,7 @@ class DataProvider
 
     @_fillTableNamesCache: (provider, onReady) =>
         try
-            tableNameList = @_tableNamesCache.get(provider)[provider]
+            tableNameList = @_tableListCache.get(provider)[provider]
             if util.isArray tableNameList
                 log.debug "getting table list from cache.", V_(provider)
                 onReady tableNameList
@@ -115,7 +138,7 @@ class DataProvider
                         else
                             tableList.push table.Name
                     if tableList.length > 0
-                        @_tableNamesCache.set(provider, tableList)
+                        @_tableListCache.set(provider, tableList)
                     onReady tableList
             return
         catch ex

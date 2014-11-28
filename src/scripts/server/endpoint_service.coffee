@@ -7,7 +7,7 @@ VirtDBConnector = require "virtdb-connector"
 Const = VirtDBConnector.Constants
 log = VirtDBConnector.log
 V_ = log.Variable
-commandLine = (require "nomnom").parse()
+Config = require "./config"
 
 serviceConfigProto = new protobuf(fs.readFileSync("common/proto/svc_config.pb.desc"))
 
@@ -72,7 +72,7 @@ class EndpointService
 
         _onMessage: (reply) =>
             @endpoints = (serviceConfigProto.parse reply, "virtdb.interface.pb.Endpoint").Endpoints
-            @endpoints.push {Name: commandLine["name"]}
+            @endpoints.push {Name: Config.getCommandLineParameter("name")}
             @_subscribeEndpoints() unless @pubsubSocket?
             return
 
