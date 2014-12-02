@@ -29,6 +29,7 @@ class ConfigService
         connection.sendConfig(config)
 
     @sendConfigTemplate: (template) =>
+        log.debug "sending config template to the config service:", V_(template)
         @sendConfig VirtDBConnector.Convert.TemplateToOld template
 
     @onPublishedConfig: (appName, message) =>

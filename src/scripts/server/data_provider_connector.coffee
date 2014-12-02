@@ -25,11 +25,11 @@ class DataProvider
     @_tableListCache = null
     @_tableMetaCache = null
 
-    Config.addConfigListener Config.CACHE_TTL, (ttl) =>
+    @_onNewCacheTTL: (ttl) =>
         @_cacheTTL = ttl
         @_initTableListCache()
 
-    Config.addConfigListener Config.CACHE_PERIOD, (checkPeriod) =>
+    @_onNewCacheCheckPeriod: (checkPeriod) =>
         @_cacheCheckPeriod = checkPeriod
         @_initTableListCache()
 
@@ -294,6 +294,9 @@ class ColumnReceiver
 
     _checkReceivedColumns: () =>
         @_fields.length == @_columns.length
+
+Config.addConfigListener Config.CACHE_PERIOD, DataProvider._onNewCacheCheckPeriod
+Config.addConfigListener Config.CACHE_TTL, DataProvider._onNewCacheTTL
 
 
 module.exports = DataProvider

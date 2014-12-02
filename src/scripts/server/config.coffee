@@ -37,6 +37,10 @@ class Configuration
     @DB_CONFIG_SERVICE = "DatabaseConfigService/ComponentName"
     @CACHE_TTL = "Cache/TTL"
     @CACHE_PERIOD = "Cache/CheckPeriod"
+    @DEFAULTS = {}
+    @DEFAULTS[@DB_CONFIG_SERVICE] = "greenplum-config"
+    @DEFAULTS[@CACHE_TTL] = 600
+    @DEFAULTS[@CACHE_PERIOD] = 60
 
     @_configListeners = {}
     @_parameters = {}
@@ -59,7 +63,13 @@ class Configuration
         if not @_configListeners[parameterPath]?
             @_configListeners[parameterPath] = []
         @_configListeners[parameterPath].push listener
-        @_notifyListeners()
+        value = @_parameters[parameterPath]
+        if value?
+            listener value
+        else
+            value = @DEFAULTS[parameterPath]
+            if value?
+                listener value
 
     @onConfigReceived: (configMsg) =>
         config = VirtDBConnector.Convert.ToObject VirtDBConnector.Convert.ToNew configMsg
@@ -96,25 +106,25 @@ class Configuration
 
     @_getConfigTemplate: () =>
          return configTemplate =
-            AppName: @_name
+            AppName: @getCommandLineParameter "name"
             Config: [
                 VariableName: 'ComponentName'
                 Type: 'STRING'
                 Scope: "DatabaseConfigService"
                 Required: true
-                Default: "greenplum-config"
+                Default: @DEFAULTS[@DB_CONFIG_SERVICE]
             ,
                 VariableName: 'CheckPeriod'
                 Type: 'UINT32'
                 Required: true
                 Scope: 'Cache'
-                Default: 60
+                Default: @DEFAULTS[@CACHE_PERIOD]
             ,
                 VariableName: 'TTL'
                 Type: 'UINT32'
                 Required: true
                 Scope: 'Cache'
-                Default: 600
+                Default: @DEFAULTS[@CACHE_TTL]
             ]
 
 module.exports = Configuration
