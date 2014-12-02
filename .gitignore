@@ -19,3 +19,15 @@
 *.exe
 *.out
 *.app
+
+# Dependencies
+npm-debug.log
+node_modules
+bower_components
+
+# Compiled files
+static
+src/scripts/server/out
+
+# ide files
+.idea/
