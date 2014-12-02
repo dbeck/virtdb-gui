@@ -24,15 +24,15 @@ class DBConfig
     @_cacheCheckPeriod = null
     @_configuredTablesCache = null
 
-    Config.addConfigListener Config.DB_CONFIG_SERVICE, (name) =>
+    @_onNewDbConfService: (name) =>
         @_dbConfigService = name
         @_initCache()
 
-    Config.addConfigListener Config.CACHE_TTL, (ttl) =>
+    @_onNewCacheTTL: (ttl) =>
         @_cacheTTL = ttl
         @_initCache()
 
-    Config.addConfigListener Config.CACHE_PERIOD, (checkPeriod) =>
+    @_onNewCacheCheckPeriod: (checkPeriod) =>
         @_cacheCheckPeriod = checkPeriod
         @_initCache()
 
@@ -135,3 +135,7 @@ class DBConfigConnection
                 log.error V_(ex)
                 throw ex
         @_reqRepSocket.send dbConfigProto.serialize dbConfigQueryMessage, "virtdb.interface.pb.DbConfigQuery"
+
+Config.addConfigListener Config.CACHE_PERIOD, DBConfig._onNewCacheCheckPeriod
+Config.addConfigListener Config.CACHE_TTL, DBConfig._onNewCacheTTL
+Config.addConfigListener Config.DB_CONFIG_SERVICE, DBConfig._onNewDbConfService
