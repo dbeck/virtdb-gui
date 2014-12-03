@@ -11,7 +11,7 @@ log.setLevel "debug"
 class VirtDBLoader
 
     @start: (startCallback) =>
-        address = Configuration.getCommandLineParameter("service-config")
+        address = Configuration.getCommandLineParameter("serviceConfig")
         name = Configuration.getCommandLineParameter("name")
         async.series [
             (callback) ->

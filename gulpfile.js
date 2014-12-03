@@ -5,11 +5,12 @@ var jade = require('gulp-jade');
 var stylus = require('gulp-stylus');
 var mainBowerFiles = require('main-bower-files');
 var server = require('gulp-express');
+var mocha = require('gulp-mocha');
+require('coffee-script/register')
 
 var EXPRESS_ROOT = __dirname;
 var LIVERELOAD_PORT = 3001;
 var NOT_LIVERELOAD_PORT = 3002;
-
 
 var lr;
 
@@ -120,6 +121,12 @@ gulp.task('watch', function()
     //Third-party watch
     gulp.watch(['bower.json'], ['collect-libs']);
 });
+
+gulp.task('test', ['compile-server-coffee'], function ()
+{
+    return gulp.src('test/*.coffee', {read: false})
+    .pipe(mocha({reporter: 'min'}));
+})
 
 gulp.task('default', [
     'watch',
