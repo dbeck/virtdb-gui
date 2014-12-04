@@ -50,27 +50,32 @@ describe "Gui configuration handler", ->
     afterEach =>
         sandbox.restore()
 
-    it "should give back null when calling getCommandLineParameter", ->
+    it "getCommandLineParameter should give back the right parameters", ->
         commandLine = ["--name", "gui-name", "--trace", "--port=9999", "-s", "address", "--timeout=56"]
         Config._parseCommandLine commandLine
         Config.getCommandLineParameter("port").should.deep.equal(9999)
         Config.getCommandLineParameter("name").should.deep.equal("gui-name")
         Config.getCommandLineParameter("serviceConfig").should.deep.equal("address")
         Config.getCommandLineParameter("timeout").should.deep.equal(56)
-        Config.getCommandLineParameter("trace").should.be.true
+        Config.getCommandLineParameter("trace").should.be.deep.true
 
-    it "should give back null when calling getCommandLineParameter with wrong key", ->
+    it "getCommandLineParameter should give back false when trace is not given", ->
+        commandLine = ["--name", "gui-name", "--port=9999", "-s", "address", "--timeout=56"]
+        Config._parseCommandLine commandLine
+        Config.getCommandLineParameter("trace").should.not.be.deep.true
+
+    it "getCommandLineParameter should give back null when calling with wrong key", ->
         commandLine = ["--name", "gui-name", "--trace", "--port=9999", "-s", "address", "--timeout=56"]
         Config._parseCommandLine commandLine
         expect(Config.getCommandLineParameter("kiscica")).to.be.null
 
-    it "should give back the right config service parameter when calling getConfigServiceParameter", ->
+    it "getConfigServiceParameter should give back the right config service parameter when calling", ->
         key = "KEY"
         value = "VALUE"
         Config._parameters[key] = value
         Config.getConfigServiceParameter(key).should.deep.equal(value)
 
-    it "should give back null when calling getConfigServiceParameter with not existing key", ->
+    it "getConfigServiceParameter should give back null when calling with not existing key", ->
         key = "KEY"
         value = "VALUE"
         Config._parameters[key] = value
