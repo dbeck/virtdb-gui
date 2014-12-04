@@ -13,16 +13,16 @@ serviceConfigProto = new protobuf(fs.readFileSync("common/proto/svc_config.pb.de
 
 class EndpointService
 
-    instance: null
-    address: null
+    _instance: null
+    _address: null
 
     @getInstance: () =>
-        @instance ?= new EndpointServiceConnector(@address)
+        @_instance ?= new EndpointServiceConnector(@_address)
 
     @reset: () =>
-        @instance = null
+        @_instance = null
 
-    @setAddress: (@address) =>
+    @setAddress: (@_address) =>
 
     class EndpointServiceConnector
         reqrepSocket: null
@@ -51,8 +51,7 @@ class EndpointService
                 for conn in endpoint.Connections
                     if @address in conn.Address
                         @name = endpoint.Name
-                        break
-            return @getComponentAddresses(@name)
+                        return @getComponentAddresses(@name)
 
         getEndpoints: () =>
             return @endpoints
@@ -88,16 +87,20 @@ class EndpointService
                 console.error "Error during requesting endpoint list!"
             return
 
+        _handlePublishedMessage: (data) =>
+            console.log data
+            for newEndpoint in data.Endpoints
+                for endpoint in @endpoints
+                    if endpoint.Name == newEndpoint.Name and endpoint.SvcType == newEndpoint.SvcType
+                        @endpoints.splice @endpoints.indexOf(endpoint), 1
+                        break
+                @endpoints = @endpoints.push newEndpoint
+
         _onPublishedMessage: (channelId, message) =>
             try
                 data = serviceConfigProto.parse message, "virtdb.interface.pb.Endpoint"
                 log.debug "got published message from endpoint service.", V_(channelId)
-                for newEndpoint in data.Endpoints
-                    for endpoint in @endpoints
-                        if endpoint.Name == newEndpoint.Name and endpoint.SvcType == newEndpoint.SvcType
-                            @endpoints.splice @endpoints.indexOf(endpoint), 1
-                            break
-                    @endpoints = @endpoints.push newEndpoint
+                @_handlePublishedMessage data
             catch ex
                 log.error V_(ex)
 
