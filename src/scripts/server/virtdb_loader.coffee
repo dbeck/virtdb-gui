@@ -5,13 +5,11 @@ DiagConnector = require "./diag_connector"
 VirtDBConnector = require "virtdb-connector"
 Const = VirtDBConnector.Constants
 async = require "async"
-log = require "loglevel"
-log.setLevel "debug"
 
 class VirtDBLoader
 
     @start: (startCallback) =>
-        address = Configuration.getCommandLineParameter("service-config")
+        address = Configuration.getCommandLineParameter("serviceConfig")
         name = Configuration.getCommandLineParameter("name")
         async.series [
             (callback) ->

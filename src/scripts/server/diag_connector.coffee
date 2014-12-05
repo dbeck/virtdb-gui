@@ -24,8 +24,7 @@ class DiagConnector
     @connect: (diagServiceName) =>
         try
             @LEVELS = ["VIRTDB_STATUS", "VIRTDB_ERROR", "VIRTDB_INFO"]
-            if Config.getCommandLineParameter("trace") then @LEVELS.push "VIRTDB_SIMPLE_TRACE"
-
+            if Config.getCommandLineParameter("trace") is true then @LEVELS.push "VIRTDB_SIMPLE_TRACE"
             addresses = EndpointService.getInstance().getComponentAddresses diagServiceName
             logRecordAddress = addresses[Const.ENDPOINT_TYPE.LOG_RECORD][Const.SOCKET_TYPE.PUB_SUB][0]
             @_logRecordSocket = zmq.socket(Const.ZMQ_SUB)

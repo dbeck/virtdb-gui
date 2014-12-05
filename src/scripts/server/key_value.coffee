@@ -1,6 +1,3 @@
-log = require "loglevel"
-util = require "util"
-
 class KeyValue
 
     @parseJSON = (data) =>
@@ -18,7 +15,7 @@ class KeyValue
             else if typeof value is "object" and value isnt null
                 obj.Children = @_processJSON value
             else
-                log.error "Not well formed json"
+                console.error "Not well formed json"
             children.push obj
         return children
 

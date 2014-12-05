@@ -1,32 +1,28 @@
-commandLineParameters = require("nomnom")
-   .option('name', {
-      abbr: 'n',
-      help: 'Name of the component',
-      required: false,
-      default: "virtdb-gui"
-   })
-   .option('port', {
-      abbr: 'p',
-      default: 3000,
-      help: 'the port where the server listen'
-   })
-   .option('service-config', {
-      abbr: 's',
-      default: "tcp://192.168.221.11:12345",
-      help: 'the zmq address of the service config'
-   })
-   .option('timeout', {
-      abbr: 't',
-      default: "15000",
-      help: 'request timeout'
-   })
-   .option('trace', {
-      abbr: 'r',
-      flag: true,
-      default: "false",
-      help: 'if set gui will display trace logs'
-   })
-   .parse();
+nomnom = require "nomnom"
+CLI_OPTIONS =
+    name:
+        abbr: 'n',
+        help: 'Name of the component'
+        default: "virtdb-gui"
+    port:
+        abbr: 'p'
+        default: 3000
+        help: 'the port where the server listen'
+    serviceConfig:
+        full: "service-config"
+        abbr: 's',
+        default: "tcp://192.168.221.11:12345"
+        help: 'the zmq address of the service config'
+    timeout:
+        abbr: 't'
+        default: "15000"
+        help: 'request timeout'
+    trace:
+        abbr: 'r'
+        flag: true
+        default: "false"
+        help: 'if set gui will display trace logs'
+nomnom.options(CLI_OPTIONS).parse()
 
 ConfigService = require "./config_service"
 util = require "util"
@@ -44,22 +40,32 @@ class Configuration
 
     @_configListeners = {}
     @_parameters = {}
+    @_commandLine = {}
+
+    @reset: =>
+        @_configListeners = {}
+        @_parameters = {}
+        @_commandLine = {}
 
     @init: () =>
         ConfigService.subscribeToConfigs @onConfigReceived
-        ConfigService.getConfig(commandLineParameters["name"], @onConfigReceived)
+        ConfigService.getConfig(@getCommandLineParameter "name", @onConfigReceived)
 
     @getCommandLineParameter: (parameter) =>
-        if commandLineParameters[parameter]?
-            return commandLineParameters[parameter]
+        if Object.keys(@_commandLine).length is 0
+            @_parseCommandLine()
+        if @_commandLine[parameter]?
+            return @_commandLine[parameter]
         return null
 
     @getConfigServiceParameter: (parameterPath) =>
         if @_parameters[parameterPath]?
             return @_parameters[parameterPath]
-        retrun null
+        return null
 
     @addConfigListener: (parameterPath, listener) =>
+        if not listener?
+            return
         if not @_configListeners[parameterPath]?
             @_configListeners[parameterPath] = []
         @_configListeners[parameterPath].push listener
@@ -126,5 +132,11 @@ class Configuration
                 Scope: 'Cache'
                 Default: @DEFAULTS[@CACHE_TTL]
             ]
+
+    @_parseCommandLine: (argv) =>
+        if argv?
+            @_commandLine = nomnom.options(CLI_OPTIONS).parse(argv)
+        else
+            @_commandLine = nomnom.options(CLI_OPTIONS).parse()
 
 module.exports = Configuration

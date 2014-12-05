@@ -1,10 +1,12 @@
 #!/bin/bash
 NODE_CONNECTOR_PATH="common/node-connector"
 RELEASE_PATH="release"
-BUILD_NUMBER=${2}
 
 function release {
   echo "Creating release"
+  VERSION=`npm version patch`
+  git add package.json
+  git commit -m "Increased version number to $VERSION"
   mkdir -p $RELEASE_PATH
   cp --parents -R src/scripts/server/out $RELEASE_PATH
   cp --parents common/proto/*.desc $RELEASE_PATH
@@ -14,7 +16,7 @@ function release {
   mkdir -p $RELEASE_PATH/lib
   cp /usr/lib64/libzmq.so.3 $RELEASE_PATH/lib
   cp /usr/local/lib/libprotobuf.so.9 $RELEASE_PATH/lib
-  tar -czvf virtdb-gui-$BUILD_NUMBER.tar.gz -C $RELEASE_PATH .
+  tar -czvf virtdb-gui-$VERSION.tar.gz -C $RELEASE_PATH .
 }
 
 function clear_connector {
