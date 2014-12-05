@@ -5,8 +5,6 @@ DiagConnector = require "./diag_connector"
 VirtDBConnector = require "virtdb-connector"
 Const = VirtDBConnector.Constants
 async = require "async"
-log = require "loglevel"
-log.setLevel "debug"
 
 class VirtDBLoader
 
