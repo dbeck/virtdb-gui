@@ -87,7 +87,6 @@ class EndpointService
             return
 
         _handlePublishedMessage: (data) =>
-            console.log data
             for newEndpoint in data.Endpoints
                 for endpoint in @endpoints
                     if endpoint.Name == newEndpoint.Name and endpoint.SvcType == newEndpoint.SvcType
