@@ -1,11 +1,11 @@
-var config = require("./src/scripts/server/out/config")
+var config = require("./server/config")
+var VirtDBLoader = require("./server/virtdb_loader")
 var express = require('express');
 var path = require('path');
 var favicon = require('static-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
-var VirtDBLoader = require("./src/scripts/server/out/virtdb_loader")
 
 
 var EXPRESS_PORT = config.getCommandLineParameter("port")
@@ -28,8 +28,8 @@ if (app.get('env') === 'development') {
   }));
 }
 
-var index = require('./src/scripts/server/out/index_route');
-var api = require('./src/scripts/server/out/api_route');
+var index = require('./server/index_route');
+var api = require('./server/api_route');
 app.use('/api', api);
 app.use('/', index);
 

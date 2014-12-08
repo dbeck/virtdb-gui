@@ -8,9 +8,9 @@ function release {
   git add package.json
   git commit -m "Increased version number to $VERSION"
   mkdir -p $RELEASE_PATH
-  cp --parents -R src/scripts/server/out $RELEASE_PATH
   cp --parents common/proto/*.desc $RELEASE_PATH
   cp -R static $RELEASE_PATH
+  cp -R server $RELEASE_PATH
   cp -R node_modules $RELEASE_PATH
   cp app.js $RELEASE_PATH
   mkdir -p $RELEASE_PATH/lib
@@ -20,13 +20,13 @@ function release {
 }
 
 function clear_connector {
-  echo "clearining node connector"
+  echo "clearing node connector"
   rm -rf $NODE_CONNECTOR_PATH/node_modules
   rm -rf $NODE_CONNECTOR_PATH/lib
 }
 
 function clear_gui {
-  echo "Clearing gui"
+  echo "clearing gui"
   rm -rf node_modules
   rm -rf src/out
   rm -rf static
@@ -41,14 +41,14 @@ gyp --depth=. proto.gyp
 make
 popd
 
-echo "Building node-connector"
+echo "building node-connector"
 [[ $RELEASE == true ]] && clear_connector
 pushd $NODE_CONNECTOR_PATH
 npm install
 node_modules/gulp/bin/gulp.js build
 popd
 
-echo "Building Gui"
+echo "building gui"
 [[ $RELEASE == true ]] && clear_gui
 npm install
 npm install common/node-connector

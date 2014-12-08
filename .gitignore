@@ -27,7 +27,10 @@ bower_components
 
 # Compiled files
 static
-src/scripts/server/out
+server
+
+#test report
+test_report.xml
 
 # ide files
 .idea/

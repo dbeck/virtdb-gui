@@ -63,7 +63,7 @@ gulp.task('compile-client-coffee', function() {
 
 gulp.task('compile-server-coffee', function() {
     var sources = './src/scripts/server/*.coffee';
-    var destDir = './src/scripts/server/out';
+    var destDir = './server';
     gulp.src(sources)
         .pipe(sourcemaps.init())
         .pipe(coffee({bare: true}).on('error', console.error))
