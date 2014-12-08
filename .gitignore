@@ -29,5 +29,8 @@ bower_components
 static
 server
 
+#test report
+test_report.xml
+
 # ide files
 .idea/
