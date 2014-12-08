@@ -55,4 +55,7 @@ npm install common/node-connector
 node_modules/bower/bin/bower --allow-root install
 node_modules/gulp/bin/gulp.js prepare-files
 
+echo "start tests"
+npm test
+
 [[ $RELEASE == true ]] && release || echo "non-release"
