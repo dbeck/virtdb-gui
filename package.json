@@ -6,7 +6,7 @@
   "private": true,
   "scripts": {
     "start": "node app.js",
-    "test": "mocha --compilers=coffee:coffee-script/register -R xunit test/*.coffee > test_report.xml"
+    "test": "mocha --compilers=coffee:coffee-script/register -R spec test/*.coffee"
   },
   "repository": {
       "type": "git",
@@ -52,6 +52,7 @@
     "gulp-sourcemaps": "^1.1.1",
     "gulp-stylus": "^1.3.0",
     "main-bower-files": "^2.0.0",
+    "mocha-jenkins-reporter": "^0.1.3",
     "sinon": "^1.12.1",
     "sinon-chai": "^2.6.0",
     "tiny-lr": "^0.1.0"

@@ -56,6 +56,8 @@ node_modules/bower/bin/bower --allow-root install
 node_modules/gulp/bin/gulp.js prepare-files
 
 echo "start tests"
-npm test
+export JUNIT_REPORT_PATH=test_report.xml
+export JUNIT_REPORT_STACK=1
+./node_modules/.bin/mocha --compilers=coffee:coffee-script/register --reporter mocha-jenkins-reporter test/*.coffee
 
 [[ $RELEASE == true ]] && release || echo "non-release"

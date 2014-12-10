@@ -91,7 +91,7 @@ EMPTY_MESSAGE =
     Name: "config-convert-test"
     ConfigData: []
 
-describe "Gui configuration handler", ->
+describe "Config", ->
 
     sandbox = null
 
