@@ -56,6 +56,6 @@ node_modules/bower/bin/bower --allow-root install
 node_modules/gulp/bin/gulp.js prepare-files
 
 echo "start tests"
-npm test > test_report.xml
+npm test
 
 [[ $RELEASE == true ]] && release || echo "non-release"

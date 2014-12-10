@@ -6,7 +6,7 @@
   "private": true,
   "scripts": {
     "start": "node app.js",
-    "test": "mocha --compilers=coffee:coffee-script/register -R xunit test/*.coffee"
+    "test": "mocha --compilers=coffee:coffee-script/register -R xunit test/*.coffee > test_report.xml"
   },
   "repository": {
       "type": "git",
