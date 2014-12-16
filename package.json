@@ -1,6 +1,6 @@
 {
   "name": "virtdb-gui",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "description": "User interface for VirtDB",
   "main": "app.js",
   "private": true,
@@ -9,8 +9,8 @@
     "test": "mocha --compilers=coffee:coffee-script/register -R spec test/*.coffee"
   },
   "repository": {
-      "type": "git",
-      "url": "https://github.com/starschema/virtdb-gui"
+    "type": "git",
+    "url": "https://github.com/starschema/virtdb-gui"
   },
   "homepage": "https://github.com/starschema/virtdb-gui",
   "author": "",
