@@ -34,3 +34,6 @@ test_report.xml
 
 # ide files
 .idea/
+
+# build tmp files
+build-result/
