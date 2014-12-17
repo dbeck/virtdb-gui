@@ -40,6 +40,8 @@ gulp.task('compile-stylus', function() {
     gulp.src('./src/styles/*.styl')
         .pipe(stylus())
         .pipe(gulp.dest('./static/styles'));
+    gulp.src('./src/styles/*.css')
+        .pipe(gulp.dest('./static/styles'));
 })
 
 gulp.task('compile-jade', function() {
@@ -51,6 +53,11 @@ gulp.task('compile-jade', function() {
 gulp.task('copy-index-to-static', function(){
     gulp.src('./src/pages/index.jade')
         .pipe(gulp.dest('./static/pages'));
+});
+
+gulp.task('copy-images', function(){
+    gulp.src(['./src/images/*.png', './src/images/*.jpg'])
+        .pipe(gulp.dest('./static/images'));
 });
 
 gulp.task('compile-client-coffee', function() {
@@ -79,6 +86,7 @@ gulp.task('prepare-files', [
     'collect-libs',
     'compile-server-coffee',
     'copy-index-to-static',
+    'copy-images',
     'compile-client-coffee',
     'compile-jade',
     'compile-stylus',
@@ -111,9 +119,10 @@ gulp.task('watch', function()
 
     //Client side watch
     gulp.watch(['src/pages/**/*.jade'], ['compile-jade']);
-    gulp.watch(['src/styles/**/*.styl'], ['compile-stylus']);
+    gulp.watch(['src/styles/**/*.styl', 'src/styles/**/*.css'], ['compile-stylus']);
     gulp.watch(['src/scripts/client/**/*.coffee'], ['compile-client-coffee']);
     gulp.watch(['src/pages/index.jade'], ['copy-index-to-static']);
+    gulp.watch(['src/images/*.png', 'src/images/*.jpg'], ['copy-images']);
 
     //Server side watch
     gulp.watch(['src/scripts/server/**/*.coffee'], ['restart-express']);
