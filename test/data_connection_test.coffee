@@ -23,6 +23,7 @@ describe "DataConnection", ->
 
     beforeEach =>
         sandbox = sinon.sandbox.create()
+        sandbox.stub(VirtDBConnector, "log")
 
     afterEach =>
         sandbox.restore()
@@ -90,7 +91,6 @@ describe "DataConnection", ->
         initQuerySocketStub = sandbox.stub conn, "_initQuerySocket"
         initColumnSocketStub = sandbox.stub conn, "_initColumnSocket"
         sandbox.stub(Math, "floor").returns(QUERY_ID)
-        sandbox.stub(VirtDBConnector, "log")
         dataSerializeStub = sandbox.stub Proto.data, "serialize"
         dataSerializeStub.returns SERIALIZED_MSG
         sendStub = sandbox.stub()
@@ -128,7 +128,6 @@ describe "DataConnection", ->
         initQuerySocketStub = sandbox.stub conn, "_initQuerySocket"
         initColumnSocketStub = sandbox.stub conn, "_initColumnSocket"
         sandbox.stub(Math, "floor").returns(QUERY_ID)
-        sandbox.stub(VirtDBConnector, "log")
         dataSerializeStub = sandbox.stub Proto.data, "serialize"
         dataSerializeStub.returns SERIALIZED_MSG
         sendStub = sandbox.stub()
@@ -153,7 +152,6 @@ describe "DataConnection", ->
 
         conn = new DataConnection QUERY_ADDRESS, COLUMN_ADDRESS
         onColumnStub = sandbox.stub()
-        sandbox.stub(VirtDBConnector, "log")
         dataParseStub = sandbox.stub Proto.data, "parse"
         dataParseStub.returns PARSED_MSG
 
@@ -189,7 +187,6 @@ describe "DataConnection", ->
 
         conn = new DataConnection QUERY_ADDRESS, COLUMN_ADDRESS
         onColumnStub = sandbox.stub()
-        sandbox.stub(VirtDBConnector, "log")
         dataParseStub = sandbox.stub Proto.data, "parse"
         dataParseStub.returns PARSED_MSG_WITHOUT_DATA
         commonParseStub = sandbox.stub Proto.common, "parse"
