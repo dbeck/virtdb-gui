@@ -27,7 +27,7 @@ bower_components
 
 # Compiled files
 static
-server
+server/*
 
 #test report
 test_report.xml

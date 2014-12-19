@@ -1,7 +1,7 @@
 Config = require "./config"
 zmq = require "zmq"
 fs = require "fs"
-protobuf = require "node-protobuf"
+Proto = require "virtdb-proto"
 FieldData = require "./fieldData"
 
 EndpointService = require "./endpoint_service"
@@ -12,7 +12,8 @@ moment = require "moment"
 log = (require "virtdb-connector").log
 V_ = log.Variable
 
-DiagProto = new protobuf(fs.readFileSync("common/proto/diag.pb.desc"))
+DiagProto = Proto.diag
+
 class DiagConnector
 
     @_records: null

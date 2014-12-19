@@ -1,14 +1,14 @@
 require("source-map-support").install()
 zmq = require "zmq"
 fs = require "fs"
-protobuf = require "node-protobuf"
+Proto = require "virtdb-proto"
 VirtDBConnector = require "virtdb-connector"
 Const = VirtDBConnector.Constants
 log = VirtDBConnector.log
 V_ = log.Variable
 Config = require "./config"
 
-serviceConfigProto = new protobuf(fs.readFileSync("common/proto/svc_config.pb.desc"))
+serviceConfigProto = Proto.service_config
 
 class EndpointService
 

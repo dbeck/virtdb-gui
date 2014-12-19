@@ -1,7 +1,7 @@
 Config = require "./config"
 zmq = require "zmq"
 fs = require "fs"
-protobuf = require "node-protobuf"
+Proto = require "virtdb-proto"
 log = (require "virtdb-connector").log
 V_ = log.Variable
 lz4 = require "lz4"
@@ -14,9 +14,9 @@ ms = require "ms"
 
 require("source-map-support").install()
 
-DataProto = new protobuf(fs.readFileSync("common/proto/data.pb.desc"))
-MetaDataProto = new protobuf(fs.readFileSync("common/proto/meta_data.pb.desc"))
-CommonProto = new protobuf(fs.readFileSync("common/proto/common.pb.desc"))
+DataProto = Proto.data
+MetaDataProto = Proto.meta_data
+CommonProto = Proto.common
 
 class DataProvider
 
