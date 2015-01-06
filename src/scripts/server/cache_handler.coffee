@@ -1,5 +1,8 @@
 NodeCache = require "node-cache"
 Config = require "./config"
+VirtDBConnector = require "virtdb-connector"
+log = VirtDBConnector.log
+V_ = log.Variable
 
 class CacheHandler
 
@@ -20,11 +23,11 @@ class CacheHandler
 
     @_onNewCacheTTL: (ttl) =>
         @_cacheTTL = ttl
-        @resetCache()
+        @_createCache()
 
     @_onNewCacheCheckPeriod: (checkPeriod) =>
         @_cacheCheckPeriod = checkPeriod
-        @resetCache()
+        @_createCache()
 
     @_createCache: =>
         options = {}

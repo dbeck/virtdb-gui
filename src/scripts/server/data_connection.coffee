@@ -23,7 +23,7 @@ class DataConnection
 
     getData: (schema, table, fields, count, onData) =>
         @_onColumn = onData
-        @_queryId = Math.floor((Math.random() * 100000) + 1)
+        @_queryId = Math.floor((Math.random() * 100000) + 1) + ""
         @_initQuerySocket()
         @_initColumnSocket(@_queryId)
         schema ?= ""
@@ -48,11 +48,11 @@ class DataConnection
             log.error V_(ex)
             throw ex
 
-    _initColumnSocket: (queryId) =>
+    _initColumnSocket: () =>
         try
             @_columnSocket = zmq.socket(Const.ZMQ_SUB)
+            @_columnSocket.subscribe @_queryId
             @_columnSocket.connect(@_columnAddress)
-            @_columnSocket.subscribe queryId
             @_columnSocket.on "message", @_onColumnMessage
         catch ex
             log.error V_(ex)

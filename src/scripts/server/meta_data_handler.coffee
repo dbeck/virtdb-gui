@@ -1,6 +1,9 @@
 CacheHandler = require "./cache_handler"
 MetadataConnection = require "./metadata_connection"
-log = (require "virtdb-connector").log
+EndpointServiceConnector = require "./endpoint_service"
+VirtDBConnector = require "virtdb-connector"
+Const = VirtDBConnector.Constants
+log = VirtDBConnector.log
 V_ = log.Variable
 
 class MetadataHandler
@@ -13,43 +16,48 @@ class MetadataHandler
         try
             tableListRequest = @_createTableListMessage()
 
-            metadata = CacheHandler.get(@_getCacheKey provider, tableListRequest)
-            if metadata?
-                @_processTableListResponse metadata, onReady
-                return
+            cacheKey = @_getCacheKey provider, tableListRequest
+            cachedResponse = CacheHandler.get cacheKey
 
-            metadataConnection = new MetadataConnection(CIM)
-            metadataConnection.getMetadata tableListRequest, (metadata) =>
-                if metadata.Tables.length > 0
-                    CacheHandler.set(@_getCacheKey(provider, tableListRequest), metadata)
-                @_processTableListResponse metadata, search, from, to, filterList, onReady
+            if Object.keys(cachedResponse).length isnt 0
+                metadata = cachedResponse[cacheKey]
+                result = @_processTableListResponse metadata, search, from, to, filterList
+                onReady result
+            else
+                metadataConnection = new MetadataConnection @_getMetaDataAddress(provider)
+                metadataConnection.getMetadata tableListRequest, (metadata) =>
+                    if metadata.Tables.length > 0
+                        CacheHandler.set cacheKey, metadata
+                    result = @_processTableListResponse metadata, search, from, to, filterList
+                    onReady result
         catch ex
-        log.error V_(ex)
-        throw ex
+            log.error V_(ex)
+            throw ex
 
-    getTableMetaData: (provider, table, onReady) =>
+    getTableMetadata: (provider, table, onReady) =>
         try
-            tableMetadataRequest = @_createTableMetadataMessage()
+            tableMetadataRequest = @_createTableMetadataMessage(table)
 
-            metadata = CacheHandler.get(@_getCacheKey provider, tableMetadataRequest)
-            if metadata?
-                onReady metadata
-                return
-
-            metadataConnection = new MetadataConnection(CIM)
-            metadataConnection.getMetadata tableMetadataRequest, (metadata) =>
-                if metadata.Tables.length > 0
-                    CacheHandler.set(@_getCacheKey(provider, tableMetadataRequest), metadata)
-                onReady metadata
+            cacheKey = @_getCacheKey provider, tableMetadataRequest
+            cachedResponse = CacheHandler.get cacheKey
+            if Object.keys(cachedResponse).length isnt 0
+                onReady cachedResponse[cacheKey]
+            else
+                metadataConnection = new MetadataConnection @_getMetaDataAddress(provider)
+                metadataConnection.getMetadata tableMetadataRequest, (metadata) =>
+                    if metadata.Tables.length > 0
+                        CacheHandler.set cacheKey, metadata
+                    onReady metadata
+            return
         catch ex
-        log.error V_(ex)
-        throw ex
+            log.error V_(ex)
+            throw ex
 
-    _processTableListResponse: (metadata, search, from, to, filterList, onReady) =>
+    _processTableListResponse: (metadata, search, from, to, filterList) =>
         tables = @_createTableList metadata
         tables = @_filterTableList tables, search, filterList
-        result = @_reduceTableList tables, from, to
-        onReady result
+        result = @_createTableListResult tables, from, to
+        return result
 
     _createTableListMessage: =>
         return metadataRequest =
@@ -58,7 +66,7 @@ class MetadataHandler
             WithFields: false
 
     _createTableMetadataMessage: (table) =>
-        tableObj = _convertTableToObject table
+        tableObj = @_convertTableToObject table
         return metadataRequest =
             Schema: tableObj.Schema,
             Name: tableObj.Name,
@@ -66,7 +74,7 @@ class MetadataHandler
 
     _convertTableToObject: (table) =>
         tableObj = {}
-        tableElements = table.split(@TABLE_NAME_SEPARATOR)
+        tableElements = table.split(MetadataHandler.TABLE_NAME_SEPARATOR)
         #if no schema
         if tableElements.length is 1
             tableObj.Name ?= tableElements[0]
@@ -82,12 +90,12 @@ class MetadataHandler
         tableList = []
         for table in metadata.Tables
             if table.Schema?
-                tableList.push table.Schema + @TABLE_NAME_SEPARATOR + table.Name
+                tableList.push table.Schema + MetadataHandler.TABLE_NAME_SEPARATOR + table.Name
             else
                 tableList.push table.Name
         return tableList
 
-    _filterTableList: (tables, search, from, to, filterList) =>
+    _filterTableList: (tables, search, filterList) =>
         results = []
         if filterList.length > 0
             for tableToFind in filterList
@@ -113,5 +121,9 @@ class MetadataHandler
 
     _getCacheKey: (provider, request) =>
         return provider + "_" + JSON.stringify request
+
+    _getMetaDataAddress: (provider) =>
+        addresses = EndpointServiceConnector.getInstance().getComponentAddresses provider
+        return addresses[Const.ENDPOINT_TYPE.META_DATA][Const.SOCKET_TYPE.REQ_REP][0]
 
 module.exports = MetadataHandler

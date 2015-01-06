@@ -65,7 +65,7 @@ describe "DataConnection", ->
 
         conn = new DataConnection QUERY_ADDRESS, COLUMN_ADDRESS
         sandbox.stub(conn, "_onColumnMessage", ON_MSG)
-        conn._initColumnSocket(QUERY_ID)
+        conn._initColumnSocket()
 
         fakeSocket.should.have.been.deep.calledWith Const.ZMQ_SUB
         zmqMock.verify()
@@ -79,7 +79,7 @@ describe "DataConnection", ->
         FIELDS = "fields"
         COUNT = 10
         QUERY_MSG =
-            QueryId: QUERY_ID
+            QueryId: QUERY_ID + ""
             Table: TABLE
             Fields: FIELDS
             Limit: COUNT
@@ -90,7 +90,7 @@ describe "DataConnection", ->
 
         initQuerySocketStub = sandbox.stub conn, "_initQuerySocket"
         initColumnSocketStub = sandbox.stub conn, "_initColumnSocket"
-        sandbox.stub(Math, "floor").returns(QUERY_ID)
+        sandbox.stub(Math, "floor").returns QUERY_ID
         dataSerializeStub = sandbox.stub Proto.data, "serialize"
         dataSerializeStub.returns SERIALIZED_MSG
         sendStub = sandbox.stub()
@@ -101,7 +101,6 @@ describe "DataConnection", ->
         conn._onColumn.should.be.deep.equal ON_DATA
         initQuerySocketStub.should.have.been.calledOnce
         initColumnSocketStub.should.have.been.calledOnce
-        initColumnSocketStub.should.have.been.calledWith QUERY_ID
         dataSerializeStub.should.have.been.calledOnce
         dataSerializeStub.should.have.been.calledWith(QUERY_MSG, "virtdb.interface.pb.Query")
         sendStub.should.have.been.calledOnce
@@ -116,7 +115,7 @@ describe "DataConnection", ->
         FIELDS = "fields"
         COUNT = 10
         QUERY_MSG =
-            QueryId: QUERY_ID
+            QueryId: QUERY_ID + ""
             Table: TABLE
             Fields: FIELDS
             Limit: COUNT
@@ -127,7 +126,7 @@ describe "DataConnection", ->
 
         initQuerySocketStub = sandbox.stub conn, "_initQuerySocket"
         initColumnSocketStub = sandbox.stub conn, "_initColumnSocket"
-        sandbox.stub(Math, "floor").returns(QUERY_ID)
+        sandbox.stub(Math, "floor").returns QUERY_ID
         dataSerializeStub = sandbox.stub Proto.data, "serialize"
         dataSerializeStub.returns SERIALIZED_MSG
         sendStub = sandbox.stub()
@@ -138,7 +137,6 @@ describe "DataConnection", ->
         conn._onColumn.should.be.deep.equal ON_DATA
         initQuerySocketStub.should.have.been.calledOnce
         initColumnSocketStub.should.have.been.calledOnce
-        initColumnSocketStub.should.have.been.calledWith QUERY_ID
         dataSerializeStub.should.have.been.calledOnce
         dataSerializeStub.should.have.been.calledWithExactly(QUERY_MSG, "virtdb.interface.pb.Query")
         sendStub.should.have.been.calledOnce

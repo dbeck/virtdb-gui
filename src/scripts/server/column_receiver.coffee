@@ -1,3 +1,5 @@
+FieldData = require "./fieldData"
+
 class ColumnReceiver
     _columns: null
     _readyCallback: null
