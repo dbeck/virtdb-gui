@@ -1,5 +1,5 @@
 #!/bin/bash
-NODE_CONNECTOR_PATH="common/node-connector"
+
 RELEASE_PATH="release"
 
 function release {
@@ -19,12 +19,6 @@ function release {
   tar -czvf virtdb-gui-$VERSION.tar.gz -C $RELEASE_PATH .
 }
 
-function clear_connector {
-  echo "clearing node connector"
-  rm -rf $NODE_CONNECTOR_PATH/node_modules
-  rm -rf $NODE_CONNECTOR_PATH/lib
-}
-
 function clear_gui {
   echo "clearing gui"
   rm -rf node_modules
@@ -35,23 +29,9 @@ function clear_gui {
 
 [[ ${1,,} == "release" ]] && RELEASE=true || RELEASE=false
 
-git submodule update --init --recursive
-pushd common/proto
-gyp --depth=. proto.gyp
-make
-popd
-
-echo "building node-connector"
-[[ $RELEASE == true ]] && clear_connector
-pushd $NODE_CONNECTOR_PATH
-npm install
-node_modules/gulp/bin/gulp.js build
-popd
-
 echo "building gui"
 [[ $RELEASE == true ]] && clear_gui
 npm install
-npm install common/node-connector
 node_modules/bower/bin/bower --allow-root install
 node_modules/gulp/bin/gulp.js prepare-files
 

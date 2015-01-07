@@ -1,6 +1,6 @@
 Configuration = require "./config"
 ConfigService = require "./config_service"
-EndpointService = require "./endpoint_service"
+EndpointServiceConnector = require "./endpoint_service"
 DiagConnector = require "./diag_connector"
 VirtDBConnector = require "virtdb-connector"
 Const = VirtDBConnector.Constants
@@ -26,10 +26,10 @@ class VirtDBLoader
             ,
             (callback) ->
                 try
-                    EndpointService.reset()
-                    EndpointService.setAddress(address)
+                    EndpointServiceConnector.reset()
+                    EndpointServiceConnector.setAddress(address)
                     async.whilst () ->
-                                    EndpointService.getInstance().getEndpoints().length == 0
+                                    EndpointServiceConnector.getInstance().getEndpoints().length == 0
                                 ,
                                 (cb) ->
                                     setTimeout(cb, 500)
@@ -42,7 +42,7 @@ class VirtDBLoader
                 callback null
             ], (err, results) ->
                 if err
-                    console.error err
+                    console.error "Error happened:", err
                 if startCallback?
                     startCallback()
 

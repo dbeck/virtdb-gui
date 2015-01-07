@@ -15,6 +15,9 @@ ok = require "okay"
 log = VirtDBConnector.log
 V_ = log.Variable
 
+DataHandler = require "./data_handler"
+MetadataHandler = require "./meta_data_handler"
+
 require('source-map-support').install()
 
 router.use require 'express-domain-middleware'
@@ -37,23 +40,25 @@ router.post "/data_provider/meta_data/", timeout(Config.getCommandLineParameter(
     provider = req.body.provider
     table = req.body.table
     id = Number req.body.id
+    onMetadata = (metadataMessage) ->
+        metaData = metadataMessage.Tables[0]
+        if not res.headersSent
+            for field in metaData.Fields
+                properties = {}
+                for prop in field.Properties
+                    formattedProp = KeyValue.toJSON prop
+                    for key, value of formattedProp
+                        properties[key] = value
+                field.Properties = properties
+            response =
+                data: metaData
+                id: id
+            res.json response
 
     try
-        DataProvider.getTableMeta provider, table, (metaData) ->
-            log.debug "Try to send, response to meta data request:", metaData.Name
-            if not res.headersSent
-                metaDataResponse = JSON.parse JSON.stringify metaData
-                for field in metaDataResponse.Fields
-                    properties = {}
-                    for prop in field.Properties
-                        formattedProp = KeyValue.toJSON prop
-                        for key, value of formattedProp
-                            properties[key] = value
-                    field.Properties = properties
-                response =
-                    data: metaDataResponse
-                    id: id
-                res.json response
+        # DataProvider.getTableMeta provider, table,
+        metadataHandler = new MetadataHandler()
+        metadataHandler.getTableMetadata provider, table, onMetadata
     catch ex
         log.error V_(ex)
         throw ex
@@ -65,14 +70,16 @@ router.post "/data_provider/table_list", timeout(Config.getCommandLineParameter(
     search = req.body.search
     id = Number req.body.id
     tablesToFilter = req.body.tables
+
     try
-        DataProvider.getTableNames provider, search, from, to, tablesToFilter, (result) ->
+        metadataHandler = new MetadataHandler()
+        metadataHandler.getTableList provider, search, from, to, tablesToFilter, (result) ->
+            response =
+                data: result
+                id: id
             if not res.headersSent
-                response =
-                    data: result
-                    id: id
                 res.json response
-                return
+            return
     catch ex
         log.error V_(ex)
         throw ex
@@ -83,12 +90,15 @@ router.post "/data_provider/data", timeout(Config.getCommandLineParameter("timeo
         table = req.body.table
         count = req.body.count
         id = Number req.body.id
-        DataProvider.getData provider, table, count, (data) =>
+        onData = (data) ->
             if not res.headersSent
                 response =
                     data: data
                     id: id
                 res.json response
+        # DataProvider.getData provider, table, count, onData
+        dataHandler = new DataHandler
+        dataHandler.getData provider, table, count, onData
     catch ex
         log.error V_(ex)
         throw ex

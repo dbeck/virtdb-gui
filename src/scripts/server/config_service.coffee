@@ -1,8 +1,8 @@
 zmq = require "zmq"
 fs = require "fs"
-protobuf = require "node-protobuf"
 util = require "util"
 VirtDBConnector = (require "virtdb-connector")
+Proto = require "virtdb-proto"
 Const = VirtDBConnector.Constants
 log = VirtDBConnector.log
 V_ = log.Variable
@@ -10,7 +10,7 @@ V_ = log.Variable
 require("source-map-support").install()
 log.setLevel "debug"
 
-serviceConfigProto = new protobuf(fs.readFileSync("common/proto/svc_config.pb.desc"))
+serviceConfigProto = Proto.service_config
 
 class ConfigService
 

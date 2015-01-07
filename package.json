@@ -36,6 +36,8 @@
     "source-map-support": "^0.2.7",
     "static-favicon": "~1.0.0",
     "stylus": "0.42.3",
+    "virtdb-connector": "git://github.com/starschema/node-virtdb-connector",
+    "virtdb-proto": "git://github.com/starschema/virtdb-proto",
     "zmq": "2.8.0"
   },
   "devDependencies": {
