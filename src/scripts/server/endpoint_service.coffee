@@ -22,7 +22,8 @@ class EndpointServiceConnector
 
     @getInstance: () =>
         EndpointServiceConnector._instance ?= new EndpointServiceConnector()
-        return @_instance
+        EndpointServiceConnector._instance.init()
+        return EndpointServiceConnector._instance
 
     @reset: () =>
         EndpointServiceConnector._instance = null
@@ -31,10 +32,18 @@ class EndpointServiceConnector
         EndpointServiceConnector._address = _address
 
     constructor: () ->
-        @reqrepSocket = zmq.socket(Const.ZMQ_REQ)
-        @reqrepSocket.on "message", @_onMessage
-        @connect()
+
+    init: () =>
+        @_connectSocket()
         @_requestEndpoints()
+
+    _connectSocket: =>
+        try
+            @reqrepSocket = zmq.socket(Const.ZMQ_REQ)
+            @reqrepSocket.on "message", @_onMessage
+            @reqrepSocket.connect(EndpointServiceConnector._address)
+        catch ex
+            console.error "Error during connecting to endpoint service!", ex
 
     getComponentAddresses: (name) =>
         addresses = {}
@@ -61,12 +70,6 @@ class EndpointServiceConnector
                 components.push endpoint.Name
         return components
 
-    connect: =>
-        try
-            @reqrepSocket.connect(EndpointServiceConnector._address)
-        catch ex
-            console.error "Error during connecting to endpoint service!", ex
-
     _onMessage: (reply) =>
         @endpoints = (serviceConfigProto.parse reply, "virtdb.interface.pb.Endpoint").Endpoints
         @endpoints.push {Name: Config.getCommandLineParameter("name")}
@@ -91,7 +94,7 @@ class EndpointServiceConnector
                 if endpoint.Name == newEndpoint.Name and endpoint.SvcType == newEndpoint.SvcType
                     @endpoints.splice @endpoints.indexOf(endpoint), 1
                     break
-            @endpoints = @endpoints.push newEndpoint
+            @endpoints.push newEndpoint
 
     _onPublishedMessage: (channelId, message) =>
         try
@@ -107,6 +110,7 @@ class EndpointServiceConnector
             @pubsubSocket.on "message", @_onPublishedMessage
             connections = @getServiceConfigAddresses()
             address = connections[Const.ENDPOINT_TYPE.ENDPOINT][Const.SOCKET_TYPE.PUB_SUB][0]
+            console.log address
             @pubsubSocket.connect address
             @pubsubSocket.subscribe Const.EVERY_CHANNEL
             log.trace "subscribed to endpoint service", V_(address)
