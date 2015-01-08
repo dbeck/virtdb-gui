@@ -163,8 +163,9 @@ router.post "/set_config/:component", timeout(Config.getCommandLineParameter("ti
         for item in config
             scopedConfig[""][item.Name] = item.Data
             scope = item.Data.Scope.Value[0]
-            scopedConfig[scope] ?= {}
-            scopedConfig[scope][item.Name] ?= JSON.parse(JSON.stringify(item.Data.Value))
+            if item.Data.Value.Value[0]? and item.Data.Value.Value[0].length isnt 0
+                scopedConfig[scope] ?= {}
+                scopedConfig[scope][item.Name] ?= JSON.parse(JSON.stringify(item.Data.Value))
             item.Data.Value.Value = []
 
         configMessage =
