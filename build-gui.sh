@@ -24,15 +24,6 @@ git config --global push.default simple
 git config --global user.name $GITHUB_USER
 git config --global user.email $GITHUB_EMAIL
 
-NODE_CONNECTOR_PATH="common/node-connector"
-
-# -- make sure we have proto module built for us --
-pushd common/proto
-gyp --depth=. proto.gyp
-make
-if [ $? -ne 0 ]; then echo "Failed to make proto"; exit 10; fi
-popd
-
 # -- figure out the next release number --
 function release {
   pushd $HOME/virtdb-gui
@@ -68,19 +59,9 @@ function release {
 
 [[ ${1,,} == "release" ]] && RELEASE=true || RELEASE=false
 
-echo "building node-connector"
-pushd $NODE_CONNECTOR_PATH
-npm install
-if [ $? -ne 0 ]; then echo "npm install failed for node-connector"; exit 10; fi
-node_modules/gulp/bin/gulp.js build
-if [ $? -ne 0 ]; then echo "failed to build node-connector"; exit 10; fi
-popd
-
 echo "building gui"
 npm install
 if [ $? -ne 0 ]; then echo "npm install failed for virtdb-gui"; exit 10; fi
-npm install common/node-connector
-if [ $? -ne 0 ]; then echo "npm install failed for common/node-connector"; exit 10; fi
 node_modules/bower/bin/bower --config.analytics=false --config.interactive=false install
 if [ $? -ne 0 ]; then echo "bower install failed"; exit 10; fi
 node_modules/gulp/bin/gulp.js prepare-files
@@ -93,4 +74,3 @@ export JUNIT_REPORT_STACK=1
 if [ $? -ne 0 ]; then echo "testing failed for virtdb-gui"; exit 10; fi
 
 [[ $RELEASE == true ]] && release || echo "non-release"
-
