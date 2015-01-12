@@ -77,29 +77,22 @@ class Configuration
             if value?
                 listener value
 
-    @onConfigReceived: (configMsg) =>
-        config = VirtDBConnector.Convert.ToObject VirtDBConnector.Convert.ToNew configMsg
-        if Object.keys(config).length is 0
+    @onConfigReceived: (config) =>
+        if not config?
             #If there's no previously saved config in the config service
             ConfigService.sendConfigTemplate @_getConfigTemplate()
         else
             @_handleConfig config
 
     @_handleConfig: (config) =>
-        #remove template
-        delete config['']
         cfg = {}
-        objProccess = (label, object) ->
-            for key, val of object
-                if label.length is 0
-                    newKey = key
-                else
-                    newKey = label + "/" + key
-                if typeof val is "object"
-                    objProccess newKey, val
-                else
-                    cfg[newKey] = val
-        objProccess "", config
+        for cfgEntry in config
+            if cfgEntry.Data.Scope.Value[0]?
+                key = cfgEntry.Data.Scope.Value[0] + "/" + cfgEntry.Name
+            else
+                key = cfgEntry.Name
+            cfg[key] = cfgEntry.Data.Value.Value[0]
+
         @_parameters = cfg
         @_notifyListeners()
 

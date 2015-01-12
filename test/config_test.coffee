@@ -10,73 +10,86 @@ sinon = require "sinon"
 sinonChai = require("sinon-chai");
 chai.use sinonChai
 
-CONFIG_MESSAGE_ONE_SCOPE =
-    Name: "config-convert-test"
-    ConfigData: [
-        Key: 'SCOPE1'
+CONFIG_MESSAGE_ONE_SCOPE = [
+    Name: "KEY1"
+    Data:
         Value:
-            Type: 'STRING'
-        Children: [
-            Key: 'KEY1'
-            Value:
-                Type: 'STRING'
-                StringValue: [
-                    'VALUE1'
-                ]
-        ]
-    ]
-CONFIG_MESSAGE_TWO_SCOPE =
-    Name: "config-convert-test"
-    ConfigData: [
-        Key: 'SCOPE1'
+            Type: "STRING"
+            Value: ["VALUE1"]
+        Scope:
+            Type: "STRING"
+            Value: ["SCOPE1"]
+        Required:
+            Type: "BOOL"
+            Value: [true]
+        Default:
+            Type: "UINT32"
+            Value: ["VALUE60"]
+]
+
+CONFIG_MESSAGE_TWO_SCOPE = [
+    Name: "KEY1"
+    Data:
         Value:
-            Type: 'STRING'
-        Children: [
-            Key: 'KEY1'
-            Value:
-                Type: 'STRING'
-                StringValue: [
-                    'VALUE1'
-                ]
-        ]
-    ,
-        Key: 'SCOPE2'
+            Type: "STRING"
+            Value: ["VALUE1"]
+        Scope:
+            Type: "STRING"
+            Value: ["SCOPE1"]
+        Required:
+            Type: "BOOL"
+            Value: [true]
+        Default:
+            Type: "UINT32"
+            Value: ["VALUE60"]
+,
+    Name: "KEY1"
+    Data:
         Value:
-            Type: 'STRING'
-        Children: [
-            Key: 'KEY1'
-            Value:
-                Type: 'STRING'
-                StringValue: [
-                    'VALUE2'
-                ]
-        ]
-    ]
-CONFIG_MESSAGE_ONE_SCOPE_TWO_VALUE =
-    Name: "config-convert-test"
-    ConfigData: [
-        Key: 'SCOPE1'
+            Type: "STRING"
+            Value: ["VALUE2"]
+        Scope:
+            Type: "STRING"
+            Value: ["SCOPE2"]
+        Required:
+            Type: "BOOL"
+            Value: [true]
+        Default:
+            Type: "UINT32"
+            Value: ["VALUE610"]
+]
+
+CONFIG_MESSAGE_ONE_SCOPE_TWO_VALUE = [
+    Name: "KEY1"
+    Data:
         Value:
-            Type: 'STRING'
-        Children: [
-            Key: 'KEY1'
-            Value:
-                Type: 'STRING'
-                StringValue: [
-                    'VALUE1'
-                ]
-        ,
-            Key: 'KEY2'
-            Value:
-                Type: 'STRING'
-                StringValue: [
-                    'VALUE2'
-                ]
-        ]
-    ]
-CONVERTED_CONFIG_MESSAGE_ONE_SCOPE = convert.ToObject convert.ToNew CONFIG_MESSAGE_ONE_SCOPE
-CONVERTED_CONFIG_MESSAGE_TWO_SCOPE = convert.ToObject convert.ToNew CONFIG_MESSAGE_TWO_SCOPE
-CONVERTED_CONFIG_MESSAGE_ONE_SCOPE_TWO_VALUE = convert.ToObject convert.ToNew CONFIG_MESSAGE_ONE_SCOPE_TWO_VALUE
+            Type: "STRING"
+            Value: ["VALUE1"]
+        Scope:
+            Type: "STRING"
+            Value: ["SCOPE1"]
+        Required:
+            Type: "BOOL"
+            Value: [true]
+        Default:
+            Type: "UINT32"
+            Value: ["VALUE60"]
+,
+    Name: "KEY2"
+    Data:
+        Value:
+            Type: "STRING"
+            Value: ["VALUE2"]
+        Scope:
+            Type: "STRING"
+            Value: ["SCOPE1"]
+        Required:
+            Type: "BOOL"
+            Value: [true]
+        Default:
+            Type: "UINT32"
+            Value: ["VALUE6310"]
+]
 
 CONFIG_TEMPLATE =
     AppName: "NAME"
@@ -180,20 +193,20 @@ describe "Config", ->
         handleConfig = sandbox.spy(Config, "_handleConfig");
         Config.onConfigReceived CONFIG_MESSAGE_ONE_SCOPE
         handleConfig.should.calledOnce
-        handleConfig.should.calledWith(CONVERTED_CONFIG_MESSAGE_ONE_SCOPE)
+        handleConfig.should.calledWithExactly(CONFIG_MESSAGE_ONE_SCOPE)
 
-    it "onConfigReceived should send back the template when not empty config received", ->
+    it "onConfigReceived should send back the template when empty config received", ->
         defTemplateStub = sandbox.stub Config, "_getConfigTemplate"
         defTemplateStub.returns CONFIG_TEMPLATE
         cfgSrvSendSpy = sandbox.stub ConfigService, "sendConfigTemplate"
-        Config.onConfigReceived EMPTY_MESSAGE
-        cfgSrvSendSpy.should.have.been.deep.calledWith CONFIG_TEMPLATE
+        Config.onConfigReceived null
+        cfgSrvSendSpy.should.have.been.deep.calledWithExactly CONFIG_TEMPLATE
 
     it "_handleConfig should handle simple config message with one scope, one value", ->
         expectedKey = "SCOPE1/KEY1"
         expectedValue = "VALUE1"
         notifyListenersStub = sandbox.stub Config, "_notifyListeners"
-        Config._handleConfig CONVERTED_CONFIG_MESSAGE_ONE_SCOPE
+        Config._handleConfig CONFIG_MESSAGE_ONE_SCOPE
 
         Config._parameters.should.have.been.deep.property expectedKey
         Config._parameters[expectedKey].should.be.deep.equal expectedValue
@@ -205,12 +218,10 @@ describe "Config", ->
         scope2key1 = "SCOPE2/KEY1"
         value2 = "VALUE2"
         notifyListenersStub = sandbox.stub Config, "_notifyListeners"
-        Config._handleConfig CONVERTED_CONFIG_MESSAGE_TWO_SCOPE
+        Config._handleConfig CONFIG_MESSAGE_TWO_SCOPE
 
-        Config._parameters.should.have.been.deep.property scope1key1
-        Config._parameters[scope1key1].should.be.deep.equal value1
-        Config._parameters.should.have.been.deep.property scope2key1
-        Config._parameters[scope2key1].should.be.deep.equal value2
+        Config._parameters.should.have.been.deep.property scope1key1, value1
+        Config._parameters.should.have.been.deep.property scope2key1, value2
         notifyListenersStub.should.have.been.calledOnce
 
     it "_handleConfig should handle simple config message with one scope, two value", ->
@@ -219,12 +230,10 @@ describe "Config", ->
         scope1key2 = "SCOPE1/KEY2"
         value2 = "VALUE2"
         notifyListenersStub = sandbox.stub Config, "_notifyListeners"
-        Config._handleConfig CONVERTED_CONFIG_MESSAGE_ONE_SCOPE_TWO_VALUE
+        Config._handleConfig CONFIG_MESSAGE_ONE_SCOPE_TWO_VALUE
 
-        Config._parameters.should.have.been.deep.property scope1key1
-        Config._parameters[scope1key1].should.be.deep.equal value1
-        Config._parameters.should.have.been.deep.property scope1key2
-        Config._parameters[scope1key2].should.be.deep.equal value2
+        Config._parameters.should.have.been.deep.property scope1key1, value1
+        Config._parameters.should.have.been.deep.property scope1key2, value2
         notifyListenersStub.should.have.been.calledOnce
 
     it "_notifyListeners should call all callback which is registrated for an existing parameter", ->
