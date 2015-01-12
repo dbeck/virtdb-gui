@@ -110,7 +110,6 @@ class EndpointServiceConnector
             @pubsubSocket.on "message", @_onPublishedMessage
             connections = @getServiceConfigAddresses()
             address = connections[Const.ENDPOINT_TYPE.ENDPOINT][Const.SOCKET_TYPE.PUB_SUB][0]
-            console.log address
             @pubsubSocket.connect address
             @pubsubSocket.subscribe Const.EVERY_CHANNEL
             log.trace "subscribed to endpoint service", V_(address)

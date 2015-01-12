@@ -129,24 +129,8 @@ router.get "/get_config/:component", timeout(Config.getCommandLineParameter("tim
     try
         component = req.params.component
         ConfigService.getConfig component, (config) =>
-            template = {}
-            if config.ConfigData.length isnt 0
-                newObject = VirtDBConnector.Convert.ToObject VirtDBConnector.Convert.ToNew config
-                for scope in config.ConfigData
-                    if scope.Key is ""
-                        resultArray = []
-                        for child in scope.Children
-                            item =
-                                Name: child.Key
-                                Data: {}
-                            for variable in child.Children
-                                convertedVariable = KeyValue.toJSON variable
-                                item.Data[variable.Key] = convertedVariable[variable.Key]
-                            resultArray.push item
-                        convertedTemplate = (KeyValue.toJSON scope)[""]
-                        for item in resultArray
-                            item.Data.Value.Value.push newObject[item.Data.Scope.Value[0]]?[item.Name]
-                        res.json resultArray
+            if config?
+                res.json config
             else
                 res.json {}
     catch ex
@@ -158,21 +142,7 @@ router.post "/set_config/:component", timeout(Config.getCommandLineParameter("ti
         component = req.params.component
         config = req.body
 
-        scopedConfig = {}
-        scopedConfig[""] = {}
-        for item in config
-            scopedConfig[""][item.Name] = item.Data
-            scope = item.Data.Scope.Value[0]
-            if item.Data.Value.Value[0]? and item.Data.Value.Value[0].length isnt 0
-                scopedConfig[scope] ?= {}
-                scopedConfig[scope][item.Name] ?= JSON.parse(JSON.stringify(item.Data.Value))
-            item.Data.Value.Value = []
-
-        configMessage =
-            Name: component
-            ConfigData: KeyValue.parseJSON(scopedConfig)
-
-        ConfigService.sendConfig configMessage
+        ConfigService.sendConfig component, config
         if not res.headersSent
             res.status(200).send()
 
