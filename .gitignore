@@ -31,6 +31,8 @@ server/*
 
 #test report
 test_report.xml
+cobertura-coverage.xml
+
 
 # ide files
 .idea/
