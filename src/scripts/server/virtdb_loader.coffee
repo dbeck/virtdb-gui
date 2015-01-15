@@ -2,6 +2,7 @@ Configuration = require "./config"
 ConfigService = require "./config_service"
 EndpointServiceConnector = require "./endpoint_service"
 DiagConnector = require "./diag_connector"
+CacheHandler = require "./cache_handler"
 VirtDBConnector = require "virtdb-connector"
 Const = VirtDBConnector.Constants
 async = require "async"
@@ -39,6 +40,7 @@ class VirtDBLoader
             ,
             (callback) ->
                 DiagConnector.connect("diag-service")
+                CacheHandler.init()
                 callback null
             ], (err, results) ->
                 if err
