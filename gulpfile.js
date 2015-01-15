@@ -7,6 +7,29 @@ var mainBowerFiles = require('main-bower-files');
 var server = require('gulp-express');
 var mocha = require('gulp-mocha');
 require('coffee-script/register')
+var istanbul = require('gulp-coffee-istanbul');
+
+var jsFiles = [];
+var coffeeFiles = ['src/scripts/**/*.coffee'];
+var specFiles = ['test/*.coffee'];
+
+gulp.task('coverage', function() {
+  gulp.src(jsFiles.concat(coffeeFiles))
+      .pipe(istanbul({
+                includeUntested: true
+            }))
+      .pipe(istanbul.hookRequire())
+      .on('finish', function() {
+          gulp.src(specFiles)
+            .pipe(mocha({
+              reporter: 'spec'
+            }))
+            .pipe(istanbul.writeReports({
+                dir: '.',
+                reporters: ['cobertura']
+            }));
+        });
+});
 
 var EXPRESS_ROOT = __dirname;
 var LIVERELOAD_PORT = 3001;
