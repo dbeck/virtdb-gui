@@ -1,15 +1,20 @@
 #!/bin/bash
 
+PACKAGE=virtdb-gui
+
 if [ "X" == "X$GITHUB_USER" ]; then echo "Need GITHUB_USER environment variable"; exit 10; fi
 if [ "X" == "X$GITHUB_PASSWORD" ]; then echo "Need GITHUB_PASSWORD environment variable"; exit 10; fi
 if [ "X" == "X$GITHUB_EMAIL" ]; then echo "Need GITHUB_EMAIL environment variable"; exit 10; fi
 if [ "X" == "X$HOME" ]; then echo "Need HOME environment variable"; exit 10; fi
 
-cd $HOME
+cd build-result
 
-git clone --recursive https://$GITHUB_USER:$GITHUB_PASSWORD@github.com/starschema/virtdb-gui.git virtdb-gui
+rm -rf $PACKAGE/*
+rm -rf $PACKAGE/.*
+
+git clone --recursive https://$GITHUB_USER:$GITHUB_PASSWORD@github.com/starschema/$PACKAGE.git $PACKAGE
 if [ $? -ne 0 ]; then echo "Failed to clone virtdb-gui repository"; exit 10; fi
-echo Creating build
+echo Creating build $BUILDNO
 
 echo >>$HOME/.netrc
 echo machine github.com >>$HOME/.netrc
@@ -17,19 +22,19 @@ echo login $GITHUB_USER >>$HOME/.netrc
 echo password $GITHUB_PASSWORD >>$HOME/.netrc
 echo >>$HOME/.netrc
 
-cd $HOME/virtdb-gui
+cd $HOME/build-result/$PACKAGE
+
+PROTOC_PATH=$(which protoc)
+export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:${PROTOC_PATH%/bin/protoc}/lib/pkgconfig
 
 git --version
 git config --global push.default simple
 git config --global user.name $GITHUB_USER
 git config --global user.email $GITHUB_EMAIL
 
-PROTOC_PATH=$(which protoc)
-export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:${PROTOC_PATH%/bin/protoc}/lib/pkgconfig
-
 # -- figure out the next release number --
 function release {
-  pushd $HOME/virtdb-gui
+  pushd $HOME/$PACKAGE
   echo "Creating release"
 
   # -- tagging release
@@ -41,7 +46,7 @@ function release {
   git push
   if [ $? -ne 0 ]; then echo "Failed to push to repo."; exit 10; fi
 
-  RELEASE_PATH="$HOME/build-result/virtdb-gui-$VERSION"
+  RELEASE_PATH="$HOME/build-result/$PACKAGE-$VERSION"
   mkdir -p $RELEASE_PATH
   cp --parents common/proto/*.desc $RELEASE_PATH
   cp -R static $RELEASE_PATH
@@ -49,8 +54,8 @@ function release {
   cp -R node_modules $RELEASE_PATH
   cp app.js $RELEASE_PATH
   pushd $RELEASE_PATH/..
-  tar cvfj virtdb-gui-$VERSION.tbz virtdb-gui-$VERSION
-  rm -Rf virtdb-gui-$VERSION
+  tar cvfj $PACKAGE-$VERSION.tbz $PACKAGE-$VERSION
+  rm -Rf $PACKAGE-$VERSION
   popd
 
   git tag -f $VERSION
@@ -64,16 +69,15 @@ function release {
 
 echo "building gui"
 npm install
-if [ $? -ne 0 ]; then echo "npm install failed for virtdb-gui"; exit 10; fi
+if [ $? -ne 0 ]; then echo "npm install failed for $PACKAGE"; exit 10; fi
 node_modules/bower/bin/bower --config.analytics=false --config.interactive=false install
 if [ $? -ne 0 ]; then echo "bower install failed"; exit 10; fi
 node_modules/gulp/bin/gulp.js prepare-files
 if [ $? -ne 0 ]; then echo "failed to prepare-files"; exit 10; fi
 
 echo "start tests"
-export JUNIT_REPORT_PATH=test_report.xml
-export JUNIT_REPORT_STACK=1
-./node_modules/.bin/mocha --compilers=coffee:coffee-script/register --reporter mocha-jenkins-reporter test/*.coffee
-if [ $? -ne 0 ]; then echo "testing failed for virtdb-gui"; exit 10; fi
+node_modules/mocha/bin/mocha --compilers=coffee:coffee-script/register test/*.coffee --reporter=tap > test-report.xml
+node_modules/gulp/bin/gulp.js coverage
+if [ $? -ne 0 ]; then echo "testing failed for $PACKAGE"; exit 10; fi
 
 [[ $RELEASE == true ]] && release || echo "non-release"
