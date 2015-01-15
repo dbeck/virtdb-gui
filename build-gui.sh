@@ -9,7 +9,7 @@ cd $HOME
 
 git clone --recursive https://$GITHUB_USER:$GITHUB_PASSWORD@github.com/starschema/virtdb-gui.git virtdb-gui
 if [ $? -ne 0 ]; then echo "Failed to clone virtdb-gui repository"; exit 10; fi
-echo Creating build 
+echo Creating build
 
 echo >>$HOME/.netrc
 echo machine github.com >>$HOME/.netrc
@@ -23,6 +23,9 @@ git --version
 git config --global push.default simple
 git config --global user.name $GITHUB_USER
 git config --global user.email $GITHUB_EMAIL
+
+PROTOC_PATH=$(which protoc)
+export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:${PROTOC_PATH%/bin/protoc}/lib/pkgconfig
 
 # -- figure out the next release number --
 function release {
@@ -46,15 +49,15 @@ function release {
   cp -R node_modules $RELEASE_PATH
   cp app.js $RELEASE_PATH
   pushd $RELEASE_PATH/..
-  tar cvfj virtdb-gui-$VERSION.tbz virtdb-gui-$VERSION  
+  tar cvfj virtdb-gui-$VERSION.tbz virtdb-gui-$VERSION
   rm -Rf virtdb-gui-$VERSION
   popd
-  
+
   git tag -f $VERSION
   if [ $? -ne 0 ]; then echo "Failed to tag repo"; exit 10; fi
   git push origin $VERSION
   if [ $? -ne 0 ]; then echo "Failed to push tag to repo."; exit 10; fi
-  popd 
+  popd
 }
 
 [[ ${1,,} == "release" ]] && RELEASE=true || RELEASE=false
