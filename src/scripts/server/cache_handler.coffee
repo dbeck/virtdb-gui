@@ -10,6 +10,10 @@ class CacheHandler
     @_cacheTTL = null
     @_cacheCheckPeriod = null
 
+    @init: =>
+        Config.addConfigListener Config.CACHE_PERIOD, CacheHandler._onNewCacheCheckPeriod
+        Config.addConfigListener Config.CACHE_TTL, CacheHandler._onNewCacheTTL
+
     @set: (key, value) =>
         if not @_cache?
             @_createCache()
@@ -38,8 +42,5 @@ class CacheHandler
         @_cache = new NodeCache(options)
         @_cache.on "expired", (key, value) =>
             log.debug key + " expired", V_(key)
-
-Config.addConfigListener Config.CACHE_PERIOD, CacheHandler._onNewCacheCheckPeriod
-Config.addConfigListener Config.CACHE_TTL, CacheHandler._onNewCacheTTL
 
 module.exports = CacheHandler
