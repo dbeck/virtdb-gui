@@ -6,6 +6,7 @@ Const = VirtDBConnector.Constants
 log = VirtDBConnector.log
 V_ = log.Variable
 Config = require "./config"
+util = require "util"
 
 serviceConfigProto = Proto.service_config
 
@@ -19,10 +20,12 @@ class EndpointServiceConnector
     endpoints: []
     serviceConfigConnections: []
     name: null
+    _endpointsReadyListeners: []
 
     @getInstance: () =>
-        EndpointServiceConnector._instance ?= new EndpointServiceConnector()
-        EndpointServiceConnector._instance.init()
+        if not EndpointServiceConnector._instance?
+            EndpointServiceConnector._instance = new EndpointServiceConnector()
+            EndpointServiceConnector._instance.init()
         return EndpointServiceConnector._instance
 
     @reset: () =>
@@ -53,10 +56,10 @@ class EndpointServiceConnector
                 addresses[endpoint.SvcType][conn.Type] = conn.Address
         return addresses
 
-    getServiceConfigAddresses: () =>
+    _getServiceConfigAddresses: () =>
         for endpoint in @endpoints
             for conn in endpoint.Connections
-                if @_address in conn.Address
+                if EndpointServiceConnector._address in conn.Address
                     @name = endpoint.Name
                     return @getComponentAddresses(@name)
 
@@ -70,11 +73,24 @@ class EndpointServiceConnector
                 components.push endpoint.Name
         return components
 
+    addEndpointsReadyListener: (callback) =>
+        if @endpoints? and @endpoints.length isnt 0
+            callback()
+        else
+            @_endpointsReadyListeners.push callback
+
+
     _onMessage: (reply) =>
         @endpoints = (serviceConfigProto.parse reply, "virtdb.interface.pb.Endpoint").Endpoints
         @endpoints.push {Name: Config.getCommandLineParameter("name")}
+        @_notifyEndpointsReadyListeners()
         @_subscribeEndpoints() unless @pubsubSocket?
         return
+
+    _notifyEndpointsReadyListeners: () =>
+        while @_endpointsReadyListeners.length > 0
+            callback = @_endpointsReadyListeners.shift()
+            callback()
 
     _requestEndpoints: () =>
         try
@@ -108,12 +124,13 @@ class EndpointServiceConnector
         try
             @pubsubSocket = zmq.socket(Const.ZMQ_SUB)
             @pubsubSocket.on "message", @_onPublishedMessage
-            connections = @getServiceConfigAddresses()
+            connections = @_getServiceConfigAddresses()
             address = connections[Const.ENDPOINT_TYPE.ENDPOINT][Const.SOCKET_TYPE.PUB_SUB][0]
             @pubsubSocket.connect address
             @pubsubSocket.subscribe Const.EVERY_CHANNEL
             log.trace "subscribed to endpoint service", V_(address)
         catch ex
+            @pubsubSocket = null
             log.error "couldn't subscribe to endpoint service", V_(ex)
 
 module.exports = EndpointServiceConnector

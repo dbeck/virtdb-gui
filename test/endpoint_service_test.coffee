@@ -88,6 +88,24 @@ EPLIST =
         Name: NAME
     ]
 
+REAL_EP_LIST = [
+    Name: 'diag-service',
+    SvcType: 'GET_LOGS',
+    Connections: [
+        Type: 'REQ_REP',
+        Address: [ 'tcp://192.168.221.11:42896', 'tcp://192.168.221.11:56073' ]
+    ]
+,
+    Name: 'config-service',
+    SvcType: 'CONFIG',
+    Connections: [
+        Type: 'REQ_REP',
+        Address: [ 'tcp://192.168.221.11:33356', 'tcp://192.168.221.11:59098' ]
+    ,
+        Type: 'PUB_SUB',
+        Address: [ 'tcp://192.168.221.11:47350', 'tcp://192.168.221.11:50991' ]
+    ]
+]
 
 describe "EndpointServiceConnector", ->
 
@@ -112,40 +130,15 @@ describe "EndpointServiceConnector", ->
         EndpointServiceConnector.reset()
         expect(EndpointServiceConnector._instance).to.be.null
 
-    it "_onMesssage should work and subscribe if no sub socket", ->
-        endpointMessageParseStub = sandbox.stub Proto.service_config, "parse"
-        endpointMessageParseStub.returns JSON.parse JSON.stringify EP_MESSAGE
-        configGetNameStub = sandbox.stub Config, "getCommandLineParameter"
-        configGetNameStub.returns NAME
-
+    it "should initiate the connection and request sockets", ->
         epSrv = new EndpointServiceConnector
-        subscribeStub = sandbox.stub epSrv, "_subscribeEndpoints"
-        epSrv._onMessage SOCKET_MSG
+        connectStub = sandbox.stub epSrv, "_connectSocket"
+        requestEndpointsStub = sandbox.stub epSrv, "_requestEndpoints"
 
-        endpointMessageParseStub.should.have.been.calledOnce
-        endpointMessageParseStub.should.have.been.calledWithExactly SOCKET_MSG, "virtdb.interface.pb.Endpoint"
-        configGetNameStub.should.have.been.calledOnce
-        configGetNameStub.should.have.been.calledWithExactly "name"
-        epSrv.endpoints.should.be.deep.equal EPLIST.Endpoints
-        subscribeStub.should.have.been.calledOnce
+        epSrv.init()
 
-    it "_onMesssage should work and not subscribe if sub socket exists", ->
-        endpointMessageParseStub = sandbox.stub Proto.service_config, "parse"
-        endpointMessageParseStub.returns JSON.parse JSON.stringify EP_MESSAGE
-        configGetNameStub = sandbox.stub Config, "getCommandLineParameter"
-        configGetNameStub.returns NAME
-
-        epSrv2 = new EndpointServiceConnector
-        subscribeStub = sandbox.stub epSrv2, "_subscribeEndpoints"
-        epSrv2.pubsubSocket = SOCKET
-        epSrv2._onMessage SOCKET_MSG
-
-        endpointMessageParseStub.should.have.been.calledOnce
-        endpointMessageParseStub.should.have.been.calledWithExactly SOCKET_MSG, "virtdb.interface.pb.Endpoint"
-        configGetNameStub.should.have.been.calledOnce
-        configGetNameStub.should.have.been.calledWithExactly "name"
-        epSrv2.endpoints.should.be.deep.equal EPLIST.Endpoints
-        subscribeStub.should.have.been.not.calledOnce
+        connectStub.should.have.been.calledOnce
+        requestEndpointsStub.should.have.been.calledOnce
 
     it "_handlePublished message should add the new endpoint to the list", ->
         epSrv = new EndpointServiceConnector
@@ -176,7 +169,7 @@ describe "EndpointServiceConnector", ->
         epSrv = new EndpointServiceConnector
 
         onPubMsgStub = sandbox.stub epSrv, "_onPublishedMessage"
-        getSrvCfgAddressStub = sandbox.stub epSrv, "getServiceConfigAddresses"
+        getSrvCfgAddressStub = sandbox.stub epSrv, "_getServiceConfigAddresses"
         ADDRESS = "ADDRESSsSSSSSssss"
         ADDRESS_OBJ =
             ENDPOINT:
@@ -200,3 +193,152 @@ describe "EndpointServiceConnector", ->
 
         fakeSocket.should.have.been.deep.calledWith Const.ZMQ_SUB
         zmqMock.verify()
+
+describe "EndpointServiceConnector.addEndpointsReadyListener", ->
+
+    sandbox = null
+
+    beforeEach =>
+        sandbox = sinon.sandbox.create()
+        sandbox.stub VirtDBConnector, "log"
+
+    afterEach =>
+        EndpointServiceConnector.reset()
+        sandbox.restore()
+
+    it "should call the callback when endpoints are ready", ->
+        listener = sandbox.spy()
+
+        epSrv = new EndpointServiceConnector
+        epSrv.endpoints = ["ep1", "ep2"]
+        epSrv.addEndpointsReadyListener listener
+        listener.should.have.been.calledOnce
+
+    it "should save the callback when endpoints have not received yet", ->
+        listener = sandbox.spy()
+
+        epSrv = new EndpointServiceConnector
+        epSrv.addEndpointsReadyListener listener
+
+        listener.should.have.not.been.calledOnce
+        epSrv._endpointsReadyListeners.should.contain listener
+
+describe "EndpointServiceConnector._notifyEndpointsReadyListeners", ->
+
+    sandbox = null
+
+    beforeEach =>
+        sandbox = sinon.sandbox.create()
+        sandbox.stub VirtDBConnector, "log"
+
+    afterEach =>
+        EndpointServiceConnector.reset()
+        sandbox.restore()
+
+    it "should call the stored callbacks and remove them from the list", ->
+        listener = sandbox.spy()
+
+        cb1 = sandbox.spy()
+        cb2 = sandbox.spy()
+
+        epSrv = new EndpointServiceConnector
+        epSrv._endpointsReadyListeners = [cb1, cb2]
+        epSrv._notifyEndpointsReadyListeners()
+        cb1.should.have.been.calledOnce
+        cb2.should.have.been.calledOnce
+        epSrv._endpointsReadyListeners.should.have.length 0
+
+describe "EndpointServiceConnector._onMessage", ->
+
+    sandbox = null
+
+    beforeEach =>
+        sandbox = sinon.sandbox.create()
+        sandbox.stub VirtDBConnector, "log"
+
+    afterEach =>
+        EndpointServiceConnector.reset()
+        sandbox.restore()
+
+    it "should work and subscribe if no sub socket", ->
+        endpointMessageParseStub = sandbox.stub Proto.service_config, "parse"
+        endpointMessageParseStub.returns JSON.parse JSON.stringify EP_MESSAGE
+        configGetNameStub = sandbox.stub Config, "getCommandLineParameter"
+        configGetNameStub.returns NAME
+
+        epSrv = new EndpointServiceConnector
+        subscribeStub = sandbox.stub epSrv, "_subscribeEndpoints"
+        notifyStub = sandbox.stub epSrv, "_notifyEndpointsReadyListeners"
+        epSrv._onMessage SOCKET_MSG
+
+        endpointMessageParseStub.should.have.been.calledOnce
+        endpointMessageParseStub.should.have.been.calledWithExactly SOCKET_MSG, "virtdb.interface.pb.Endpoint"
+        configGetNameStub.should.have.been.calledOnce
+        configGetNameStub.should.have.been.calledWithExactly "name"
+        epSrv.endpoints.should.be.deep.equal EPLIST.Endpoints
+        subscribeStub.should.have.been.calledOnce
+        notifyStub.should.have.been.calledOnce
+
+    it "should work and not subscribe if sub socket exists", ->
+        endpointMessageParseStub = sandbox.stub Proto.service_config, "parse"
+        endpointMessageParseStub.returns JSON.parse JSON.stringify EP_MESSAGE
+        configGetNameStub = sandbox.stub Config, "getCommandLineParameter"
+        configGetNameStub.returns NAME
+
+        epSrv = new EndpointServiceConnector
+        subscribeStub = sandbox.stub epSrv, "_subscribeEndpoints"
+        notifyStub = sandbox.stub epSrv, "_notifyEndpointsReadyListeners"
+        epSrv.pubsubSocket = SOCKET
+        epSrv._onMessage SOCKET_MSG
+
+        endpointMessageParseStub.should.have.been.calledOnce
+        endpointMessageParseStub.should.have.been.calledWithExactly SOCKET_MSG, "virtdb.interface.pb.Endpoint"
+        configGetNameStub.should.have.been.calledOnce
+        configGetNameStub.should.have.been.calledWithExactly "name"
+        epSrv.endpoints.should.be.deep.equal EPLIST.Endpoints
+        subscribeStub.should.have.been.not.calledOnce
+        notifyStub.should.have.been.calledOnce
+
+describe "EndpointServiceConnector.getComponentAddresses", ->
+
+    sandbox = null
+
+    beforeEach =>
+        sandbox = sinon.sandbox.create()
+        sandbox.stub VirtDBConnector, "log"
+
+    afterEach =>
+        EndpointServiceConnector.reset()
+        sandbox.restore()
+
+    it "should return the structured object of addresses", ->
+        EXP_RESPONSE =
+            GET_LOGS:
+                REQ_REP: [ 'tcp://192.168.221.11:42896', 'tcp://192.168.221.11:56073' ]
+        epSrv = new EndpointServiceConnector
+        epSrv.endpoints = REAL_EP_LIST
+        result = epSrv.getComponentAddresses "diag-service"
+        result.should.be.deep.equal EXP_RESPONSE
+
+describe "EndpointServiceConnector._getServiceConfigAddresses", ->
+
+    sandbox = null
+
+    beforeEach =>
+        sandbox = sinon.sandbox.create()
+        sandbox.stub VirtDBConnector, "log"
+
+    afterEach =>
+        EndpointServiceConnector.reset()
+        sandbox.restore()
+
+    it "should return the own addresses and set the name", ->
+        EXP_RESPONSE =
+            GET_LOGS:
+                REQ_REP: [ 'tcp://192.168.221.11:42896', 'tcp://192.168.221.11:56073' ]
+        epSrv = new EndpointServiceConnector
+        epSrv.endpoints = REAL_EP_LIST
+        EndpointServiceConnector.setAddress 'tcp://192.168.221.11:42896'
+        result = epSrv._getServiceConfigAddresses()
+        result.should.be.deep.equal EXP_RESPONSE
+        epSrv.name.should.be.deep.equal "diag-service"
