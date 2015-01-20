@@ -115,7 +115,7 @@ class EndpointServiceConnector
     _onPublishedMessage: (channelId, message) =>
         try
             data = serviceConfigProto.parse message, "virtdb.interface.pb.Endpoint"
-            log.debug "got published message from endpoint service.", V_(channelId)
+            log.debug "got published message from endpoint service.", V_(channelId.toString())
             @_handlePublishedMessage data
         catch ex
             log.error V_(ex)
