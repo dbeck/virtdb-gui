@@ -8,17 +8,24 @@ app.controller 'StatusController',
         statusMessages: null
         incomingMessages: null
         lastStatusRequestTime: null
+        requestPromise: null
+        processPromise: null
 
         constructor: (@$rootScope, @$scope, @$http, @$interval, @ServerConnector) ->
             @statusMessages = []
             @incomingMessages = []
             @lastStatusRequestTime = 0
             @startTimers()
+            @$scope.$on "$destroy", () =>
+                if @requestPromise?
+                    @$interval.cancel @requestPromise
+                if @processPromise?
+                    @$interval.cancel @processPromise
 
         startTimers: () =>
-            @$interval @processIncomingMessages, 500
+            @processPromise = @$interval @processIncomingMessages, 500
             @requestStatuses()
-            @$interval @requestStatuses, DiagnosticsController.REQUEST_INTERVAL
+            @requestPromise = @$interval @requestStatuses, DiagnosticsController.REQUEST_INTERVAL
 
         cleanObsoleteDones: () =>
             copyStatusMessages = @statusMessages.slice 0
@@ -55,8 +62,7 @@ app.controller 'StatusController',
         processIncomingMessages: () =>
             @cleanObsoleteDones()
             while @incomingMessages.length > 0
-                msg = @incomingMessages[0]
-                @incomingMessages.splice 0,1
+                msg = @incomingMessages.shift()
                 if not @isStatusObsolete msg
                     @placeStatusMessage msg
 
