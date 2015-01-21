@@ -7,8 +7,8 @@ V_ = log.Variable
 class CacheHandler
 
     @_cache = null
-    @_cacheTTL = null
-    @_cacheCheckPeriod = null
+    @_cacheTTL = null # secundum 0 means unlimited
+    @_cacheCheckPeriod = null # secundum 0 means no check
 
     @init: =>
         Config.addConfigListener Config.CACHE_PERIOD, CacheHandler._onNewCacheCheckPeriod

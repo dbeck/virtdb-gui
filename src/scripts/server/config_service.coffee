@@ -15,40 +15,42 @@ serviceConfigProto = Proto.service_config
 
 class ConfigService
 
-    @_address: null
+    @_addresses: null
     @_subscriptionListeners = []
     @_savedConfigs = {}
     @_configCallbacks = {}
 
-    @setAddress: (address) ->
-        @_address = address
+    @setAddresses: (addresses) ->
+        @_addresses = addresses
 
     @getConfig: (component, onConfig) =>
-        connection = new ConfigServiceConnector(@_address)
+        connection = new ConfigServiceConnector(@_addresses[0])
         @_configCallbacks[component] = onConfig
-        connection.getConfig component, (config) ->
-            processedConfig = ConfigService._processGetConfigMessage config
-            callback =  ConfigService?._configCallbacks?[config.Name]
+        connection.getConfig component, (config) =>
+            processedConfig = @_processGetConfigMessage config
+            callback =  @_configCallbacks?[config.Name]
             if callback?
-                ConfigService._savedConfigs[config.Name] = processedConfig
+                @_savedConfigs[config.Name] = processedConfig
                 callback processedConfig
-                delete ConfigService._configCallbacks[config.Name]
+                delete @_configCallbacks[config.Name]
 
     @sendConfig: (component, config) =>
-        connection = new ConfigServiceConnector(@_address)
+        connection = new ConfigServiceConnector(@_addresses[0])
         saved = ConfigService._savedConfigs?[component]
-        if saved? and (JSON.stringify(saved) isnt JSON.stringify(config))
+        if not saved? or (JSON.stringify(saved) isnt JSON.stringify(config))
             rawConfig =  @_processSetConfigMessage component, config
             connection.sendConfig rawConfig
 
     @sendConfigTemplate: (template) =>
         log.debug "sending config template to the config service:", V_(template)
-        @sendConfig VirtDBConnector.Convert.TemplateToOld template
+        connection = new ConfigServiceConnector(@_addresses[0])
+        connection.sendConfig VirtDBConnector.Convert.TemplateToOld template
 
     @onPublishedConfig: (channelId, message) =>
         config = serviceConfigProto.parse message, "virtdb.interface.pb.Config"
+        procMsg = @_processGetConfigMessage config
         for callback in @_subscriptionListeners
-            callback config
+            callback procMsg
 
     @subscribeToConfigs: (listener) =>
         @_subscriptionListeners.push listener
