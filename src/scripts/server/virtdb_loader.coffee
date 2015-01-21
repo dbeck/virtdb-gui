@@ -13,9 +13,8 @@ class VirtDBLoader
         address = Configuration.getCommandLineParameter("serviceConfig")
         name = Configuration.getCommandLineParameter("name")
         VirtDBConnector.onAddress Const.ENDPOINT_TYPE.CONFIG, Const.SOCKET_TYPE.REQ_REP, (name, addresses) =>
-            for address in addresses
-                console.log "Got config service address:", address
-                ConfigService.setAddress(address)
+                console.log "Got config service addresses:", addresses
+                ConfigService.setAddresses(addresses)
                 Configuration.init()
         VirtDBConnector.subscribe Const.ENDPOINT_TYPE.CONFIG, ConfigService.onPublishedConfig, name
         VirtDBConnector.connect(name, address)

@@ -48,8 +48,7 @@ class Configuration
         @_commandLine = {}
 
     @init: () =>
-        ConfigService.subscribeToConfigs @onConfigReceived
-        ConfigService.getConfig(@getCommandLineParameter "name", @onConfigReceived)
+        ConfigService.getConfig(@getCommandLineParameter("name"), @onConfigReceived)
 
     @getCommandLineParameter: (parameter) =>
         if Object.keys(@_commandLine).length is 0
