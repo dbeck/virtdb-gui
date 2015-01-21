@@ -6,15 +6,19 @@ app.controller 'DiagnosticsController',
         logEntries: null
         lastLogRequestTime: null
         @MAX_DISPLAYED_DIAG_MSG = 2000
+        requestIntervalPromise: null
 
         constructor: (@$rootScope, @$scope, @$http, @$interval, @ServerConnector) ->
             @logEntries = []
             @lastLogRequestTime = 0
             @startLogReceiving()
+            @$scope.$on '$destroy', () =>
+                if @requestIntervalPromise?
+                    @$interval.cancel @requestIntervalPromise
 
         startLogReceiving: () =>
             @requestLogs()
-            @$interval @requestLogs, DiagnosticsController.REQUEST_INTERVAL
+            @requestIntervalPromise = @$interval @requestLogs, DiagnosticsController.REQUEST_INTERVAL
 
         requestLogs: () =>
             data =
