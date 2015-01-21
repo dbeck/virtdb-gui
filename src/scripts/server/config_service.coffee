@@ -45,7 +45,7 @@ class ConfigService
         log.debug "sending config template to the config service:", V_(template)
         @sendConfig VirtDBConnector.Convert.TemplateToOld template
 
-    @onPublishedConfig: (appName, message) =>
+    @onPublishedConfig: (message) =>
         config = serviceConfigProto.parse message, "virtdb.interface.pb.Config"
         for callback in @_subscriptionListeners
             callback config
