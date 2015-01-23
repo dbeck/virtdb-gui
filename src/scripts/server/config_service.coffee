@@ -1,49 +1,50 @@
-zmq = require "zmq"
-fs = require "fs"
-util = require "util"
+require("source-map-support").install()
 VirtDBConnector = (require "virtdb-connector")
-Proto = require "virtdb-proto"
-Const = VirtDBConnector.Constants
+ConfigServiceConnector = require "./config_service_connection"
+KeyValue = require "./key_value"
 log = VirtDBConnector.log
 V_ = log.Variable
-KeyValue = require "./key_value"
-
-require("source-map-support").install()
-log.setLevel "debug"
-
+Proto = require "virtdb-proto"
 serviceConfigProto = Proto.service_config
 
 class ConfigService
 
-    @_addresses: null
+    @_addresses = null
     @_subscriptionListeners = []
     @_savedConfigs = {}
     @_configCallbacks = {}
 
-    @setAddresses: (addresses) ->
+    @_reset: () =>
+        @_addresses = null
+        @_subscriptionListeners = []
+        @_savedConfigs = {}
+        @_configCallbacks = {}
+
+    @setAddresses: (addresses) =>
         @_addresses = addresses
 
     @getConfig: (component, onConfig) =>
-        connection = new ConfigServiceConnector(@_addresses[0])
+        connection = ConfigServiceConnector.createInstance @_addresses[0]
         @_configCallbacks[component] = onConfig
         connection.getConfig component, (config) =>
             processedConfig = @_processGetConfigMessage config
             callback =  @_configCallbacks?[config.Name]
+            console.log @_configCallbacks
             if callback?
                 @_savedConfigs[config.Name] = processedConfig
                 callback processedConfig
                 delete @_configCallbacks[config.Name]
 
     @sendConfig: (component, config) =>
-        connection = new ConfigServiceConnector(@_addresses[0])
+        connection = ConfigServiceConnector.createInstance @_addresses[0]
         saved = ConfigService._savedConfigs?[component]
         if not saved? or (JSON.stringify(saved) isnt JSON.stringify(config))
-            rawConfig =  @_processSetConfigMessage component, config
+            rawConfig = @_processSetConfigMessage component, config
             connection.sendConfig rawConfig
 
     @sendConfigTemplate: (template) =>
         log.debug "sending config template to the config service:", V_(template)
-        connection = new ConfigServiceConnector(@_addresses[0])
+        connection = ConfigServiceConnector.createInstance @_addresses[0]
         connection.sendConfig VirtDBConnector.Convert.TemplateToOld template
 
     @onPublishedConfig: (channelId, message) =>
@@ -91,54 +92,5 @@ class ConfigService
             Name: component
             ConfigData: KeyValue.parseJSON(scopedConfig)
         return configMessage
-
-    class ConfigServiceConnector
-
-        _reqRepSocket: null
-        _onConfig: null
-        _address: null
-
-        constructor: (@_address) ->
-            @configs = {}
-            @_reqRepSocket = zmq.socket(Const.ZMQ_REQ)
-            @_reqRepSocket.on "message", @_onMessage
-            @_connect()
-
-        getConfig: (component, readyCallback) =>
-            try
-                @_onConfig = readyCallback
-                configReq =
-                    Name: component
-                log.debug "sending config request message:", V_(configReq)
-                @_reqRepSocket.send serviceConfigProto.serialize configReq, "virtdb.interface.pb.Config"
-            catch ex
-                log.error V_(ex)
-                throw ex
-
-        sendConfig: (config) =>
-            try
-                log.debug "sending config to the config service:", V_(config)
-                @_reqRepSocket.send serviceConfigProto.serialize config, "virtdb.interface.pb.Config"
-            catch ex
-                log.error V_(ex)
-                throw ex
-
-        _onMessage: (message) =>
-            try
-                configMessage = serviceConfigProto.parse message, "virtdb.interface.pb.Config"
-                log.debug "got config message: ", V_(configMessage)
-                if @_onConfig?
-                    @_onConfig configMessage
-                return
-            catch ex
-                log.error V_(ex)
-                throw ex
-
-        _connect: =>
-            try
-                @_reqRepSocket.connect(@_address)
-            catch ex
-                log.error V_(ex)
-                throw ex
 
 module.exports = ConfigService
