@@ -28,7 +28,7 @@ CLI_OPTIONS =
         full: "force-console-log"
         default: "false"
         help: 'if set gui will write log messages to the console'
-        
+
 nomnom.options(CLI_OPTIONS).parse()
 
 ConfigService = require "./config_service"
@@ -104,9 +104,7 @@ class Configuration
         @_notifyListeners()
 
     @_notifyListeners: =>
-        console.log "notifListeners"
         for parameterPath, value of @_parameters
-            console.log parameterPath, value
             listeners = @_configListeners[parameterPath]
             if listeners?
                 for listener in listeners
