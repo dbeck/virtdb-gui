@@ -1,6 +1,9 @@
 Config = require "../src/scripts/server/config"
 ConfigService = require "../src/scripts/server/config_service"
-convert = (require "virtdb-connector").Convert
+VirtDBConnector = (require "virtdb-connector")
+convert = VirtDBConnector.Convert
+Const = VirtDBConnector.Constants
+Proto = require "virtdb-proto"
 
 chai = require "chai"
 chai.should()
@@ -114,6 +117,15 @@ describe "Config", ->
 
     afterEach =>
         sandbox.restore()
+
+    it "should subscribe and get configs at the initialization of the Config", ->
+        subStub = sandbox.stub ConfigService, "subscribeToConfigs"
+        getConfigStub = sandbox.stub ConfigService, "getConfig"
+
+        Config.init()
+
+        subStub.should.have.been.called
+        getConfigStub.should.have.been.called
 
     it "getCommandLineParameter should give back the right parameters", ->
         commandLine = ["--name", "gui-name", "--trace", "--port=9999", "-s", "address", "--timeout=56"]

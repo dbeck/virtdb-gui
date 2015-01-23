@@ -48,7 +48,8 @@ class Configuration
         @_commandLine = {}
 
     @init: () =>
-        ConfigService.getConfig(@getCommandLineParameter("name"), @onConfigReceived)
+        ConfigService.subscribeToConfigs @onConfigReceived
+        ConfigService.getConfig @getCommandLineParameter("name"), @onConfigReceived
 
     @getCommandLineParameter: (parameter) =>
         if Object.keys(@_commandLine).length is 0
@@ -96,7 +97,9 @@ class Configuration
         @_notifyListeners()
 
     @_notifyListeners: =>
+        console.log "notifListeners"
         for parameterPath, value of @_parameters
+            console.log parameterPath, value
             listeners = @_configListeners[parameterPath]
             if listeners?
                 for listener in listeners
