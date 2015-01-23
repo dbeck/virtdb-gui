@@ -22,6 +22,13 @@ CLI_OPTIONS =
         flag: true
         default: "false"
         help: 'if set gui will display trace logs'
+    forceConsoleLog:
+        abbr: 'c'
+        flag: true
+        full: "force-console-log"
+        default: "false"
+        help: 'if set gui will write log messages to the console'
+        
 nomnom.options(CLI_OPTIONS).parse()
 
 ConfigService = require "./config_service"
