@@ -8,15 +8,12 @@ class CacheHandler
 
     @_cache = null
     @_cacheTTL = null # seconds, 0 means unlimited
-    @_cacheCheckPeriod = null # seconds, 0 means no check
 
     @_reset: =>
         @_cache = null
         @_cacheTTL = null
-        @_cacheCheckPeriod = null
 
     @init: =>
-        Config.addConfigListener Config.CACHE_PERIOD, CacheHandler._onNewCacheCheckPeriod
         Config.addConfigListener Config.CACHE_TTL, CacheHandler._onNewCacheTTL
 
     @set: (key, value) =>
@@ -34,14 +31,9 @@ class CacheHandler
         @_cacheTTL = ttl
         @_createCache()
 
-    @_onNewCacheCheckPeriod: (checkPeriod) =>
-        @_cacheCheckPeriod = checkPeriod
-        @_createCache()
-
     @_createCache: =>
         options = {}
-        if @_cacheCheckPeriod?
-            options["checkperiod"] = @_cacheCheckPeriod
+        options["checkperiod"] = Config.getCommandLineParameter "cacheCheckPeriod"
         if @_cacheTTL?
             options["stdTTL"] = @_cacheTTL
         @_cache = @_getCacheInstance options

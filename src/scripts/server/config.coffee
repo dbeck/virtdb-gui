@@ -28,6 +28,11 @@ CLI_OPTIONS =
         full: "force-console-log"
         default: "false"
         help: 'if set gui will write log messages to the console'
+    cacheCheckPeriod:
+        abbr: 'r'
+        full: "cache-check-period"
+        default: 1
+        help: 'the cache check period in seconds'
 
 nomnom.options(CLI_OPTIONS).parse()
 
@@ -119,12 +124,6 @@ class Configuration
                 Scope: "DatabaseConfigService"
                 Required: true
                 Default: @DEFAULTS[@DB_CONFIG_SERVICE]
-            ,
-                VariableName: 'CheckPeriod'
-                Type: 'UINT32'
-                Required: true
-                Scope: 'Cache'
-                Default: @DEFAULTS[@CACHE_PERIOD]
             ,
                 VariableName: 'TTL'
                 Type: 'UINT32'
