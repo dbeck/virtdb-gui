@@ -1,7 +1,6 @@
 express = require "express"
 router = express.Router()
 util = require "util"
-DataProvider = require "./data_provider_connector"
 DBConfig = require "./db_config_connector"
 Config = require "./config"
 VirtDBConnector = require "virtdb-connector"
