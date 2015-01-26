@@ -7,8 +7,13 @@ V_ = log.Variable
 class CacheHandler
 
     @_cache = null
-    @_cacheTTL = null # secundum 0 means unlimited
-    @_cacheCheckPeriod = null # secundum 0 means no check
+    @_cacheTTL = null # seconds, 0 means unlimited
+    @_cacheCheckPeriod = null # seconds, 0 means no check
+
+    @_reset: =>
+        @_cache = null
+        @_cacheTTL = null
+        @_cacheCheckPeriod = null
 
     @init: =>
         Config.addConfigListener Config.CACHE_PERIOD, CacheHandler._onNewCacheCheckPeriod
@@ -39,8 +44,12 @@ class CacheHandler
             options["checkperiod"] = @_cacheCheckPeriod
         if @_cacheTTL?
             options["stdTTL"] = @_cacheTTL
-        @_cache = new NodeCache(options)
+        @_cache = @_getCacheInstance options
         @_cache.on "expired", (key, value) =>
             log.debug key + " expired", V_(key)
+        return
+
+    @_getCacheInstance: (options) =>
+        return new NodeCache(options)
 
 module.exports = CacheHandler
