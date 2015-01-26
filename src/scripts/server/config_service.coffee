@@ -29,7 +29,6 @@ class ConfigService
         connection.getConfig component, (config) =>
             processedConfig = @_processGetConfigMessage config
             callback =  @_configCallbacks?[config.Name]
-            console.log @_configCallbacks
             if callback?
                 @_savedConfigs[config.Name] = processedConfig
                 callback processedConfig
