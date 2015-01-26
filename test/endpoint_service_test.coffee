@@ -113,7 +113,10 @@ describe "EndpointServiceConnector", ->
 
     beforeEach =>
         sandbox = sinon.sandbox.create()
-        sandbox.stub(VirtDBConnector, "log")
+        sandbox.stub VirtDBConnector.log, "info"
+        sandbox.stub VirtDBConnector.log, "debug"
+        sandbox.stub VirtDBConnector.log, "trace"
+        sandbox.stub VirtDBConnector.log, "error"
 
     afterEach =>
         EndpointServiceConnector.reset()
