@@ -24,7 +24,7 @@ class MetadataHandler
                 result = @_processTableListResponse metadata, search, from, to, filterList
                 onReady result
             else
-                metadataConnection = new MetadataConnection @_getMetaDataAddress(provider)
+                metadataConnection = MetadataConnection.createInstance @_getMetaDataAddress provider
                 metadataConnection.getMetadata tableListRequest, (metadata) =>
                     if metadata.Tables.length > 0
                         CacheHandler.set cacheKey, metadata
@@ -43,7 +43,7 @@ class MetadataHandler
             if Object.keys(cachedResponse).length isnt 0
                 onReady cachedResponse[cacheKey]
             else
-                metadataConnection = new MetadataConnection @_getMetaDataAddress(provider)
+                metadataConnection = MetadataConnection.createInstance @_getMetaDataAddress provider
                 metadataConnection.getMetadata tableMetadataRequest, (metadata) =>
                     if metadata.Tables.length > 0
                         CacheHandler.set cacheKey, metadata

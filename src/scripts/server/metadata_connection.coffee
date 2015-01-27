@@ -45,4 +45,7 @@ class MetadataConnection
             log.error V_(ex)
             throw ex
 
+    @createInstance: (address) =>
+        return new MetadataConnection address
+
 module.exports = MetadataConnection
