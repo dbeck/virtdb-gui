@@ -10,6 +10,7 @@ class CacheHandler
     @_cacheTTL = null # seconds, 0 means unlimited
 
     @_reset: =>
+        @_cache?._killCheckPeriod()
         @_cache = null
         @_cacheTTL = null
 

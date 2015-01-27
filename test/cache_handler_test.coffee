@@ -27,7 +27,7 @@ describe "CacheHandler", ->
         sandbox.restore()
         CacheHandler._reset()
 
-    it "should store the data and give it back if we get it before ttl",  (done) ->
+    it "should store the data and give it back if we get it before ttl", (done) ->
         this.timeout(1200)
         CacheHandler._cacheTTL = 1
 
@@ -64,7 +64,10 @@ describe "CacheHandler", ->
 
         ccStub = sandbox.stub CacheHandler, "_createCache"
 
-        CacheHandler._cache = "some cache"
+        CacheHandler._cache =
+            on: sinon.spy()
+            _killCheckPeriod: sinon.spy()
+
         CacheHandler._onNewCacheTTL TTL
 
         CacheHandler._cacheTTL.should.be.deep.equal TTL
@@ -78,6 +81,7 @@ describe "CacheHandler", ->
         CacheHandler._cacheTTL = TTL
         cache =
             on: sinon.spy()
+            _killCheckPeriod: sinon.spy()
 
         EXP_OPTIONS =
             checkperiod: CP
@@ -98,6 +102,7 @@ describe "CacheHandler", ->
 
         cache =
             on: sinon.spy()
+            _killCheckPeriod: sinon.spy()
 
         EXP_OPTIONS =
             checkperiod: CP
