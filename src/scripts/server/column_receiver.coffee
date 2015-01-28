@@ -33,4 +33,7 @@ class ColumnReceiver
     _checkReceivedColumns: () =>
         @_fields.length == @_columns.length
 
+    @createInstance: (onReady, fields) =>
+        return new ColumnReceiver onReady, fields
+
 module.exports = ColumnReceiver
