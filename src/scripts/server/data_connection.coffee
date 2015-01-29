@@ -73,4 +73,7 @@ class DataConnection
             log.error V_(ex)
             throw ex
 
+    @createInstance: (queryAddress, columnAddress) =>
+        return new DataConnection queryAddress, columnAddress
+
 module.exports = DataConnection

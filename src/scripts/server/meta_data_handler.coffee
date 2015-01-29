@@ -126,4 +126,7 @@ class MetadataHandler
         addresses = EndpointServiceConnector.getInstance().getComponentAddresses provider
         return addresses[Const.ENDPOINT_TYPE.META_DATA][Const.SOCKET_TYPE.REQ_REP][0]
 
+    @createInstance: =>
+        return new MetadataHandler
+
 module.exports = MetadataHandler
