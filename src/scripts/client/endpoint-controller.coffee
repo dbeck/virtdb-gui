@@ -3,7 +3,11 @@ app.controller 'EndpointController',
 class EndpointController
     endpoints: null
 
-    constructor: (@ServerConnector, @$http, @$scope, @$rootScope) ->
+    constructor: (ServerConnector, $http, $scope, $rootScope) ->
+        @ServerConnector = ServerConnector
+        @$http = $http
+        @$scope = $scope
+        @$rootScope = $rootScope
         @endpoints = []
         @requestEndpoints()
         @setupWatches()

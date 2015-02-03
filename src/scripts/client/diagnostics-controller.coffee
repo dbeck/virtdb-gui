@@ -8,7 +8,12 @@ app.controller 'DiagnosticsController',
         @MAX_DISPLAYED_DIAG_MSG = 2000
         requestIntervalPromise: null
 
-        constructor: (@$rootScope, @$scope, @$http, @$interval, @ServerConnector) ->
+        constructor: ($rootScope, $scope, $http, $interval, ServerConnector) ->
+            @$rootScope = $rootScope
+            @$scope = $scope
+            @$http = $http
+            @$interval = $interval
+            @ServerConnector = ServerConnector
             @logEntries = []
             @lastLogRequestTime = 0
             @startLogReceiving()
