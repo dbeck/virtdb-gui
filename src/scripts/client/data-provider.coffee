@@ -8,8 +8,12 @@ app.controller 'DataProviderController',
         DATA = "data"
         META_DATA = "metadata"
 
-        constructor: (@$rootScope, @$scope, @$http, @$timeout, @ServerConnector) ->
-
+        constructor: ($rootScope, $scope, $http, $timeout, ServerConnector) ->
+            @$rootScope = $rootScope
+            @$scope = $scope
+            @$http = $http
+            @$timeout = $timeout
+            @ServerConnector = ServerConnector
             @providers = []
             @$rootScope.provider = null
             @requestIds = {}

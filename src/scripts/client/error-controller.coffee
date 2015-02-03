@@ -4,7 +4,10 @@ app.controller 'ErrorController',
 
             errorList: null
 
-            constructor: (@$timeout, @$scope, @ErrorService) ->
+            constructor: ($timeout, $scope, ErrorService) ->
+                @$timeout = $timeout
+                @$scope = $scope
+                @ErrorService = ErrorService
                 # @ErrorService.addErrorListener(@onError)
                 @errorList = []
 

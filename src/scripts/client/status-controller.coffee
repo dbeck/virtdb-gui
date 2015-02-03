@@ -11,7 +11,12 @@ app.controller 'StatusController',
         requestPromise: null
         processPromise: null
 
-        constructor: (@$rootScope, @$scope, @$http, @$interval, @ServerConnector) ->
+        constructor: ($rootScope, $scope, $http, $interval, ServerConnector) ->
+            @$rootScope = $rootScope
+            @$scope = $scope
+            @$http = $http
+            @$interval = $interval
+            @ServerConnector = ServerConnector
             @statusMessages = []
             @incomingMessages = []
             @lastStatusRequestTime = 0
