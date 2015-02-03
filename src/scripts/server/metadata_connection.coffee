@@ -10,12 +10,12 @@ MetaDataProto = Proto.meta_data
 
 class MetadataConnection
 
-    _metadataAddress: null
+    _metadataAddresses: null
     _metadataSocket: null
 
     _onMetadata: null
 
-    constructor: (@_metadataAddress) ->
+    constructor: (@_metadataAddresses) ->
 
     getMetadata: (metadataRequest, onMetaData) =>
         @_onMetadata = onMetaData
@@ -30,7 +30,8 @@ class MetadataConnection
     _initMetadataSocket: =>
         try
             @_metadataSocket = zmq.socket(Const.ZMQ_REQ)
-            @_metadataSocket.connect(@_metadataAddress)
+            for addr in @_metadataAddresses
+                @_metadataSocket.connect addr
             @_metadataSocket.on "message", @_onMetadataMessage
         catch ex
             log.error V_(ex)
@@ -45,7 +46,7 @@ class MetadataConnection
             log.error V_(ex)
             throw ex
 
-    @createInstance: (address) =>
-        return new MetadataConnection address
+    @createInstance: (addresses) =>
+        return new MetadataConnection addresses
 
 module.exports = MetadataConnection

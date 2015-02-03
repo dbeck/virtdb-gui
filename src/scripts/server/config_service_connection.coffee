@@ -12,12 +12,12 @@ class ConfigServiceConnector
 
     _reqRepSocket: null
     _onConfig: null
-    _address: null
+    _addresses: null
 
-    @createInstance: (address) =>
-        return new ConfigServiceConnector address
+    @createInstance: (addresses) =>
+        return new ConfigServiceConnector addresses
 
-    constructor: (@_address) ->
+    constructor: (@_addresses) ->
         console.log "const"
         @_reqRepSocket = zmq.socket(Const.ZMQ_REQ)
         @_reqRepSocket.on "message", @_onMessage
@@ -55,7 +55,8 @@ class ConfigServiceConnector
 
     _connect: =>
         try
-            @_reqRepSocket.connect(@_address)
+            for addr in @_addresses
+                @_reqRepSocket.connect addr
         catch ex
             log.error V_(ex)
             throw ex

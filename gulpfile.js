@@ -148,7 +148,7 @@ gulp.task('watch', function()
     gulp.watch(['src/images/*.png', 'src/images/*.jpg'], ['copy-images']);
 
     //Server side watch
-    gulp.watch(['src/scripts/server/**/*.coffee'], ['restart-express']);
+    gulp.watch(['src/scripts/server/**/*.coffee'], ['compile-server-coffee']);
 
     //Third-party watch
     gulp.watch(['bower.json'], ['collect-libs']);
@@ -162,5 +162,6 @@ gulp.task('test', ['compile-server-coffee'], function ()
 
 gulp.task('default', [
     'watch',
-    'start-dev-server',
+    'prepare-files',
+    'start-livereload-server'
 ]);

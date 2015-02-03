@@ -1,6 +1,6 @@
 CacheHandler = require "./cache_handler"
 MetadataConnection = require "./metadata_connection"
-EndpointServiceConnector = require "./endpoint_service"
+Endpoints = require "./endpoints"
 VirtDBConnector = require "virtdb-connector"
 Const = VirtDBConnector.Constants
 log = VirtDBConnector.log
@@ -24,7 +24,7 @@ class MetadataHandler
                 result = @_processTableListResponse metadata, search, from, to, filterList
                 onReady result
             else
-                metadataConnection = MetadataConnection.createInstance @_getMetaDataAddress provider
+                metadataConnection = MetadataConnection.createInstance Endpoints.getMetadataAddress provider
                 metadataConnection.getMetadata tableListRequest, (metadata) =>
                     if metadata.Tables.length > 0
                         CacheHandler.set cacheKey, metadata
@@ -43,7 +43,7 @@ class MetadataHandler
             if Object.keys(cachedResponse).length isnt 0
                 onReady cachedResponse[cacheKey]
             else
-                metadataConnection = MetadataConnection.createInstance @_getMetaDataAddress provider
+                metadataConnection = MetadataConnection.createInstance Endpoints.getMetadataAddress provider
                 metadataConnection.getMetadata tableMetadataRequest, (metadata) =>
                     if metadata.Tables.length > 0
                         CacheHandler.set cacheKey, metadata
@@ -121,10 +121,6 @@ class MetadataHandler
 
     _getCacheKey: (provider, request) =>
         return provider + "_" + JSON.stringify request
-
-    _getMetaDataAddress: (provider) =>
-        addresses = EndpointServiceConnector.getInstance().getComponentAddresses provider
-        return addresses[Const.ENDPOINT_TYPE.META_DATA][Const.SOCKET_TYPE.REQ_REP][0]
 
     @createInstance: =>
         return new MetadataHandler
