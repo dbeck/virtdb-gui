@@ -12,7 +12,6 @@ Const = VirtDBConnector.Constants
 log = VirtDBConnector.log
 V_ = log.Variable
 FieldData = require "./fieldData"
-EndpointService = require "./endpoint_service"
 
 dbConfigProto = Proto.db_config
 

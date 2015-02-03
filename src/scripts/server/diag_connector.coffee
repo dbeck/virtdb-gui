@@ -3,9 +3,6 @@ zmq = require "zmq"
 fs = require "fs"
 Proto = require "virtdb-proto"
 FieldData = require "./fieldData"
-
-EndpointService = require "./endpoint_service"
-FieldData = require "./fieldData"
 Const = (require "virtdb-connector").Constants
 util = require "util"
 moment = require "moment"

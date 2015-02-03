@@ -12,14 +12,14 @@ CommonProto = (require "virtdb-proto").common
 
 class DataConnection
 
-    _queryAddress: null
-    _columnAddress: null
+    _queryAddresses: null
+    _columnAddresses: null
     _querySocket: null
     _columnSocket: null
     _onColumn: null
     _queryId: null
 
-    constructor: (@_queryAddress, @_columnAddress) ->
+    constructor: (@_queryAddresses, @_columnAddresses) ->
 
     getData: (schema, table, fields, count, onData) =>
         @_onColumn = onData
@@ -43,7 +43,8 @@ class DataConnection
     _initQuerySocket: =>
         try
             @_querySocket = zmq.socket(Const.ZMQ_PUSH)
-            @_querySocket.connect(@_queryAddress)
+            for addr in @_queryAddresses
+                @_querySocket.connect addr
         catch ex
             log.error V_(ex)
             throw ex
@@ -52,8 +53,9 @@ class DataConnection
         try
             @_columnSocket = zmq.socket(Const.ZMQ_SUB)
             @_columnSocket.subscribe @_queryId
-            @_columnSocket.connect(@_columnAddress)
             @_columnSocket.on "message", @_onColumnMessage
+            for addr in @_columnAddresses
+                @_columnSocket.connect addr
         catch ex
             log.error V_(ex)
             throw ex
@@ -73,7 +75,7 @@ class DataConnection
             log.error V_(ex)
             throw ex
 
-    @createInstance: (queryAddress, columnAddress) =>
-        return new DataConnection queryAddress, columnAddress
+    @createInstance: (queryAddresses, columnAddresses) =>
+        return new DataConnection queryAddresses, columnAddresses
 
 module.exports = DataConnection
