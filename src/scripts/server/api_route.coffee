@@ -12,6 +12,7 @@ timeout = require "connect-timeout"
 ok = require "okay"
 log = VirtDBConnector.log
 V_ = log.Variable
+Endpoints = require "./endpoints"
 
 DataHandler = require "./data_handler"
 MetadataHandler = require "./meta_data_handler"
@@ -26,10 +27,9 @@ router.get "/", timeout(Config.getCommandLineParameter("timeout")), (req, res, n
     return
 
 router.get "/endpoints", timeout(Config.getCommandLineParameter("timeout")), (req, res, next) ->
-    serviceConfig = EndpointService.getInstance()
     try
         if not res.headersSent
-            res.json serviceConfig.getEndpoints()
+            res.json Endpoints.getCompleteEndpointList()
     catch ex
         log.error V_(ex)
         throw ex
