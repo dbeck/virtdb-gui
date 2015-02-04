@@ -13,6 +13,13 @@ app.factory 'ServerConnector', ['$http', 'ErrorService', '$q', ($http, ErrorServ
                     ErrorService.errorHappened "Couldn't get endpoint list from server! response: " + response
             )
 
+        getDataProviders: (onSuccess) =>
+            $http.get(@address + "/api/data_provider/list").success(onSuccess)
+            .error( (response, status) =>
+                ErrorService.errorHappened "Couldn't get data provider list! " + JSON.stringify(data) + " response: " + response
+                onSuccess []
+            )
+
         getTableList: (data, onSuccess) =>
             data.id = generateRequestId()
 

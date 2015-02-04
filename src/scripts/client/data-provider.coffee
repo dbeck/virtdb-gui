@@ -32,15 +32,9 @@ app.controller 'DataProviderController',
             @getDataProviders()
 
         getDataProviders: () =>
-            @ServerConnector.getEndpoints(
+            @ServerConnector.getDataProviders(
                 (data) =>
-                    services = {}
-                    for endpoint in data
-                        services[endpoint.Name] ?= []
-                        services[endpoint.Name].push(endpoint.SvcType)
-                    for endpointName, serviceTypes of services
-                        if "META_DATA" in serviceTypes and "QUERY" in serviceTypes and "COLUMN" in serviceTypes
-                            @providers.push endpointName
+                    @providers = data
                     @providers.sort()
                     @selectProvider(@providers[0])
             )

@@ -28,7 +28,7 @@ class EndpointController
         @ServerConnector.getEndpoints(
             (data) =>
                 @endpoints = data
-                @$scope.componentList = @getComponentList()
+                @$scope.componentList = Object.keys data
         )
 
     getComponentList: () =>
@@ -40,15 +40,25 @@ class EndpointController
 
     updateComponentInfo: () =>
         @$scope.componentInfo = []
-        for ep in @endpoints when ep.Name is @$scope.selectedComponent
-            if ep.Connections?
-                for connection in ep.Connections
-                    for addr in connection.Address
+        for name, endpoint of @endpoints when name is @$scope.selectedComponent
+            for svcType, service of endpoint
+                for socketType, addresses of service
+                    for addr in addresses
                         infoRow =
-                            SvcType: ep.SvcType
-                            SocketType: connection.Type
+                            SvcType: svcType
+                            SocketType: socketType
                             Address: addr
                         @$scope.componentInfo.push infoRow
+
+        # for ep in @endpoints when ep.Name is @$scope.selectedComponent
+        #     if ep.Connections?
+        #         for connection in ep.Connections
+        #             for addr in connection.Address
+        #                 infoRow =
+        #                     SvcType: ep.SvcType
+        #                     SocketType: connection.Type
+        #                     Address: addr
+        #                 @$scope.componentInfo.push infoRow
         return
 
     sendConfig: () =>
