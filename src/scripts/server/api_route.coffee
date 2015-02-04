@@ -7,12 +7,12 @@ VirtDBConnector = require "virtdb-connector"
 VirtDBLoader = require "./virtdb_loader"
 KeyValue = require "./key_value"
 ConfigService = require "./config_service"
-EndpointService = require "./endpoint_service"
 DiagConnector = require "./diag_connector"
 timeout = require "connect-timeout"
 ok = require "okay"
 log = VirtDBConnector.log
 V_ = log.Variable
+Endpoints = require "./endpoints"
 
 DataHandler = require "./data_handler"
 MetadataHandler = require "./meta_data_handler"
@@ -27,10 +27,9 @@ router.get "/", timeout(Config.getCommandLineParameter("timeout")), (req, res, n
     return
 
 router.get "/endpoints", timeout(Config.getCommandLineParameter("timeout")), (req, res, next) ->
-    serviceConfig = EndpointService.getInstance()
     try
         if not res.headersSent
-            res.json serviceConfig.getEndpoints()
+            res.json Endpoints.getCompleteEndpointList()
     catch ex
         log.error V_(ex)
         throw ex
@@ -58,6 +57,14 @@ router.post "/data_provider/meta_data/", timeout(Config.getCommandLineParameter(
         # DataProvider.getTableMeta provider, table,
         metadataHandler = new MetadataHandler()
         metadataHandler.getTableMetadata provider, table, onMetadata
+    catch ex
+        log.error V_(ex)
+        throw ex
+
+router.get "/data_provider/list", timeout(Config.getCommandLineParameter("timeout")), (req, res, next) ->
+    try
+        if not res.headersSent
+            res.json Endpoints.getDataProviders()
     catch ex
         log.error V_(ex)
         throw ex

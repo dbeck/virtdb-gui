@@ -6,6 +6,7 @@ log = VirtDBConnector.log
 V_ = log.Variable
 Proto = require "virtdb-proto"
 serviceConfigProto = Proto.service_config
+Endpoints = require "./endpoints"
 
 class ConfigService
 
@@ -20,11 +21,8 @@ class ConfigService
         @_savedConfigs = {}
         @_configCallbacks = {}
 
-    @setAddresses: (addresses) =>
-        @_addresses = addresses
-
     @getConfig: (component, onConfig) =>
-        connection = ConfigServiceConnector.createInstance @_addresses[0]
+        connection = ConfigServiceConnector.createInstance Endpoints.getConfigServiceAddress()
         @_configCallbacks[component] = onConfig
         connection.getConfig component, (config) =>
             processedConfig = @_processGetConfigMessage config
@@ -35,7 +33,7 @@ class ConfigService
                 delete @_configCallbacks[config.Name]
 
     @sendConfig: (component, config) =>
-        connection = ConfigServiceConnector.createInstance @_addresses[0]
+        connection = ConfigServiceConnector.createInstance Endpoints.getConfigServiceAddress()
         saved = ConfigService._savedConfigs?[component]
         if not saved? or (JSON.stringify(saved) isnt JSON.stringify(config))
             rawConfig = @_processSetConfigMessage component, config
@@ -43,7 +41,7 @@ class ConfigService
 
     @sendConfigTemplate: (template) =>
         log.debug "sending config template to the config service:", V_(template)
-        connection = ConfigServiceConnector.createInstance @_addresses[0]
+        connection = ConfigServiceConnector.createInstance Endpoints.getConfigServiceAddress()
         connection.sendConfig VirtDBConnector.Convert.TemplateToOld template
 
     @onPublishedConfig: (channelId, message) =>

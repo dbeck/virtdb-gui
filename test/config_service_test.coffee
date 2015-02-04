@@ -6,6 +6,7 @@ convert = VirtdbConnector.Convert
 log = VirtdbConnector.log
 util = require "util"
 Proto = (require "virtdb-proto")
+Endpoints = require "../src/scripts/server/endpoints"
 
 chai = require "chai"
 chai.should()
@@ -116,16 +117,17 @@ describe "ConfigService", ->
     describe "sendConfigTemplate", ->
 
         it "should send the converted config template", ->
-            ADDRESS = "addr"
+            ADDRESSES = ["addr1", "addr2"]
             CONFIG = "cfg"
 
             conn = sinon.createStubInstance ConfigServiceConnector
             createInstanceStub = sandbox.stub ConfigServiceConnector, "createInstance"
             createInstanceStub.returns conn
             convertStub = sandbox.stub VirtdbConnector.Convert, "TemplateToOld"
+            endpointsGetConfigServiceAddressStub = sandbox.stub Endpoints, "getConfigServiceAddress"
+            endpointsGetConfigServiceAddressStub.returns ADDRESSES
             convertStub.returns CONFIG
 
-            ConfigService._addresses = [ADDRESS]
             ConfigService.sendConfigTemplate CONFIG
 
             convertStub.should.have.been.calledOnce
@@ -133,12 +135,12 @@ describe "ConfigService", ->
             conn.sendConfig.should.have.been.calledOnce
             conn.sendConfig.should.have.been.calledWithExactly CONFIG
             createInstanceStub.should.have.been.calledOnce
-            createInstanceStub.should.have.been.calledWithExactly ADDRESS
+            createInstanceStub.should.have.been.calledWithExactly ADDRESSES
 
     describe "sendConfig", ->
 
         it "should send the converted config if there's no saved config", ->
-            ADDRESS = "addr"
+            ADDRESSES = ["addr1", "addr2"]
             CONFIG = "cfg"
             COMPONENT = "com"
 
@@ -147,8 +149,9 @@ describe "ConfigService", ->
             createInstanceStub.returns conn
             convertStub = sandbox.stub ConfigService, "_processSetConfigMessage"
             convertStub.returns CONFIG
+            endpointsGetConfigServiceAddressStub = sandbox.stub Endpoints, "getConfigServiceAddress"
+            endpointsGetConfigServiceAddressStub.returns ADDRESSES
 
-            ConfigService._addresses = [ADDRESS]
             ConfigService._savedConfigs = {}
             ConfigService.sendConfig COMPONENT, CONFIG
 
@@ -157,10 +160,10 @@ describe "ConfigService", ->
             conn.sendConfig.should.have.been.calledOnce
             conn.sendConfig.should.have.been.calledWithExactly CONFIG
             createInstanceStub.should.have.been.calledOnce
-            createInstanceStub.should.have.been.calledWithExactly ADDRESS
+            createInstanceStub.should.have.been.calledWithExactly ADDRESSES
 
         it "should send the converted config if saved config exists but different", ->
-            ADDRESS = "addr"
+            ADDRESSES = ["addr1", "addr2"]
             CONFIG1 = "cfg1"
             CONFIG2 = "cfg2"
             COMPONENT = "com"
@@ -170,8 +173,9 @@ describe "ConfigService", ->
             createInstanceStub.returns conn
             convertStub = sandbox.stub ConfigService, "_processSetConfigMessage"
             convertStub.returns CONFIG1
+            endpointsGetConfigServiceAddressStub = sandbox.stub Endpoints, "getConfigServiceAddress"
+            endpointsGetConfigServiceAddressStub.returns ADDRESSES
 
-            ConfigService._addresses = [ADDRESS]
             ConfigService._savedConfigs[COMPONENT] = CONFIG2
             ConfigService.sendConfig COMPONENT, CONFIG1
 
@@ -180,10 +184,10 @@ describe "ConfigService", ->
             conn.sendConfig.should.have.been.calledOnce
             conn.sendConfig.should.have.been.calledWithExactly CONFIG1
             createInstanceStub.should.have.been.calledOnce
-            createInstanceStub.should.have.been.calledWithExactly ADDRESS
+            createInstanceStub.should.have.been.calledWithExactly ADDRESSES
 
         it "should send the converted config if saved config exists but different", ->
-            ADDRESS = "addr"
+            ADDRESSES = ["addr1", "addr2"]
             CONFIG1 = "cfg1"
             CONFIG2 = "cfg2"
             COMPONENT = "com"
@@ -193,20 +197,21 @@ describe "ConfigService", ->
             createInstanceStub.returns conn
             convertStub = sandbox.stub ConfigService, "_processSetConfigMessage"
             convertStub.returns CONFIG1
+            endpointsGetConfigServiceAddressStub = sandbox.stub Endpoints, "getConfigServiceAddress"
+            endpointsGetConfigServiceAddressStub.returns ADDRESSES
 
-            ConfigService._addresses = [ADDRESS]
             ConfigService._savedConfigs[COMPONENT] = CONFIG1
             ConfigService.sendConfig COMPONENT, CONFIG1
 
             convertStub.should.not.have.been.called
             conn.sendConfig.should.not.have.been.called
             createInstanceStub.should.have.been.calledOnce
-            createInstanceStub.should.have.been.calledWithExactly ADDRESS
+            createInstanceStub.should.have.been.calledWithExactly ADDRESSES
 
     describe "getConfig", ->
 
         it "should get the config", ->
-            ADDRESS = "addr"
+            ADDRESSES = ["addr1", "addr2"]
             CONFIG = "cfg"
             COMPONENT = "com"
             SOCK_CONFIG =
@@ -219,9 +224,10 @@ describe "ConfigService", ->
             createInstanceStub.returns conn
             convertStub = sandbox.stub ConfigService, "_processGetConfigMessage"
             convertStub.returns CONFIG
+            endpointsGetConfigServiceAddressStub = sandbox.stub Endpoints, "getConfigServiceAddress"
+            endpointsGetConfigServiceAddressStub.returns ADDRESSES
             onConfig = sandbox.spy()
 
-            ConfigService._addresses = [ADDRESS]
             ConfigService._savedConfigs = {}
             ConfigService.getConfig COMPONENT, onConfig
 
@@ -230,7 +236,7 @@ describe "ConfigService", ->
             conn.getConfig.should.have.been.calledOnce
             conn.getConfig.should.have.been.calledWith COMPONENT
             createInstanceStub.should.have.been.calledOnce
-            createInstanceStub.should.have.been.calledWithExactly ADDRESS
+            createInstanceStub.should.have.been.calledWithExactly ADDRESSES
             onConfig.should.have.been.calledOnce
             onConfig.should.have.been.calledWithExactly CONFIG
             ConfigService._savedConfigs.should.have.property COMPONENT, CONFIG

@@ -5,6 +5,7 @@ DataConnection = require "../src/scripts/server/data_connection"
 CacheHandler = require "../src/scripts/server/cache_handler"
 Config = require "../src/scripts/server/config"
 ColumnReceiver = require "../src/scripts/server/column_receiver"
+Endpoints = require "../src/scripts/server/endpoints"
 
 
 chai = require "chai"
@@ -44,9 +45,9 @@ describe "DataHandler", ->
                 Schema: SCHEMA
                 Fields: FIELDS
             ]
-        ADDR =
-            QUERY: "qaddr"
-            COLUMN: "caddr"
+        ADDRESSES =
+            QUERY: ["qaddr1", "qaddr2"]
+            COLUMN: ["caddr1", "caddr2"]
 
         COLUMN = "column"
 
@@ -68,8 +69,10 @@ describe "DataHandler", ->
 
         dataHandler = new DataHandler
 
-        dataHandlerGetProviderAddressStub = sandbox.stub dataHandler, "getProviderAddress"
-        dataHandlerGetProviderAddressStub.returns ADDR
+        endpointsGetQueryAddressStub = sandbox.stub Endpoints, "getQueryAddress"
+        endpointsGetQueryAddressStub.returns ADDRESSES.QUERY
+        endpointsGetColumnAddressStub = sandbox.stub Endpoints, "getColumnAddress"
+        endpointsGetColumnAddressStub.returns ADDRESSES.COLUMN
 
         dataHandler.getData PROVIDER, TABLE, COUNT, onDataSpy
 
@@ -77,10 +80,14 @@ describe "DataHandler", ->
         metadataHandler.getTableMetadata.should.calledWith PROVIDER, TABLE
         columnReceiverCreateInstanceStub.should.calledOnce
         columnReceiverCreateInstanceStub.should.calledWithExactly onDataSpy, FIELDS
-        dataHandlerGetProviderAddressStub.should.calledOnce
-        dataHandlerGetProviderAddressStub.should.calledWithExactly PROVIDER
+        endpointsGetQueryAddressStub.should.calledOnce
+        endpointsGetQueryAddressStub.should.calledWithExactly PROVIDER
+        endpointsGetColumnAddressStub.should.calledOnce
+        endpointsGetColumnAddressStub.should.calledWithExactly PROVIDER
         dataConnection.getData.should.calledWith SCHEMA, TABLE, FIELDS, COUNT
         columnReceiver.add.should.called
         columnReceiver.add.should.calledWithExactly COLUMN
+        dataConnectionCreateInstanceStub.should.calledOnce
+        dataConnectionCreateInstanceStub.should.calledWithExactly ADDRESSES.QUERY, ADDRESSES.COLUMN
 
     #should test provider addresses
