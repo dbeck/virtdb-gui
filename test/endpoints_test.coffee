@@ -158,7 +158,7 @@ describe "Endpoints", ->
     it "should return the log record addresses", ->
         ADDRESSES = ["address1", "address2"]
             
-        Endpoints.onEndpoint Const.DIAG_SERVICE, Const.ENDPOINT_TYPE.LOG_RECORD, Const.SOCKET_TYPE.PUSH_PULL, ADDRESSES
+        Endpoints.onEndpoint Const.DIAG_SERVICE, Const.ENDPOINT_TYPE.LOG_RECORD, Const.SOCKET_TYPE.PUB_SUB, ADDRESSES
         result = Endpoints.getLogRecordAddress()
         result.should.be.deep.equal ADDRESSES
     

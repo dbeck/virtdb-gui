@@ -6,25 +6,25 @@ class Endpoints
     @_endpoints = {}
 
     @getColumnAddress: (name) =>
-        return @_endpoints?[name]?[Const.ENDPOINT_TYPE.COLUMN]?[Const.SOCKET_TYPE.PUB_SUB]
+        return @_findAddresses name, Const.ENDPOINT_TYPE.COLUMN, Const.SOCKET_TYPE.PUB_SUB
     
     @getMetadataAddress: (name) =>
-        return @_endpoints?[name]?[Const.ENDPOINT_TYPE.META_DATA]?[Const.SOCKET_TYPE.REQ_REP]
-    
+        return @_findAddresses name, Const.ENDPOINT_TYPE.META_DATA, Const.SOCKET_TYPE.REQ_REP
+
     @getQueryAddress: (name) =>
-        return @_endpoints?[name]?[Const.ENDPOINT_TYPE.QUERY]?[Const.SOCKET_TYPE.PUSH_PULL]
+        return @_findAddresses name, Const.ENDPOINT_TYPE.QUERY, Const.SOCKET_TYPE.PUSH_PULL
     
     @getDbConfigAddress: (name) =>
-        return @_endpoints?[name]?[Const.ENDPOINT_TYPE.DB_CONFIG]?[Const.SOCKET_TYPE.PUSH_PULL]
+        return @_findAddresses name, Const.ENDPOINT_TYPE.DB_CONFIG, Const.SOCKET_TYPE.PUSH_PULL
     
     @getDbConfigQueryAddress: (name) =>
-        return @_endpoints?[name]?[Const.ENDPOINT_TYPE.DB_CONFIG_QUERY]?[Const.SOCKET_TYPE.REQ_REP]
+        return @_findAddresses name, Const.ENDPOINT_TYPE.DB_CONFIG_QUERY, Const.SOCKET_TYPE.REQ_REP
     
     @getLogRecordAddress: =>
-        return @_endpoints?[Const.DIAG_SERVICE]?[Const.ENDPOINT_TYPE.LOG_RECORD]?[Const.SOCKET_TYPE.PUSH_PULL]
+        return @_findAddresses Const.DIAG_SERVICE, Const.ENDPOINT_TYPE.LOG_RECORD, Const.SOCKET_TYPE.PUB_SUB
 
     @getConfigServiceAddress: =>
-        return @_endpoints?[Const.CONFIG_SERVICE]?[Const.ENDPOINT_TYPE.CONFIG]?[Const.SOCKET_TYPE.REQ_REP]
+        return @_findAddresses Const.CONFIG_SERVICE, Const.ENDPOINT_TYPE.CONFIG, Const.SOCKET_TYPE.REQ_REP
 
     @getDataProviders: =>
         providers = []
@@ -46,9 +46,13 @@ class Endpoints
                 if Object.keys(@_endpoints[name]).length is 0
                     delete @_endpoints[name]
 
-
     @getCompleteEndpointList: () =>
         return @_endpoints
 
+    @_findAddresses: (name, serviceType, socketType) =>
+        addresses = @_endpoints?[name]?[serviceType]?[socketType]
+        if not addresses?
+            return []
+        return addresses
 
 module.exports = Endpoints
