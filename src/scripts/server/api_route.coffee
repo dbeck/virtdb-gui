@@ -61,6 +61,14 @@ router.post "/data_provider/meta_data/", timeout(Config.getCommandLineParameter(
         log.error V_(ex)
         throw ex
 
+router.get "/data_provider/list", timeout(Config.getCommandLineParameter("timeout")), (req, res, next) ->
+    try
+        if not res.headersSent
+            res.json Endpoints.getDataProviders()
+    catch ex
+        log.error V_(ex)
+        throw ex
+
 router.post "/data_provider/table_list", timeout(Config.getCommandLineParameter("timeout")), (req, res, next) =>
     provider = req.body.provider
     from = Number req.body.from
