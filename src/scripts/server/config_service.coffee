@@ -21,9 +21,6 @@ class ConfigService
         @_savedConfigs = {}
         @_configCallbacks = {}
 
-    @setAddresses: (addresses) =>
-        @_addresses = addresses
-
     @getConfig: (component, onConfig) =>
         connection = ConfigServiceConnector.createInstance Endpoints.getConfigServiceAddress()
         @_configCallbacks[component] = onConfig

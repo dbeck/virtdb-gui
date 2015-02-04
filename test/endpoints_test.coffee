@@ -135,23 +135,30 @@ describe "Endpoints", ->
         result = Endpoints.getMetadataAddress NAME
         result.should.be.deep.equal ADDRESSES
     
-    it "should return the dbconfig addresses of the current provider", ->
+    it "should return the dbconfig addresses", ->
         NAME = "NAME"
-        CONNTYPE = "REQ_REP"
+        CONNTYPE = "PUSH_PULL"
         SVCTYPE = "DB_CONFIG"
         ADDRESSES = ["address1", "address2"]
             
         Endpoints.onEndpoint NAME, SVCTYPE, CONNTYPE, ADDRESSES
         result = Endpoints.getDbConfigAddress NAME
         result.should.be.deep.equal ADDRESSES
-
-    it "should return the log record addresses of the current provider", ->
-        NAME = Const.DIAG_SERVICE
-        CONNTYPE = "PUSH_PULL"
-        SVCTYPE = "LOG_RECORD"
+    
+    it "should return the dbconfig query addresses", ->
+        NAME = "NAME"
+        CONNTYPE = "REQ_REP"
+        SVCTYPE = "DB_CONFIG_QUERY"
         ADDRESSES = ["address1", "address2"]
             
         Endpoints.onEndpoint NAME, SVCTYPE, CONNTYPE, ADDRESSES
+        result = Endpoints.getDbConfigQueryAddress NAME
+        result.should.be.deep.equal ADDRESSES
+
+    it "should return the log record addresses", ->
+        ADDRESSES = ["address1", "address2"]
+            
+        Endpoints.onEndpoint Const.DIAG_SERVICE, Const.ENDPOINT_TYPE.LOG_RECORD, Const.SOCKET_TYPE.PUSH_PULL, ADDRESSES
         result = Endpoints.getLogRecordAddress()
         result.should.be.deep.equal ADDRESSES
     
@@ -174,4 +181,25 @@ describe "Endpoints", ->
         Endpoints.onEndpoint NAME, SVCTYPE, CONNTYPE, ADDRESSES
         result = Endpoints.getConfigServiceAddress()
         result.should.be.deep.equal ADDRESSES
+
+    it "should return the list of data providers", ->
+        DPS = ["dp1", "dp2"]
+        OTHER = "OTHER"
+        CONNTYPE = "PUSH_PULL"
+        SVCTYPES = ["QUERY", "COLUMN", "META_DATA"]
+        ADDRESSES = ["address1", "sesfssgs"]
+
+        Endpoints.onEndpoint DPS[0], SVCTYPES[0], CONNTYPE, ADDRESSES
+        Endpoints.onEndpoint DPS[0], SVCTYPES[1], CONNTYPE, ADDRESSES
+        Endpoints.onEndpoint DPS[0], SVCTYPES[2], CONNTYPE, ADDRESSES
+        Endpoints.onEndpoint DPS[1], SVCTYPES[0], CONNTYPE, ADDRESSES
+        Endpoints.onEndpoint DPS[1], SVCTYPES[1], CONNTYPE, ADDRESSES
+        Endpoints.onEndpoint DPS[1], SVCTYPES[2], CONNTYPE, ADDRESSES
+        Endpoints.onEndpoint DPS[1], SVCTYPES[0], CONNTYPE, ADDRESSES
+        Endpoints.onEndpoint OTHER, SVCTYPES[0], CONNTYPE, ADDRESSES
+
+        provs = Endpoints.getDataProviders()
+        provs.should.be.deep.equal DPS
+
+
         

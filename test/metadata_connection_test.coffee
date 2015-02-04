@@ -13,7 +13,7 @@ sinonChai = require("sinon-chai");
 
 chai.use sinonChai
 
-META_ADDRESS = "meta_addr"
+META_ADDRESSES = ["maddr1", "maddr2"]
 
 describe "MetadataConnection", ->
 
@@ -30,8 +30,8 @@ describe "MetadataConnection", ->
         sandbox.restore()
 
     it "should create an object and set the addresses", ->
-        conn = new MetadataConnection META_ADDRESS
-        conn._metadataAddress.should.be.deep.equal META_ADDRESS
+        conn = new MetadataConnection META_ADDRESSES
+        conn._metadataAddresses.should.be.deep.equal META_ADDRESSES
 
     it "should init meta socket", ->
         fakeZmqSocket =
@@ -45,10 +45,11 @@ describe "MetadataConnection", ->
         fakeSocket.returns fakeZmqSocket
 
         zmqMock = sandbox.mock fakeZmqSocket
-        zmqMock.expects("connect").calledWith Const.COLUMN_ADDRESS
+        zmqMock.expects("connect").calledWith META_ADDRESSES[0]
+        zmqMock.expects("connect").calledWith META_ADDRESSES[1]
         zmqMock.expects("on").calledWithExactly "message", ON_MSG
 
-        conn = new MetadataConnection META_ADDRESS
+        conn = new MetadataConnection META_ADDRESSES
         sandbox.stub(conn, "_onMetadataMessage", ON_MSG)
         conn._initMetadataSocket()
 
@@ -62,7 +63,7 @@ describe "MetadataConnection", ->
         metadataParseStub = sandbox.stub Proto.meta_data, "parse"
         metadataParseStub.returns PARSED_MSG
 
-        conn = new MetadataConnection META_ADDRESS
+        conn = new MetadataConnection META_ADDRESSES
         conn._onMetadata = sandbox.spy()
 
         conn._onMetadataMessage MSG
@@ -79,7 +80,7 @@ describe "MetadataConnection", ->
         ON_META = () ->
             console.log "META!!!!!"
 
-        conn = new MetadataConnection META_ADDRESS
+        conn = new MetadataConnection META_ADDRESSES
 
         initSocketStub = sandbox.stub conn, "_initMetadataSocket"
         metadataProtoStub = sandbox.stub Proto.meta_data, "serialize"

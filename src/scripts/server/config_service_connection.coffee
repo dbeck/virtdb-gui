@@ -18,7 +18,6 @@ class ConfigServiceConnector
         return new ConfigServiceConnector addresses
 
     constructor: (@_addresses) ->
-        console.log "const"
         @_reqRepSocket = zmq.socket(Const.ZMQ_REQ)
         @_reqRepSocket.on "message", @_onMessage
         @_connect()

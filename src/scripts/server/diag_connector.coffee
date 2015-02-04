@@ -8,6 +8,7 @@ util = require "util"
 moment = require "moment"
 log = (require "virtdb-connector").log
 V_ = log.Variable
+Endpoints = require "./endpoints"
 
 DiagProto = Proto.diag
 
@@ -23,11 +24,10 @@ class DiagConnector
         try
             @LEVELS = ["VIRTDB_STATUS", "VIRTDB_ERROR", "VIRTDB_INFO"]
             if Config.getCommandLineParameter("trace") is true then @LEVELS.push "VIRTDB_SIMPLE_TRACE"
-            addresses = EndpointService.getInstance().getComponentAddresses diagServiceName
-            logRecordAddress = addresses[Const.ENDPOINT_TYPE.LOG_RECORD][Const.SOCKET_TYPE.PUB_SUB][0]
             @_logRecordSocket = zmq.socket(Const.ZMQ_SUB)
             @_logRecordSocket.on "message", @_onRecord
-            @_logRecordSocket.connect(logRecordAddress)
+            for addr in Endpoints.getLogRecordAddress()
+                @_logRecordSocket.connect addr
             @_logRecordSocket.subscribe Const.EVERY_CHANNEL
             @_records = []
         catch ex

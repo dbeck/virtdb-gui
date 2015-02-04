@@ -3,6 +3,7 @@ MetadataHandler = require "../src/scripts/server/meta_data_handler"
 MetadataConnection = require "../src/scripts/server/metadata_connection"
 CacheHandler = require "../src/scripts/server/cache_handler"
 Config = require "../src/scripts/server/config"
+Endpoints = require "../src/scripts/server/endpoints"
 
 chai = require "chai"
 chai.should()
@@ -274,7 +275,7 @@ describe "MetadataHandler", ->
             KEY = "key"
             RESULT = "result"
             REQUEST = "req"
-            ADDRESS = "addr"
+            ADDRESSES = ["addr1", "addr2"]
 
             handler = new MetadataHandler
 
@@ -286,8 +287,8 @@ describe "MetadataHandler", ->
             cacheHandlerGetStub = sandbox.stub CacheHandler, "get"
             cacheHandlerGetStub.returns {}
             conn = sinon.createStubInstance MetadataConnection
-            _getMetaDataAddressStub = sandbox.stub handler, "_getMetaDataAddress"
-            _getMetaDataAddressStub.returns ADDRESS
+            endpointsGetMetaDataAddressStub = sandbox.stub Endpoints, "getMetadataAddress"
+            endpointsGetMetaDataAddressStub.returns ADDRESSES
             metadataConnectionCreateInstanceStub = sandbox.stub MetadataConnection, "createInstance"
             metadataConnectionCreateInstanceStub.returns conn
             conn.getMetadata.callsArgWith 1, METADATA
@@ -302,10 +303,10 @@ describe "MetadataHandler", ->
             _getCacheKeyStub.should.have.been.calledWithExactly PROVIDER, REQUEST
             cacheHandlerGetStub.should.have.been.calledOnce
             cacheHandlerGetStub.should.have.been.calledWithExactly KEY
-            _getMetaDataAddressStub.should.calledOnce
-            _getMetaDataAddressStub.should.calledWithExactly PROVIDER
+            endpointsGetMetaDataAddressStub.should.calledOnce
+            endpointsGetMetaDataAddressStub.should.calledWithExactly PROVIDER
             metadataConnectionCreateInstanceStub.should.have.been.calledOnce
-            metadataConnectionCreateInstanceStub.should.have.been.calledWithExactly ADDRESS
+            metadataConnectionCreateInstanceStub.should.have.been.calledWithExactly ADDRESSES
             conn.getMetadata.should.have.been.calledOnce
             conn.getMetadata.should.have.been.calledWith REQUEST
             cacheHandlerSetStub.should.calledOnce
@@ -327,7 +328,7 @@ describe "MetadataHandler", ->
             KEY = "key"
             RESULT = "result"
             REQUEST = "req"
-            ADDRESS = "addr"
+            ADDRESSES = ["addr1", "addr2"]
 
             handler = new MetadataHandler
 
@@ -339,8 +340,8 @@ describe "MetadataHandler", ->
             cacheHandlerGetStub = sandbox.stub CacheHandler, "get"
             cacheHandlerGetStub.returns {}
             conn = sinon.createStubInstance MetadataConnection
-            _getMetaDataAddressStub = sandbox.stub handler, "_getMetaDataAddress"
-            _getMetaDataAddressStub.returns ADDRESS
+            endpointsGetMetaDataAddressStub = sandbox.stub Endpoints, "getMetadataAddress"
+            endpointsGetMetaDataAddressStub.returns ADDRESSES
             metadataConnectionCreateInstanceStub = sandbox.stub MetadataConnection, "createInstance"
             metadataConnectionCreateInstanceStub.returns conn
             conn.getMetadata.callsArgWith 1, METADATA
@@ -355,10 +356,10 @@ describe "MetadataHandler", ->
             _getCacheKeyStub.should.have.been.calledWithExactly PROVIDER, REQUEST
             cacheHandlerGetStub.should.have.been.calledOnce
             cacheHandlerGetStub.should.have.been.calledWithExactly KEY
-            _getMetaDataAddressStub.should.calledOnce
-            _getMetaDataAddressStub.should.calledWithExactly PROVIDER
+            endpointsGetMetaDataAddressStub.should.calledOnce
+            endpointsGetMetaDataAddressStub.should.calledWithExactly PROVIDER
             metadataConnectionCreateInstanceStub.should.have.been.calledOnce
-            metadataConnectionCreateInstanceStub.should.have.been.calledWithExactly ADDRESS
+            metadataConnectionCreateInstanceStub.should.have.been.calledWithExactly ADDRESSES
             conn.getMetadata.should.have.been.calledOnce
             conn.getMetadata.should.have.been.calledWith REQUEST
             cacheHandlerSetStub.should.not.called
@@ -416,7 +417,7 @@ describe "MetadataHandler", ->
             KEY = "key"
             RESULT = "result"
             REQUEST = "req"
-            ADDRESS = "addr"
+            ADDRESSES = ["addr1", "addr2"]
 
             handler = new MetadataHandler
 
@@ -428,8 +429,8 @@ describe "MetadataHandler", ->
             cacheHandlerGetStub = sandbox.stub CacheHandler, "get"
             cacheHandlerGetStub.returns {}
             conn = sinon.createStubInstance MetadataConnection
-            _getMetaDataAddressStub = sandbox.stub handler, "_getMetaDataAddress"
-            _getMetaDataAddressStub.returns ADDRESS
+            endpointsGetMetaDataAddressStub = sandbox.stub Endpoints, "getMetadataAddress"
+            endpointsGetMetaDataAddressStub.returns ADDRESSES
             metadataConnectionCreateInstanceStub = sandbox.stub MetadataConnection, "createInstance"
             metadataConnectionCreateInstanceStub.returns conn
             conn.getMetadata.callsArgWith 1, METADATA
@@ -442,10 +443,10 @@ describe "MetadataHandler", ->
             _getCacheKeyStub.should.have.been.calledWithExactly PROVIDER, REQUEST
             cacheHandlerGetStub.should.have.been.calledOnce
             cacheHandlerGetStub.should.have.been.calledWithExactly KEY
-            _getMetaDataAddressStub.should.calledOnce
-            _getMetaDataAddressStub.should.calledWithExactly PROVIDER
+            endpointsGetMetaDataAddressStub.should.calledOnce
+            endpointsGetMetaDataAddressStub.should.calledWithExactly PROVIDER
             metadataConnectionCreateInstanceStub.should.have.been.calledOnce
-            metadataConnectionCreateInstanceStub.should.have.been.calledWithExactly ADDRESS
+            metadataConnectionCreateInstanceStub.should.have.been.calledWithExactly ADDRESSES
             conn.getMetadata.should.have.been.calledOnce
             conn.getMetadata.should.have.been.calledWith REQUEST
             cacheHandlerSetStub.should.calledOnce
@@ -463,7 +464,7 @@ describe "MetadataHandler", ->
             KEY = "key"
             RESULT = "result"
             REQUEST = "req"
-            ADDRESS = "addr"
+            ADDRESSES = ["addr1", "addr2"]
 
             handler = new MetadataHandler
 
@@ -475,8 +476,8 @@ describe "MetadataHandler", ->
             cacheHandlerGetStub = sandbox.stub CacheHandler, "get"
             cacheHandlerGetStub.returns {}
             conn = sinon.createStubInstance MetadataConnection
-            _getMetaDataAddressStub = sandbox.stub handler, "_getMetaDataAddress"
-            _getMetaDataAddressStub.returns ADDRESS
+            endpointsGetMetaDataAddressStub = sandbox.stub Endpoints, "getMetadataAddress"
+            endpointsGetMetaDataAddressStub.returns ADDRESSES
             metadataConnectionCreateInstanceStub = sandbox.stub MetadataConnection, "createInstance"
             metadataConnectionCreateInstanceStub.returns conn
             conn.getMetadata.callsArgWith 1, METADATA
@@ -489,10 +490,10 @@ describe "MetadataHandler", ->
             _getCacheKeyStub.should.have.been.calledWithExactly PROVIDER, REQUEST
             cacheHandlerGetStub.should.have.been.calledOnce
             cacheHandlerGetStub.should.have.been.calledWithExactly KEY
-            _getMetaDataAddressStub.should.calledOnce
-            _getMetaDataAddressStub.should.calledWithExactly PROVIDER
+            endpointsGetMetaDataAddressStub.should.calledOnce
+            endpointsGetMetaDataAddressStub.should.calledWithExactly PROVIDER
             metadataConnectionCreateInstanceStub.should.have.been.calledOnce
-            metadataConnectionCreateInstanceStub.should.have.been.calledWithExactly ADDRESS
+            metadataConnectionCreateInstanceStub.should.have.been.calledWithExactly ADDRESSES
             conn.getMetadata.should.have.been.calledOnce
             conn.getMetadata.should.have.been.calledWith REQUEST
             cacheHandlerSetStub.should.not.called

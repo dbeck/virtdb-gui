@@ -5,6 +5,7 @@ Proto = require "virtdb-proto"
 NodeCache = require "node-cache"
 ms = require "ms"
 util = require "util"
+Endpoints = require "./endpoints"
 
 VirtDBConnector = require "virtdb-connector"
 Config = require "./config"
@@ -100,9 +101,8 @@ module.exports = DBConfig
 class DBConfigConnection
 
     @getConnection: (service) ->
-        addresses = EndpointService.getInstance().getComponentAddresses service
-        serverConfigAddress = addresses[Const.ENDPOINT_TYPE.DB_CONFIG][Const.SOCKET_TYPE.PUSH_PULL][0]
-        dbConfigQueryAddress = addresses[Const.ENDPOINT_TYPE.DB_CONFIG_QUERY][Const.SOCKET_TYPE.REQ_REP][0]
+        serverConfigAddress = Endpoints.getDbConfigAddress service
+        dbConfigQueryAddress = Endpoints.getDbConfigQueryAddress service
         return new DBConfigConnection(serverConfigAddress, dbConfigQueryAddress)
 
     _pushPullSocket: null
@@ -113,7 +113,8 @@ class DBConfigConnection
     sendServerConfig: (provider, tableMeta) =>
 
         @_pushPullSocket = zmq.socket(Const.ZMQ_PUSH)
-        @_pushPullSocket.connect(@serverConfigAddress)
+        for addr in @serverConfigAddress
+            @_pushPullSocket.connect addr
 
         tableMeta.Schema ?= ""
         serverConfigMessage =
@@ -127,7 +128,8 @@ class DBConfigConnection
     getTables: (provider, onReady) =>
         dbConfigQueryMessage = Name: provider
         @_reqRepSocket = zmq.socket(Const.ZMQ_REQ)
-        @_reqRepSocket.connect(@dbConfigQueryAddress)
+        for addr in @dbConfigQueryAddress
+            @_reqRepSocket.connect addr
         @_reqRepSocket.on "message", (msg) =>
             try
                 confMsg = dbConfigProto.parse msg, "virtdb.interface.pb.DbConfigReply"

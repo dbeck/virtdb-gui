@@ -15,7 +15,10 @@ class Endpoints
         return @_endpoints?[name]?[Const.ENDPOINT_TYPE.QUERY]?[Const.SOCKET_TYPE.PUSH_PULL]
     
     @getDbConfigAddress: (name) =>
-        return @_endpoints?[name]?[Const.ENDPOINT_TYPE.DB_CONFIG]?[Const.SOCKET_TYPE.REQ_REP]
+        return @_endpoints?[name]?[Const.ENDPOINT_TYPE.DB_CONFIG]?[Const.SOCKET_TYPE.PUSH_PULL]
+    
+    @getDbConfigQueryAddress: (name) =>
+        return @_endpoints?[name]?[Const.ENDPOINT_TYPE.DB_CONFIG_QUERY]?[Const.SOCKET_TYPE.REQ_REP]
     
     @getLogRecordAddress: =>
         return @_endpoints?[Const.DIAG_SERVICE]?[Const.ENDPOINT_TYPE.LOG_RECORD]?[Const.SOCKET_TYPE.PUSH_PULL]
@@ -24,8 +27,12 @@ class Endpoints
         return @_endpoints?[Const.CONFIG_SERVICE]?[Const.ENDPOINT_TYPE.CONFIG]?[Const.SOCKET_TYPE.REQ_REP]
 
     @getDataProviders: =>
-        #TODO
-        return 
+        providers = []
+        for endpointName, endpoint of @_endpoints
+            services = Object.keys endpoint
+            if (Const.ENDPOINT_TYPE.META_DATA in services) and (Const.ENDPOINT_TYPE.COLUMN in services) and (Const.ENDPOINT_TYPE.QUERY in services)
+                providers.push endpointName
+        return providers
 
     @onEndpoint: (name, serviceType, socketType, addresses) =>
         @_endpoints[name] ?= {}

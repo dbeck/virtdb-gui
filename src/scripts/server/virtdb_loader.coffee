@@ -24,7 +24,6 @@ class VirtDBLoader
             CacheHandler.init()
             
         VirtDBConnector.onAddress Const.ENDPOINT_TYPE.LOG_RECORD, Const.SOCKET_TYPE.PUB_SUB, (name, addresses) =>
-            Endpoints.onEndpoint name, Const.ENDPOINT_TYPE.LOG_RECORD, addresses
             DiagConnector.connect()
         
         VirtDBConnector.onAddress Const.ENDPOINT_TYPE.COLUMN, Const.SOCKET_TYPE.PUB_SUB, (name, addresses) =>

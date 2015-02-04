@@ -14,8 +14,8 @@ sinonChai = require("sinon-chai");
 
 chai.use sinonChai
 
-QUERY_ADDRESS = "query_addr"
-COLUMN_ADDRESS = "column_addr"
+QUERY_ADDRESSES = ["query_addr1", "query_addr2"]
+COLUMN_ADDRESSES = ["column_addr1", "column_addr2"]
 
 describe "DataConnection", ->
 
@@ -32,9 +32,9 @@ describe "DataConnection", ->
         sandbox.restore()
 
     it "should create an object and set the addresses", ->
-        conn = new DataConnection QUERY_ADDRESS, COLUMN_ADDRESS
-        conn._queryAddress.should.be.deep.equal QUERY_ADDRESS
-        conn._columnAddress.should.be.deep.equal COLUMN_ADDRESS
+        conn = new DataConnection QUERY_ADDRESSES, COLUMN_ADDRESSES
+        conn._queryAddresses.should.be.deep.equal QUERY_ADDRESSES
+        conn._columnAddresses.should.be.deep.equal COLUMN_ADDRESSES
 
 
     it "should init query socket", ->
@@ -43,11 +43,12 @@ describe "DataConnection", ->
         fakeSocket.returns socket
         socket.connect = sandbox.spy()
 
-        conn = new DataConnection QUERY_ADDRESS, COLUMN_ADDRESS
+        conn = new DataConnection QUERY_ADDRESSES, COLUMN_ADDRESSES
         conn._initQuerySocket()
 
         fakeSocket.should.have.been.deep.calledWith Const.ZMQ_PUSH
-        socket.connect.should.have.been.deep.calledWith QUERY_ADDRESS
+        socket.connect.should.have.been.deep.calledWith QUERY_ADDRESSES[0]
+        socket.connect.should.have.been.deep.calledWith QUERY_ADDRESSES[1]
 
     it "should init column socket", ->
         fakeZmqSocket =
@@ -62,11 +63,12 @@ describe "DataConnection", ->
         fakeSocket.returns fakeZmqSocket
 
         zmqMock = sandbox.mock fakeZmqSocket
-        zmqMock.expects("connect").calledWith Const.COLUMN_ADDRESS
+        zmqMock.expects("connect").calledWith COLUMN_ADDRESSES[0]
+        zmqMock.expects("connect").calledWith COLUMN_ADDRESSES[1]
         zmqMock.expects("subscribe").calledWith QUERY_ID
         zmqMock.expects("on").calledWithExactly "message", ON_MSG
 
-        conn = new DataConnection QUERY_ADDRESS, COLUMN_ADDRESS
+        conn = new DataConnection QUERY_ADDRESSES, COLUMN_ADDRESSES
         sandbox.stub(conn, "_onColumnMessage", ON_MSG)
         conn._initColumnSocket()
 
@@ -89,7 +91,7 @@ describe "DataConnection", ->
             Schema: SCHEMA
         SERIALIZED_MSG = "sermsg"
 
-        conn = new DataConnection QUERY_ADDRESS, COLUMN_ADDRESS
+        conn = new DataConnection QUERY_ADDRESSES, COLUMN_ADDRESSES
 
         initQuerySocketStub = sandbox.stub conn, "_initQuerySocket"
         initColumnSocketStub = sandbox.stub conn, "_initColumnSocket"
@@ -125,7 +127,7 @@ describe "DataConnection", ->
             Schema: ""
         SERIALIZED_MSG = "sermsg"
 
-        conn = new DataConnection QUERY_ADDRESS, COLUMN_ADDRESS
+        conn = new DataConnection QUERY_ADDRESSES, COLUMN_ADDRESSES
 
         initQuerySocketStub = sandbox.stub conn, "_initQuerySocket"
         initColumnSocketStub = sandbox.stub conn, "_initColumnSocket"
@@ -151,7 +153,7 @@ describe "DataConnection", ->
         PARSED_MSG =
             CompType: "NOT_LZ4"
 
-        conn = new DataConnection QUERY_ADDRESS, COLUMN_ADDRESS
+        conn = new DataConnection QUERY_ADDRESSES, COLUMN_ADDRESSES
         onColumnStub = sandbox.stub()
         dataParseStub = sandbox.stub Proto.data, "parse"
         dataParseStub.returns PARSED_MSG
@@ -186,7 +188,7 @@ describe "DataConnection", ->
             UncompressedSize: input.length
             Data: MSG_CONTENT
 
-        conn = new DataConnection QUERY_ADDRESS, COLUMN_ADDRESS
+        conn = new DataConnection QUERY_ADDRESSES, COLUMN_ADDRESSES
         onColumnStub = sandbox.stub()
         dataParseStub = sandbox.stub Proto.data, "parse"
         dataParseStub.returns PARSED_MSG_WITHOUT_DATA
