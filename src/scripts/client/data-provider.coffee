@@ -1,3 +1,37 @@
+VIRTDB = React.createClass(
+    displayName: 'VIRTDB'
+    render: ->
+        data = @props.data
+        head = @props.header
+        callback = @props.callback
+        selectedField = @props.selectedField
+        console.log "Mylist selectedField: ", selectedField
+        console.log "Callback: ", callback
+        rows = []
+        clickHandler = (fieldName) ->
+            return (ev) ->
+                callback fieldName
+
+        if data?
+            for row in data
+                children = []
+                for field, index in row
+                    cn = ""
+                    if selectedField == head[index]
+                        cn = "info"
+                    children.push React.DOM.td { onClick: clickHandler(head[index]), className: cn}, field
+                rows.push React.DOM.tr(null, children)
+        headItems = []
+        if head?
+            for field in head
+                cn = ""
+                if selectedField == field
+                    cn = "info"
+                headItems.push React.DOM.th { onClick: clickHandler(field), className: cn}, field
+        headerRow = React.DOM.tr null, headItems
+        return React.DOM.table {className: "table table-bordered"}, [(React.DOM.thead null, headerRow), (React.DOM.tbody null, rows)]
+)
+
 app = angular.module 'virtdb'
 app.controller 'DataProviderController',
     class DataProviderController
@@ -132,6 +166,10 @@ app.controller 'DataProviderController',
             delete @requestIds[@META_DATA]
             @tableMetaData = data
             @$scope.meta = data
+            if data?.Fields?.length > 0
+                @$scope.dataHeader = data.Fields.map( (item) -> item.Name )
+            else
+                @$scope.dataHeader = []
             @requestData()
 
         requestData: () =>
@@ -146,26 +184,7 @@ app.controller 'DataProviderController',
 
         onData: (data) =>
             delete @requestIds[@DATA]
-            if data.length is 0
-                return
-            dataRows = []
-            headerRow = []
-            for column in data
-                headerRow.push column.Name
-            firstColumn = data[0].Data
-            if firstColumn.length > 0
-                for i in [0..firstColumn.length-1]
-                    row = []
-                    for column in data
-                        fieldValue = column.Data[i]
-                        if fieldValue?
-                            row.push fieldValue
-                        else
-                            row.push JSON.stringify(fieldValue)
-                    dataRows.push row
-            @$scope.dataHeader = headerRow
-            @$scope.dataRows = dataRows
-
+            @$scope.dataRows = data
 
         selectTable: (table) =>
             @$scope.table = table
@@ -174,8 +193,9 @@ app.controller 'DataProviderController',
             return
 
         selectField: (field) =>
-            @$scope.field = field
-            @$scope.metaData = (fieldMeta for fieldMeta in @tableMetaData.Fields when fieldMeta.Name is field)[0]
+            @$scope.$apply () =>
+                @$scope.field = field
+                @$scope.metaData = (fieldMeta for fieldMeta in @tableMetaData.Fields when fieldMeta.Name is field)[0]
             return
 
         transposeData: () =>
@@ -250,3 +270,21 @@ app.controller 'DataProviderController',
         stopPreviousRequest: (type) =>
             if @requestIds[type]?
                 @ServerConnector.cancelRequest @requestIds[type]
+.directive 'virtdbTable', ->
+    {
+        restrict: 'E'
+        scope:
+            data: '='
+            header: '='
+            callback: '='
+            selectedField: '='
+        link: (scope, el, attrs) ->
+            scope.$watch 'data', (newValue, oldValue) ->
+                React.render VIRTDB(data: newValue, header: scope.header, callback: scope.callback, selectedField: scope.selectedField), el[0]
+                return
+            scope.$watch 'selectedField', (newValue, oldValue) ->
+                React.render VIRTDB(data: scope.data, header: scope.header, callback: scope.callback, selectedField: newValue), el[0]
+                return
+            return
+
+    }

@@ -7,6 +7,7 @@
   "dependencies": {
     "angular": "~1.2.23",
     "angular-route": "~1.2.23",
-    "bootstrap": "~3.2.0"
+    "bootstrap": "~3.2.0",
+    "ngReact": "~0.1.3"
   }
 }

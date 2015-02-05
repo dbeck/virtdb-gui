@@ -98,10 +98,25 @@ router.post "/data_provider/data", timeout(Config.getCommandLineParameter("timeo
         id = Number req.body.id
         onData = (data) ->
             if not res.headersSent
-                response =
-                    data: data
+                if data.length is 0
+                    res.json {
+                        id: id
+                        data: []
+                    }
+                    return
+                dataRows = []
+                firstColumn = data[0].Data
+                if firstColumn.length > 0
+                    for i in [0..firstColumn.length-1]
+                        dataRows.push data.map( (column) ->
+                            fieldValue = column.Data[i]
+                            fieldValue ?= "null"
+                        )
+                res.json {
                     id: id
-                res.json response
+                    data: dataRows
+                }
+
         # DataProvider.getData provider, table, count, onData
         dataHandler = new DataHandler
         dataHandler.getData provider, table, count, onData

@@ -13,6 +13,15 @@ var LIVERELOAD_PORT = 3001;
 
 var app = module.exports.app = exports.app = express();
 
+var allowCrossDomain = function(req, res, next) {
+// Uncomment to allow CORS
+//     res.header('Access-Control-Allow-Origin', '*');
+//     res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
+//     res.header('Access-Control-Allow-Headers', 'Content-Type');
+
+    next();
+}
+
 app.set('view engine', 'jade');
 app.set('views', path.join(__dirname, 'static/pages'));
 
@@ -20,6 +29,7 @@ app.use(favicon());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded());
 app.use(cookieParser());
+app.use(allowCrossDomain);
 app.use(express.static(path.join(__dirname, 'static')));
 
 if (app.get('env') === 'development') {
