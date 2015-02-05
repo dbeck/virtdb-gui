@@ -1,4 +1,4 @@
-app = angular.module 'virtdb', ['ngRoute']
+app = angular.module 'virtdb', ['ngRoute', 'react']
 
 app.config ($routeProvider) ->
     $routeProvider

@@ -49,26 +49,7 @@ div
             h3 Data
             div.data-table
                 button(ng-click='dataProvider.transposeData()') transpose
-                table.table.table-bordered(ng-hide='dataProvider.isHeaderColumn')
-                    tr
-                        th(
-                            ng-repeat='_field in dataHeader'
-                            ng-click="dataProvider.selectField(_field)"
-                            ng-class="{info: field === _field}") {{_field}}
-                    tr(ng-repeat='row in dataRows')
-                        td(
-                            ng-repeat="(index, _field) in row track by $index"
-                            ng-init="fieldName = dataHeader[index]"
-                            ng-click="dataProvider.selectField(fieldName)"
-                            ng-class="{'null-value': _field === 'null', info: field === fieldName}"
-                        ) {{_field}}
-                table.table.table-bordered(ng-show='dataProvider.isHeaderColumn')
-                    tr(
-                        ng-repeat="(index, header) in dataHeader"
-                        ng-click="dataProvider.selectField(header)"
-                        ng-class="{info: field == header}")
-                        th {{header}}
-                        td(ng-repeat='row in dataRows track by $index' ng-class="{'null-value': row[index] === 'null'}") {{row[index]}}
+                virtdb-table(data="dataRows", header="dataHeader", callback="dataProvider.selectField", selected-field="field")
         div.col-md-2
             h3 Meta data
                 h4 Description
