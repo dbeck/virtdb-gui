@@ -19,8 +19,8 @@ class MetadataHandler
             cacheKey = @_getCacheKey provider, tableListRequest
             cachedResponse = CacheHandler.get cacheKey
 
-            if Object.keys(cachedResponse).length isnt 0
-                metadata = cachedResponse[cacheKey]
+            if cachedResponse?
+                metadata = cachedResponse
                 result = @_processTableListResponse metadata, search, from, to, filterList
                 onReady result
             else
@@ -40,8 +40,8 @@ class MetadataHandler
 
             cacheKey = @_getCacheKey provider, tableMetadataRequest
             cachedResponse = CacheHandler.get cacheKey
-            if Object.keys(cachedResponse).length isnt 0
-                onReady cachedResponse[cacheKey]
+            if cachedResponse?
+                onReady cachedResponse
             else
                 metadataConnection = MetadataConnection.createInstance Endpoints.getMetadataAddress provider
                 metadataConnection.getMetadata tableMetadataRequest, (metadata) =>

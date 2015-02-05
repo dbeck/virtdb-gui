@@ -20,13 +20,16 @@ class CacheHandler
     @set: (key, value) =>
         if not @_cache?
             @_createCache()
-        @_cache.set key, value
+        @_cache.set key, JSON.stringify value
         return
 
     @get: (key) =>
         if not @_cache?
             return null
-        return @_cache.get key
+        ret = (@_cache.get key)?[key]
+        if ret?
+            ret = JSON.parse ret
+        return ret
 
     @_onNewCacheTTL: (ttl) =>
         @_cacheTTL = ttl
