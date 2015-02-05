@@ -1,35 +1,44 @@
 VIRTDB = React.createClass(
     displayName: 'VIRTDB'
     render: ->
-        data = @props.data
-        head = @props.header
-        callback = @props.callback
-        selectedField = @props.selectedField
-        console.log "Mylist selectedField: ", selectedField
-        console.log "Callback: ", callback
-        rows = []
-        clickHandler = (fieldName) ->
-            return (ev) ->
-                callback fieldName
+        clickHandler = (fieldName) =>
+            return (ev) =>
+                @props.callback fieldName
 
-        if data?
-            for row in data
+        style = (field) =>
+            if @props.selectedField == field
+                "info"
+            else
+                ""
+
+        rows = []
+        if @props.data?
+            transposedData = []
+            for row in @props.data
                 children = []
                 for field, index in row
-                    cn = ""
-                    if selectedField == head[index]
-                        cn = "info"
-                    children.push React.DOM.td { onClick: clickHandler(head[index]), className: cn}, field
-                rows.push React.DOM.tr(null, children)
+                    item = React.DOM.td { onClick: clickHandler(@props.header[index]), className: style(@props.header[index])}, field
+                    if @props.transposed
+                        transposedData[index] ?= [ React.DOM.th {onClick: clickHandler(@props.header[index]), className: style(@props.header[index])}, @props.header[index] ]
+                        transposedData[index].push item
+                    else
+                        children.push item
+                if not @props.transposed
+                    rows.push React.DOM.tr(null, children)
+            if @props.transposed
+                for row in transposedData
+                    rows.push React.DOM.tr(null, row)
+
         headItems = []
-        if head?
-            for field in head
-                cn = ""
-                if selectedField == field
-                    cn = "info"
-                headItems.push React.DOM.th { onClick: clickHandler(field), className: cn}, field
-        headerRow = React.DOM.tr null, headItems
-        return React.DOM.table {className: "table table-bordered"}, [(React.DOM.thead null, headerRow), (React.DOM.tbody null, rows)]
+        if @props.header?
+            for field in @props.header
+                headItems.push React.DOM.th { onClick: clickHandler(field), className: style(field)}, field
+        tableParts = []
+        if not @props.transposed
+            headerRow = React.DOM.tr null, headItems
+            tableParts.push React.DOM.thead null, headerRow
+        tableParts.push React.DOM.tbody null, rows
+        return React.DOM.table {className: "table table-bordered"}, tableParts
 )
 
 app = angular.module 'virtdb'
@@ -57,7 +66,7 @@ app.controller 'DataProviderController',
             @tableMetaData = null
             @tableList = null
 
-            @isHeaderColumn = false
+            @transposed = false
             @tableListPosition = 0
             @isMoreTable = true
 
@@ -199,7 +208,7 @@ app.controller 'DataProviderController',
             return
 
         transposeData: () =>
-            @isHeaderColumn = !@isHeaderColumn
+            @transposed = !@transposed
 
         getNextTables: () =>
             if @isMoreTable
@@ -278,13 +287,16 @@ app.controller 'DataProviderController',
             header: '='
             callback: '='
             selectedField: '='
+            transposed: '='
         link: (scope, el, attrs) ->
+            display = (data, header, callback, selectedField, transposed) =>
+                React.render VIRTDB(data: data, header: header, callback: callback, selectedField: selectedField, transposed: transposed), el[0]
             scope.$watch 'data', (newValue, oldValue) ->
-                React.render VIRTDB(data: newValue, header: scope.header, callback: scope.callback, selectedField: scope.selectedField), el[0]
-                return
+                display newValue, scope.header, scope.callback, scope.selectedField, scope.transposed
             scope.$watch 'selectedField', (newValue, oldValue) ->
-                React.render VIRTDB(data: scope.data, header: scope.header, callback: scope.callback, selectedField: newValue), el[0]
-                return
+                display scope.data, scope.header, scope.callback, newValue, scope.transposed
+            scope.$watch 'transposed', (newValue, oldValue) ->
+                display scope.data, scope.header, scope.callback, scope.selectedField, newValue
             return
 
     }

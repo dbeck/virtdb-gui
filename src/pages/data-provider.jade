@@ -49,7 +49,7 @@ div
             h3 Data
             div.data-table
                 button(ng-click='dataProvider.transposeData()') transpose
-                virtdb-table(data="dataRows", header="dataHeader", callback="dataProvider.selectField", selected-field="field")
+                virtdb-table(data="dataRows", header="dataHeader", callback="dataProvider.selectField", selected-field="field", transposed="dataProvider.transposed")
         div.col-md-2
             h3 Meta data
                 h4 Description
