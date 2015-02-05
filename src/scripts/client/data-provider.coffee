@@ -98,6 +98,7 @@ app.controller 'DataProviderController',
             @$scope.meta = null
             @$scope.fieldDescription = null
             @$scope.field = null
+            @$scope.metaData = null
 
         resetProviderLevelView: () =>
             @resetTableLevelView()
