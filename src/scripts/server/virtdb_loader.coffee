@@ -31,6 +31,7 @@ class VirtDBLoader
         
         VirtDBConnector.subscribe Const.ENDPOINT_TYPE.CONFIG, ConfigService.onPublishedConfig, name
         
+        Endpoints.addOwnEndpoint name
         VirtDBConnector.connect(name, address)
         
         VirtDBConnector.log.enableConsoleLog isConsoleLogEnabled is true

@@ -55,4 +55,7 @@ class Endpoints
             return []
         return addresses
 
+    @addOwnEndpoint: (name) =>
+        @_endpoints[name] = {}
+
 module.exports = Endpoints
