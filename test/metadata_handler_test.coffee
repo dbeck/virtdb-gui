@@ -231,8 +231,6 @@ describe "MetadataHandler", ->
             FILTERLIST = []
             KEY = "key"
             VALUE = "value"
-            DATA = {}
-            DATA[KEY] = VALUE
             RESULT = "result"
             REQUEST = "req"
 
@@ -243,7 +241,7 @@ describe "MetadataHandler", ->
             _getCacheKeyStub = sandbox.stub handler, "_getCacheKey"
             _getCacheKeyStub.returns KEY
             cacheHandlerGetStub = sandbox.stub CacheHandler, "get"
-            cacheHandlerGetStub.returns DATA
+            cacheHandlerGetStub.returns VALUE
             _processTableListResponseStub = sandbox.stub handler, "_processTableListResponse"
             _processTableListResponseStub.returns RESULT
 
@@ -285,7 +283,7 @@ describe "MetadataHandler", ->
             _getCacheKeyStub = sandbox.stub handler, "_getCacheKey"
             _getCacheKeyStub.returns KEY
             cacheHandlerGetStub = sandbox.stub CacheHandler, "get"
-            cacheHandlerGetStub.returns {}
+            cacheHandlerGetStub.returns null
             conn = sinon.createStubInstance MetadataConnection
             endpointsGetMetaDataAddressStub = sandbox.stub Endpoints, "getMetadataAddress"
             endpointsGetMetaDataAddressStub.returns ADDRESSES
@@ -338,7 +336,7 @@ describe "MetadataHandler", ->
             _getCacheKeyStub = sandbox.stub handler, "_getCacheKey"
             _getCacheKeyStub.returns KEY
             cacheHandlerGetStub = sandbox.stub CacheHandler, "get"
-            cacheHandlerGetStub.returns {}
+            cacheHandlerGetStub.returns null
             conn = sinon.createStubInstance MetadataConnection
             endpointsGetMetaDataAddressStub = sandbox.stub Endpoints, "getMetadataAddress"
             endpointsGetMetaDataAddressStub.returns ADDRESSES
@@ -376,8 +374,6 @@ describe "MetadataHandler", ->
             TABLE = "table"
             KEY = "key"
             VALUE = "value"
-            DATA = {}
-            DATA[KEY] = VALUE
             RESULT = "result"
             REQUEST = "req"
 
@@ -388,7 +384,7 @@ describe "MetadataHandler", ->
             _getCacheKeyStub = sandbox.stub handler, "_getCacheKey"
             _getCacheKeyStub.returns KEY
             cacheHandlerGetStub = sandbox.stub CacheHandler, "get"
-            cacheHandlerGetStub.returns DATA
+            cacheHandlerGetStub.returns VALUE
             _processTableListResponseStub = sandbox.stub handler, "_processTableListResponse"
             _processTableListResponseStub.returns RESULT
 
@@ -427,7 +423,7 @@ describe "MetadataHandler", ->
             _getCacheKeyStub = sandbox.stub handler, "_getCacheKey"
             _getCacheKeyStub.returns KEY
             cacheHandlerGetStub = sandbox.stub CacheHandler, "get"
-            cacheHandlerGetStub.returns {}
+            cacheHandlerGetStub.returns null
             conn = sinon.createStubInstance MetadataConnection
             endpointsGetMetaDataAddressStub = sandbox.stub Endpoints, "getMetadataAddress"
             endpointsGetMetaDataAddressStub.returns ADDRESSES
@@ -474,7 +470,7 @@ describe "MetadataHandler", ->
             _getCacheKeyStub = sandbox.stub handler, "_getCacheKey"
             _getCacheKeyStub.returns KEY
             cacheHandlerGetStub = sandbox.stub CacheHandler, "get"
-            cacheHandlerGetStub.returns {}
+            cacheHandlerGetStub.returns null
             conn = sinon.createStubInstance MetadataConnection
             endpointsGetMetaDataAddressStub = sandbox.stub Endpoints, "getMetadataAddress"
             endpointsGetMetaDataAddressStub.returns ADDRESSES

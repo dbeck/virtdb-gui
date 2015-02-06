@@ -7,7 +7,7 @@ log = VirtDBConnector.log
 
 chai = require "chai"
 expect = chai.expect
-chai.should()
+should = chai.should()
 sinon = require "sinon"
 sinonChai = require("sinon-chai");
 chai.use sinonChai
@@ -39,22 +39,89 @@ describe "CacheHandler", ->
         CacheHandler.set KEY, DATA
         setTimeout () ->
             result = CacheHandler.get KEY
-            result.should.be.deep.equal OBJ
+            result.should.be.deep.equal DATA
             done()
         , 800
 
-    it "should return empty object data requestes after ttl", (done) ->
+    it "should store an array and give it back if we get it before ttl", (done) ->
+        this.timeout(1200)
+        CacheHandler._cacheTTL = 1
+
+        DATA = {
+            Tables: [
+                Name: 'BSEG'
+                Comments: []
+                Properties: []
+                Fields: [
+                    Name: "MANDT"
+                    Desc:
+                        Type: "INT32"
+                    Comments: [
+                        Text: 'Client'
+                        Language: 'EN'
+                    ]
+                    Properties: [
+                        Key: 'fieldname'
+                        Children: []
+                        Value:
+                            Type: 'STRING'
+                            StringValue: 'MANDT'
+                    ,
+                        Key: 'position'
+                        Children: []
+                        Value:
+                            Type: 'STRING'
+                            Value: '0'
+                    ]
+                ]
+            ]
+        }
+        KEY = "sap_{\"Name\":\"BSEG\",\"WithFields\":true}"
+        OBJ = {}
+        OBJ[KEY] = DATA
+
+        CacheHandler.set KEY, DATA
+        setTimeout () ->
+            result = CacheHandler.get KEY
+            result.should.deep.equal DATA
+            done()
+        , 100
+
+    it "should store large data and give it back if we get it before ttl", () ->
+        CacheHandler._cacheTTL = 1
+
+        DATA =
+            Tables: []
+
+        for i in [0..4]
+            table = {}
+            table.Name = "table #{i}"
+            table.Fields = []
+            for fieldIndex in [0..400]
+                field = {}
+                field.Name = "field#{table.Name}#{fieldIndex}"
+                table.Fields.push field
+            DATA.Tables.push table
+
+        KEY = "key"
+        OBJ = {}
+        OBJ[KEY] = DATA
+
+        CacheHandler.set KEY, DATA
+        result = CacheHandler.get KEY
+        result.should.deep.equal DATA
+
+    it "should return null if data requested after ttl", (done) ->
         this.timeout(1500)
         CacheHandler._cacheTTL = 1
 
         DATA = "data"
         KEY = "key"
-        EMPTY = {}
 
         CacheHandler.set KEY, DATA
         setTimeout () ->
             result = CacheHandler.get KEY
-            result.should.be.deep.equal EMPTY
+            should.not.exist result
             done()
         , 1300
 
