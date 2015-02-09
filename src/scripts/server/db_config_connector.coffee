@@ -142,7 +142,7 @@ class DBConfigConnection
         serverConfigMessage =
             Type: Const.SERVER_CONFIG_TYPE
             Name: provider
-            Tables: [tableMeta]
+            Tables: tableMeta.Tables
         @_pushPullSocket.send dbConfigProto.serialize serverConfigMessage, "virtdb.interface.pb.ServerConfig"
 
     getTables: (provider, onReady) =>
