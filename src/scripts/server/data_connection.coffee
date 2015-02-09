@@ -63,7 +63,6 @@ class DataConnection
     _onColumnMessage: (channel, message) =>
         try
             column = DataProto.parse message, "virtdb.interface.pb.Column"
-            log.trace "got column", V_(channel), V_(column.fields)
             if column.CompType is "LZ4_COMPRESSION"
                 uncompressedData = new Buffer(column.UncompressedSize)
                 size = lz4.decodeBlock(column.CompressedData, uncompressedData)
