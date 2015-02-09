@@ -78,7 +78,7 @@ class DiagConnector
             if part.IsVariable && part.HasData
                 _part = {}
                 _part["name"] = @_findSymbolValue record.Symbols, part.PartSymbol
-                if data?.EndScope and data?.EndScope is true
+                if data?.EndScope? and data?.EndScope is true
                     _part["value"] = null
                 else 
                     _part["value"] = @_findValue data.Values[index]
@@ -87,7 +87,7 @@ class DiagConnector
             else if part.HasData
                 _part = {}
                 _part["name"] = null
-                if data?.EndScope and data?.EndScope is true
+                if data?.EndScope? and data?.EndScope is true
                     _part["value"] = null
                 else 
                     _part["value"] = @_findValue data.Values[index]
