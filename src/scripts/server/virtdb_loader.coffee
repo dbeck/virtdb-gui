@@ -33,7 +33,8 @@ class VirtDBLoader
         
         Endpoints.addOwnEndpoint name
         VirtDBConnector.connect(name, address)
-        
+
+        VirtDBConnector.log.level = Configuration.getCommandLineParameter("logLevel")        
         VirtDBConnector.log.enableConsoleLog isConsoleLogEnabled is true
 
 module.exports = VirtDBLoader

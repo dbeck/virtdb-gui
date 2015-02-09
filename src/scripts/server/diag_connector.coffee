@@ -23,7 +23,7 @@ class DiagConnector
     @connect: (diagServiceName) =>
         try
             @LEVELS = ["VIRTDB_STATUS", "VIRTDB_ERROR", "VIRTDB_INFO"]
-            if Config.getCommandLineParameter("trace") is true then @LEVELS.push "VIRTDB_SIMPLE_TRACE"
+            if Config.getCommandLineParameter("trace") is true then @LEVELS = @LEVELS.concat ["VIRTDB_SIMPLE_TRACE", "VIRTDB_SCOPED_TRACE"]
             @_logRecordSocket = zmq.socket(Const.ZMQ_SUB)
             @_logRecordSocket.on "message", @_onRecord
             for addr in Endpoints.getLogRecordAddress()
@@ -47,8 +47,9 @@ class DiagConnector
         try
             record = DiagProto.parse data, "virtdb.interface.pb.LogRecord"
             processedRecord = @_processLogRecord record
-            if processedRecord.level in @LEVELS
-                @_records.push processedRecord
+            if not processedRecord?
+                return
+            @_records.push processedRecord
             if @_records.length > DiagConnector.MAX_STORED_MESSAGE_COUNT
                 @_records.splice 0, 1
 
@@ -56,15 +57,17 @@ class DiagConnector
             log.debug "Couldn't process diag message", V_(ex), V_(record)
 
     @_processLogRecord: (record) =>
+        header =  record.Headers[0]
+        if not header.level in @LEVELS
+            return null
         logRecord = {}
+        logRecord.level = header.Level
         logRecord.process = @_processProcessInfo record
         logRecord.time = (new Date).getTime()
         logRecord.entry = []
-        header =  record.Headers[0]
         for _data in record.Data when _data.HeaderSeqNo is header.SeqNo
             data = _data
             break
-        logRecord.level = header.Level
         logRecord.location =
                 file: @_findSymbolValue(record.Symbols, header.FileNameSymbol)
                 function: @_findSymbolValue(record.Symbols, header.FunctionNameSymbol)
@@ -73,15 +76,21 @@ class DiagConnector
         index = 0
         for part in header.Parts
             if part.IsVariable && part.HasData
-                _part =
-                    name: @_findSymbolValue record.Symbols, part.PartSymbol
-                    value: @_findValue data.Values[index]
+                _part = {}
+                _part["name"] = @_findSymbolValue record.Symbols, part.PartSymbol
+                if data?.EndScope and data?.EndScope is true
+                    _part["value"] = null
+                else 
+                    _part["value"] = @_findValue data.Values[index]
                 index++
                 logRecord.parts.push _part
             else if part.HasData
-                _part =
-                    name: null
-                    value: @_findValue data.Values[index]
+                _part = {}
+                _part["name"] = null
+                if data?.EndScope and data?.EndScope is true
+                    _part["value"] = null
+                else 
+                    _part["value"] = @_findValue data.Values[index]
                 index++
                 logRecord.parts.push _part
             else if part.PartSymbol?

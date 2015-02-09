@@ -33,6 +33,12 @@ CLI_OPTIONS =
         full: "cache-check-period"
         default: 1
         help: 'the cache check period in seconds'
+    logLevel:
+        abbr: 'l'
+        full: "log-level"
+        default: "info"
+        choices: ['trace', 'debug', 'info', 'warn', 'error']
+        help: 'log level'
 
 nomnom.options(CLI_OPTIONS).parse()
 
