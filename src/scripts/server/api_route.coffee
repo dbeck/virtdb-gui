@@ -54,7 +54,6 @@ router.post "/data_provider/meta_data/", timeout(Config.getCommandLineParameter(
             res.json response
 
     try
-        # DataProvider.getTableMeta provider, table,
         metadataHandler = new MetadataHandler()
         metadataHandler.getTableMetadata provider, table, onMetadata
     catch ex
@@ -138,7 +137,8 @@ router.post "/db_config/add", timeout(Config.getCommandLineParameter("timeout"))
     provider = req.body.provider
 
     try
-        DataProvider.getTableMeta provider, table, (metaData) ->
+        metadataHandler = new MetadataHandler()
+        metadataHandler.getTableMetadata provider, table, (metaData) ->
             DBConfig.addTable(provider, metaData)
             res.status(200).send()
             return

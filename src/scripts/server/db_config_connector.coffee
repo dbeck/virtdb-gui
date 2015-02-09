@@ -16,7 +16,6 @@ FieldData = require "./fieldData"
 
 dbConfigProto = Proto.db_config
 
-
 class DBConfig
 
     @_dbConfigService = null
@@ -52,8 +51,16 @@ class DBConfig
             if not tableMeta?
                 log.error "couldn't add table to the db config due to a problem with the meta data", V_(tableMeta)
                 return
-
+            
+            if not @_dbConfigService?
+                log.error "missing db config service"
+                return
+            
             connection = DBConfigConnection.getConnection(@_dbConfigService)
+            if not connection?
+                log.error "unable to get db config connection"
+                return    
+            
             connection.sendServerConfig provider, tableMeta
             log.info "table added to the db config", V_(tableMeta.Name), V_(provider)
             @_configuredTablesCache.del(provider)
@@ -69,8 +76,16 @@ class DBConfig
                 log.trace "getting list of already added tables from cache.", V_(provider)
                 onReady tableList
             else
+                if not @_dbConfigService?
+                    log.error "missing db config service"
+                    onReady []
+                    return
                 log.debug "getting list of already added tables from db config.", V_(provider)
                 connection = DBConfigConnection.getConnection(@_dbConfigService)
+                if not connection?
+                    log.error "unable to get db config connection"
+                    onReady []
+                    return    
                 connection.getTables provider, (msg) =>
                         try
                             if msg.Servers.length > 0
@@ -103,6 +118,13 @@ class DBConfigConnection
     @getConnection: (service) ->
         serverConfigAddress = Endpoints.getDbConfigAddress service
         dbConfigQueryAddress = Endpoints.getDbConfigQueryAddress service
+
+        if not serverConfigAddress? or serverConfigAddress?.length is 0
+            log.error "cannot find db_config server config addresses"
+            return null
+        if not dbConfigQueryAddress? or dbConfigQueryAddress?.length is 0
+            log.error "cannot find db_config query addresses"
+            return null
         return new DBConfigConnection(serverConfigAddress, dbConfigQueryAddress)
 
     _pushPullSocket: null
@@ -121,8 +143,6 @@ class DBConfigConnection
             Type: Const.SERVER_CONFIG_TYPE
             Name: provider
             Tables: [tableMeta]
-        console.log "socket send:", @serverConfigAddress
-        console.dir serverConfigMessage
         @_pushPullSocket.send dbConfigProto.serialize serverConfigMessage, "virtdb.interface.pb.ServerConfig"
 
     getTables: (provider, onReady) =>
