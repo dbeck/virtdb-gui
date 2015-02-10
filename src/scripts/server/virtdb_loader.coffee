@@ -24,7 +24,7 @@ class VirtDBLoader
             CacheHandler.init()
 
         VirtDBConnector.onAddress Const.ENDPOINT_TYPE.LOG_RECORD, Const.SOCKET_TYPE.PUB_SUB, (name, addresses) =>
-            # DiagConnector.connect() # Not connecting as it seemed too slow
+            DiagConnector.connect() # Not connecting as it seemed too slow
             return
 
         VirtDBConnector.onAddress Const.ENDPOINT_TYPE.COLUMN, Const.SOCKET_TYPE.PUB_SUB, (name, addresses) =>
