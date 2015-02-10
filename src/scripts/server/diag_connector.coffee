@@ -14,12 +14,12 @@ DiagProto = Proto.diag
 
 class DiagConnector
 
-    @LOG_LEVELS = 
-        VIRTDB_INFO = 1
-        VIRTDB_ERROR = 2
-        VIRTDB_SIMPLE_TRACE = 3
-        VIRTDB_SCOPED_TRACE = 4
-        VIRTDB_STATUS = 5
+    @LOG_LEVELS =
+        VIRTDB_INFO: 1
+        VIRTDB_ERROR: 2
+        VIRTDB_SIMPLE_TRACE: 3
+        VIRTDB_SCOPED_TRACE: 4
+        VIRTDB_STATUS: 5
 
     @_records: null
     @_logRecordSocket: null
@@ -86,7 +86,7 @@ class DiagConnector
                 _part["name"] = @_findSymbolValue record.Symbols, part.PartSymbol
                 if data?.EndScope? and data?.EndScope is true
                     _part["value"] = null
-                else 
+                else
                     _part["value"] = @_findValue data.Values[index]
                 index++
                 logRecord.parts.push _part
@@ -95,7 +95,7 @@ class DiagConnector
                 _part["name"] = null
                 if data?.EndScope? and data?.EndScope is true
                     _part["value"] = null
-                else 
+                else
                     _part["value"] = @_findValue data.Values[index]
                 index++
                 logRecord.parts.push _part
