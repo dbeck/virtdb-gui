@@ -14,7 +14,7 @@ class VirtDBLoader
         isConsoleLogEnabled = Configuration.getCommandLineParameter "forceConsoleLog"
         console.log "GUI starting: ", name
         console.log "Config-service address: ", address
-        
+
         VirtDBConnector.onAddress VirtDBConnector.ALL_TYPE, VirtDBConnector.ALL_TYPE, (name, addresses, svcType, connectionType) =>
             Endpoints.onEndpoint name, svcType, connectionType, addresses
 
@@ -22,19 +22,20 @@ class VirtDBLoader
             Endpoints.onEndpoint name, Const.ENDPOINT_TYPE.CONFIG, addresses
             Configuration.init()
             CacheHandler.init()
-            
+
         VirtDBConnector.onAddress Const.ENDPOINT_TYPE.LOG_RECORD, Const.SOCKET_TYPE.PUB_SUB, (name, addresses) =>
-            DiagConnector.connect()
-        
+            # DiagConnector.connect() # Not connecting as it seemed too slow
+            return
+
         VirtDBConnector.onAddress Const.ENDPOINT_TYPE.COLUMN, Const.SOCKET_TYPE.PUB_SUB, (name, addresses) =>
             Endpoints.onEndpoint name, Const.ENDPOINT_TYPE.COLUMN, addresses
-        
+
         VirtDBConnector.subscribe Const.ENDPOINT_TYPE.CONFIG, ConfigService.onPublishedConfig, name
-        
+
         Endpoints.addOwnEndpoint name
         VirtDBConnector.connect(name, address)
 
-        VirtDBConnector.log.level = Configuration.getCommandLineParameter("logLevel")        
+        VirtDBConnector.log.level = Configuration.getCommandLineParameter("logLevel")
         VirtDBConnector.log.enableConsoleLog isConsoleLogEnabled is true
 
 module.exports = VirtDBLoader
