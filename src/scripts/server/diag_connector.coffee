@@ -14,6 +14,13 @@ DiagProto = Proto.diag
 
 class DiagConnector
 
+    @LOG_LEVELS = 
+        VIRTDB_INFO = 1
+        VIRTDB_ERROR = 2
+        VIRTDB_SIMPLE_TRACE = 3
+        VIRTDB_SCOPED_TRACE = 4
+        VIRTDB_STATUS = 5
+
     @_records: null
     @_logRecordSocket: null
 
@@ -23,12 +30,13 @@ class DiagConnector
     @connect: (diagServiceName) =>
         try
             @LEVELS = ["VIRTDB_STATUS", "VIRTDB_ERROR", "VIRTDB_INFO"]
-            if Config.getCommandLineParameter("trace") is true then @LEVELS = @LEVELS.concat ["VIRTDB_SIMPLE_TRACE", "VIRTDB_SCOPED_TRACE"]
+            # if Config.getCommandLineParameter("trace") is true then @LEVELS = @LEVELS.concat ["VIRTDB_SIMPLE_TRACE", "VIRTDB_SCOPED_TRACE"]
             @_logRecordSocket = zmq.socket(Const.ZMQ_SUB)
             @_logRecordSocket.on "message", @_onRecord
+            for level in @LEVELS
+                @_logRecordSocket.subscribe @LOG_LEVELS[level] + " "
             for addr in Endpoints.getLogRecordAddress()
                 @_logRecordSocket.connect addr
-            @_logRecordSocket.subscribe Const.EVERY_CHANNEL
             @_records = []
         catch ex
             console.error "couldn't find address for diag service!"
@@ -57,10 +65,8 @@ class DiagConnector
             log.debug "Couldn't process diag message", V_(ex), V_(record)
 
     @_processLogRecord: (record) =>
-        header =  record.Headers[0]
-        if not header.level in @LEVELS
-            return null
         logRecord = {}
+        header =  record.Headers[0]
         logRecord.level = header.Level
         logRecord.process = @_processProcessInfo record
         logRecord.time = (new Date).getTime()
