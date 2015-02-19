@@ -2,6 +2,11 @@ app = angular.module 'virtdb', ['ngRoute', 'react']
 
 app.config ($routeProvider) ->
     $routeProvider
+        .when '/', {
+            templateUrl : '../pages/data-provider.html',
+            controller  : 'DataProviderController',
+            controllerAs: 'dataProvider',
+        }
         .when '/data-providers', {
             templateUrl : '../pages/data-provider.html',
             controller  : 'DataProviderController',
