@@ -5,17 +5,27 @@ class ColumnReceiver
     _readyCallback: null
     _fields: null
     _columnEndOfData: null
+    _fieldIndices: null
+    _receivedColumnCount: null
 
     constructor: (@_readyCallback, @_fields) ->
+        @_receivedColumnCount = 0
         @_columns = []
         @_columnEndOfData = {}
+        @_fieldIndices = {}
+        i = 0;
         for field in @_fields
-            @_columnEndOfData[field.name] = false
+            fieldName = @_fields[i].Name
+            @_fieldIndices[fieldName] = i
+            @_columnEndOfData[fieldName] = false
+            @_columns[i] = null
+            ++i
 
     add: (column) =>
         @_add column.Name, FieldData.get column
         @_columnEndOfData[column.Name] = column.EndOfData
-        if @_checkReceivedColumns()
+        @_receivedColumnCount++
+        if @_isAllColumnReceived()
             @_readyCallback @_columns
         return
 
@@ -26,12 +36,12 @@ class ColumnReceiver
         return false
 
     _add: (columnName, data) =>
-        @_columns.push
+        @_columns[@_fieldIndices[columnName]] =
             Name: columnName
             Data: data
 
-    _checkReceivedColumns: () =>
-        @_fields.length == @_columns.length
+    _isAllColumnReceived: () =>
+        return @_fields.length is @_receivedColumnCount
 
     @createInstance: (onReady, fields) =>
         return new ColumnReceiver onReady, fields
