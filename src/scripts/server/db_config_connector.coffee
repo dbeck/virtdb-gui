@@ -12,7 +12,6 @@ Config = require "./config"
 Const = VirtDBConnector.Constants
 log = VirtDBConnector.log
 V_ = log.Variable
-FieldData = require "./fieldData"
 
 dbConfigProto = Proto.db_config
 
