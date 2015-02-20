@@ -1,4 +1,4 @@
-FieldData = require "./fieldData"
+FieldData = require("virtdb-connector").FieldData
 
 class ColumnReceiver
     _columns: null

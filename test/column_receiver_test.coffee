@@ -1,5 +1,6 @@
-FieldData = require "../src/scripts/server/fieldData"
 ColumnReceiver = require "../src/scripts/server/column_receiver"
+VirtdbConnector = require "virtdb-connector"
+FieldData = VirtdbConnector.FieldData
 
 chai = require "chai"
 chai.should()
