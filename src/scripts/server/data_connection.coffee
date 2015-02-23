@@ -71,8 +71,9 @@ class DataConnection
             @_onColumn column
             return
         catch ex
-            log.error V_(ex)
-            throw ex
+            log.error "Error happened when column message received:", V_(column)
+            log.error V_ ex
+            # throw ex
 
     @createInstance: (queryAddresses, columnAddresses) =>
         return new DataConnection queryAddresses, columnAddresses
