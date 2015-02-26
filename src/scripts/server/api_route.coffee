@@ -108,7 +108,7 @@ router.post "/data_provider/data", timeout(Config.getCommandLineParameter("timeo
                 if firstColumn.length > 0
                     for i in [0..firstColumn.length-1]
                         dataRows.push data.map( (column) ->
-                            fieldValue = column.Data[i]
+                            fieldValue = column?.Data[i]
                             fieldValue ?= "null"
                         )
                 res.json {
