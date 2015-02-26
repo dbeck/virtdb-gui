@@ -1,4 +1,6 @@
 FieldData = require("virtdb-connector").FieldData
+log = (require "virtdb-connector").log
+V_ = log.Variable
 
 class ColumnReceiver
     _columns: null
@@ -22,6 +24,9 @@ class ColumnReceiver
             ++i
 
     add: (column) =>
+        if @_columns[@_fieldIndices[column.Name]]?
+            log.error "Column with name already exist.", V_(column.Name)
+            return
         @_add column.Name, FieldData.get column
         @_columnEndOfData[column.Name] = column.EndOfData
         @_receivedColumnCount++
@@ -41,7 +46,7 @@ class ColumnReceiver
             Data: data
 
     _isAllColumnReceived: () =>
-        return @_fields.length is @_receivedColumnCount
+        return @_fields.length <= @_receivedColumnCount
 
     @createInstance: (onReady, fields) =>
         return new ColumnReceiver onReady, fields
