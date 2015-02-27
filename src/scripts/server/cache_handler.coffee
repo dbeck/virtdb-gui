@@ -8,6 +8,7 @@ class CacheHandler
 
     @_cache = null
     @_cacheTTL = null # seconds, 0 means unlimited
+    @_keyExpirationListeners = {}
 
     @_reset: =>
         @_cache?._killCheckPeriod()
@@ -31,6 +32,10 @@ class CacheHandler
             ret = JSON.parse ret
         return ret
 
+    @addKeyExpirationListener: (key, listener) =>
+        @_keyExpirationListeners[key] ?= []
+        @_keyExpirationListeners[key].push listener
+
     @_onNewCacheTTL: (ttl) =>
         @_cacheTTL = ttl
         @_createCache()
@@ -41,9 +46,15 @@ class CacheHandler
         if @_cacheTTL?
             options["stdTTL"] = @_cacheTTL
         @_cache = @_getCacheInstance options
-        @_cache.on "expired", (key, value) =>
-            log.debug key + " expired", V_(key)
+        @_cache.on "expired", @_onKeyExpired
         return
+
+    @_onKeyExpired: (key, value) =>
+        log.debug key + " expired", V_(key)
+        if @_keyExpirationListeners[key]?
+            for callback in @_keyExpirationListeners[key]
+                callback key
+            delete @_keyExpirationListeners[key]
 
     @_getCacheInstance: (options) =>
         return new NodeCache(options)

@@ -188,3 +188,29 @@ describe "CacheHandler", ->
         CacheHandler.init()
 
         addCfgListStub.should.have.been.calledWithExactly Config.CACHE_TTL, CacheHandler._onNewCacheTTL
+
+    it "should call the key expiration listeners if there are some", ->
+        expListener1 = sandbox.spy()
+        expListener2 = sandbox.spy()
+        KEY1 = "KEY1"
+        CacheHandler.addKeyExpirationListener KEY1, expListener1
+        CacheHandler.addKeyExpirationListener KEY1, expListener2
+        CacheHandler._onKeyExpired KEY1
+
+        expListener1.should.have.been.calledOnce
+        expListener2.should.have.been.calledOnce
+
+    it "should not crash when there are no any listener to key and it was expired", ->
+        KEY1 = "KEY1"
+        CacheHandler._onKeyExpired KEY1
+    
+    it "should delete key expiration listeners after they have been", ->
+        expListener1 = sandbox.spy()
+        expListener2 = sandbox.spy()
+        KEY1 = "KEY1"
+        CacheHandler.addKeyExpirationListener KEY1, expListener1
+        CacheHandler.addKeyExpirationListener KEY1, expListener2
+        CacheHandler._onKeyExpired KEY1
+
+        should.not.exist CacheHandler._keyExpirationListeners[KEY1]
+

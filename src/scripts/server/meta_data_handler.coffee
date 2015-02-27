@@ -16,7 +16,7 @@ class MetadataHandler
         try
             tableListRequest = @_createTableListMessage()
 
-            cacheKey = @_getCacheKey provider, tableListRequest
+            cacheKey = @_generateCacheKey provider, tableListRequest
             cachedResponse = CacheHandler.get cacheKey
 
             if cachedResponse?
@@ -26,19 +26,30 @@ class MetadataHandler
             else
                 metadataConnection = MetadataConnection.createInstance Endpoints.getMetadataAddress provider
                 metadataConnection.getMetadata tableListRequest, (metadata) =>
-                    if metadata.Tables.length > 0
-                        CacheHandler.set cacheKey, metadata
+                    @_putMetadataInCache cacheKey, metadata, true
                     result = @_processTableListResponse metadata, search, from, to, filterList
                     onReady result
         catch ex
             log.error V_(ex)
             throw ex
 
+    _putMetadataInCache: (cacheKey, metadata, isPermanent) =>
+        if metadata.Tables.length > 0
+            CacheHandler.set cacheKey, metadata
+            if isPermanent
+                CacheHandler.addKeyExpirationListener cacheKey, @_refillMetadataCache
+
+    _refillMetadataCache: (key) =>
+        [provider, request] = @_parseCacheKey key
+        metadataConnection = MetadataConnection.createInstance Endpoints.getMetadataAddress provider
+        metadataConnection.getMetadata request, (metadata) =>
+            @_putMetadataInCache key, metadata, true
+    
     getTableMetadata: (provider, table, onReady) =>
         try
             tableMetadataRequest = @_createTableMetadataMessage(table)
 
-            cacheKey = @_getCacheKey provider, tableMetadataRequest
+            cacheKey = @_generateCacheKey provider, tableMetadataRequest
             cachedResponse = CacheHandler.get cacheKey
             if cachedResponse?
                 onReady cachedResponse
@@ -119,8 +130,12 @@ class MetadataHandler
             count: tables.length
             results: tables[realFrom..realTo]
 
-    _getCacheKey: (provider, request) =>
+    _generateCacheKey: (provider, request) =>
         return provider + "_" + JSON.stringify request
+
+    _parseCacheKey: (key) =>
+        parts = key.split "_"
+        return [parts[0], (JSON.parse parts[1])]
 
     @createInstance: =>
         return new MetadataHandler
