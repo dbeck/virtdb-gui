@@ -65,6 +65,7 @@ app.controller 'DataProviderController',
 
             @tableMetaData = null
             @tableList = null
+            @isAllTableSelected = false
 
             @transposed = false
             @tableListPosition = 0
@@ -112,7 +113,6 @@ app.controller 'DataProviderController',
             @$scope.tableListTo = 0
             @$scope.tableListCount = 0
             @$scope.selectionCounter = 0
-            @$scope.isAllTableSelected = false
 
         requestTableList: () =>
             requestData =
@@ -263,13 +263,13 @@ app.controller 'DataProviderController',
 
         selectAllTableChanged: () =>
             for table in @tableList when not table.configured
-                table.selected = @$scope.isAllTableSelected
+                table.selected = @isAllTableSelected
             @updateSelectionCounter()
 
         tableSelectionChanged: () =>
-            @$scope.isAllTableSelected = true
+            @isAllTableSelected = true
             for _table in @tableList when not _table.selected and not _table.configured
-                @$scope.isAllTableSelected = false
+                @isAllTableSelected = false
             @updateSelectionCounter()
 
         updateSelectionCounter: () =>
