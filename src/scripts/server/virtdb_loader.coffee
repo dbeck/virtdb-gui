@@ -11,6 +11,7 @@ class VirtDBLoader
     @start: () =>
         address = Configuration.getCommandLineParameter("serviceConfig")
         name = Configuration.getCommandLineParameter("name")
+        process.title = "virtdb-gui / #{name}"
         isConsoleLogEnabled = Configuration.getCommandLineParameter "forceConsoleLog"
         console.log "GUI starting: ", name
         console.log "Config-service address: ", address
