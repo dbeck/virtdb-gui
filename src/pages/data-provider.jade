@@ -44,7 +44,7 @@ div
         div(ng-class="{'col-md-6': table !== null && metaData !== null, 'col-md-8': table === null || metaData === null}")
             h3 
                 span Data
-                span.pull-right.btn.btn-info.glyphicon.glyphicon-retweet(ng-if="table !== null", ng-click='dataProvider.transposeData()')
+                span.pull-right.glyphicon.glyphicon-retweet(ng-if="table !== null", ng-click='dataProvider.transposeData()')
             br
             div.data-table
                 virtdb-table(data="dataRows", header="dataHeader", callback="dataProvider.selectField", selected-field="field", transposed="dataProvider.transposed")
