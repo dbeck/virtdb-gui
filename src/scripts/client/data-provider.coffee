@@ -234,7 +234,7 @@ app.controller 'DataProviderController',
                     table.selected = false
                     table.configured = true
                     @ServerConnector.sendDBConfig data, (data) =>
-                        @$timeout(@requestConfiguredTables, 1000)
+                        @$timeout(@requestConfiguredTables, 2000)
             return
 
         requestConfiguredTables: () =>
