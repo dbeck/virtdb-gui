@@ -238,8 +238,8 @@ describe "MetadataHandler", ->
             onReadySpy = sandbox.spy()
             _createTableListMessageStub = sandbox.stub handler, "_createTableListMessage"
             _createTableListMessageStub.returns REQUEST
-            _getCacheKeyStub = sandbox.stub handler, "_getCacheKey"
-            _getCacheKeyStub.returns KEY
+            _generateCacheKeyStub = sandbox.stub handler, "_generateCacheKey"
+            _generateCacheKeyStub.returns KEY
             cacheHandlerGetStub = sandbox.stub CacheHandler, "get"
             cacheHandlerGetStub.returns VALUE
             _processTableListResponseStub = sandbox.stub handler, "_processTableListResponse"
@@ -248,8 +248,8 @@ describe "MetadataHandler", ->
             handler.getTableList PROVIDER, SEARCH, FROM, TO, FILTERLIST, onReadySpy
 
             _createTableListMessageStub.should.have.been.calledOnce
-            _getCacheKeyStub.should.have.been.calledOnce
-            _getCacheKeyStub.should.have.been.calledWithExactly PROVIDER, REQUEST
+            _generateCacheKeyStub.should.have.been.calledOnce
+            _generateCacheKeyStub.should.have.been.calledWithExactly PROVIDER, REQUEST
             cacheHandlerGetStub.should.have.been.calledOnce
             cacheHandlerGetStub.should.have.been.calledWithExactly KEY
             _processTableListResponseStub.should.calledOnce
@@ -280,8 +280,8 @@ describe "MetadataHandler", ->
             onReadySpy = sandbox.spy()
             _createTableListMessageStub = sandbox.stub handler, "_createTableListMessage"
             _createTableListMessageStub.returns REQUEST
-            _getCacheKeyStub = sandbox.stub handler, "_getCacheKey"
-            _getCacheKeyStub.returns KEY
+            _generateCacheKeyStub = sandbox.stub handler, "_generateCacheKey"
+            _generateCacheKeyStub.returns KEY
             cacheHandlerGetStub = sandbox.stub CacheHandler, "get"
             cacheHandlerGetStub.returns null
             conn = sinon.createStubInstance MetadataConnection
@@ -297,8 +297,8 @@ describe "MetadataHandler", ->
             handler.getTableList PROVIDER, SEARCH, FROM, TO, FILTERLIST, onReadySpy
 
             _createTableListMessageStub.should.have.been.calledOnce
-            _getCacheKeyStub.should.have.been.calledOnce
-            _getCacheKeyStub.should.have.been.calledWithExactly PROVIDER, REQUEST
+            _generateCacheKeyStub.should.have.been.calledOnce
+            _generateCacheKeyStub.should.have.been.calledWithExactly PROVIDER, REQUEST
             cacheHandlerGetStub.should.have.been.calledOnce
             cacheHandlerGetStub.should.have.been.calledWithExactly KEY
             endpointsGetMetaDataAddressStub.should.calledOnce
@@ -333,8 +333,8 @@ describe "MetadataHandler", ->
             onReadySpy = sandbox.spy()
             _createTableListMessageStub = sandbox.stub handler, "_createTableListMessage"
             _createTableListMessageStub.returns REQUEST
-            _getCacheKeyStub = sandbox.stub handler, "_getCacheKey"
-            _getCacheKeyStub.returns KEY
+            _generateCacheKeyStub = sandbox.stub handler, "_generateCacheKey"
+            _generateCacheKeyStub.returns KEY
             cacheHandlerGetStub = sandbox.stub CacheHandler, "get"
             cacheHandlerGetStub.returns null
             conn = sinon.createStubInstance MetadataConnection
@@ -350,8 +350,8 @@ describe "MetadataHandler", ->
             handler.getTableList PROVIDER, SEARCH, FROM, TO, FILTERLIST, onReadySpy
 
             _createTableListMessageStub.should.have.been.calledOnce
-            _getCacheKeyStub.should.have.been.calledOnce
-            _getCacheKeyStub.should.have.been.calledWithExactly PROVIDER, REQUEST
+            _generateCacheKeyStub.should.have.been.calledOnce
+            _generateCacheKeyStub.should.have.been.calledWithExactly PROVIDER, REQUEST
             cacheHandlerGetStub.should.have.been.calledOnce
             cacheHandlerGetStub.should.have.been.calledWithExactly KEY
             endpointsGetMetaDataAddressStub.should.calledOnce
@@ -381,8 +381,8 @@ describe "MetadataHandler", ->
             onReadySpy = sandbox.spy()
             _createTableMetadataMessageStub = sandbox.stub handler, "_createTableMetadataMessage"
             _createTableMetadataMessageStub.returns REQUEST
-            _getCacheKeyStub = sandbox.stub handler, "_getCacheKey"
-            _getCacheKeyStub.returns KEY
+            _generateCacheKeyStub = sandbox.stub handler, "_generateCacheKey"
+            _generateCacheKeyStub.returns KEY
             cacheHandlerGetStub = sandbox.stub CacheHandler, "get"
             cacheHandlerGetStub.returns VALUE
             _processTableListResponseStub = sandbox.stub handler, "_processTableListResponse"
@@ -392,8 +392,8 @@ describe "MetadataHandler", ->
 
             _createTableMetadataMessageStub.should.have.been.calledOnce
             _createTableMetadataMessageStub.should.have.been.calledWithExactly TABLE
-            _getCacheKeyStub.should.have.been.calledOnce
-            _getCacheKeyStub.should.have.been.calledWithExactly PROVIDER, REQUEST
+            _generateCacheKeyStub.should.have.been.calledOnce
+            _generateCacheKeyStub.should.have.been.calledWithExactly PROVIDER, REQUEST
             cacheHandlerGetStub.should.have.been.calledOnce
             cacheHandlerGetStub.should.have.been.calledWithExactly KEY
             onReadySpy.should.have.been.calledOnce
@@ -420,8 +420,8 @@ describe "MetadataHandler", ->
             onReadySpy = sandbox.spy()
             _createTableMetadataMessageStub = sandbox.stub handler, "_createTableMetadataMessage"
             _createTableMetadataMessageStub.returns REQUEST
-            _getCacheKeyStub = sandbox.stub handler, "_getCacheKey"
-            _getCacheKeyStub.returns KEY
+            _generateCacheKeyStub = sandbox.stub handler, "_generateCacheKey"
+            _generateCacheKeyStub.returns KEY
             cacheHandlerGetStub = sandbox.stub CacheHandler, "get"
             cacheHandlerGetStub.returns null
             conn = sinon.createStubInstance MetadataConnection
@@ -435,8 +435,8 @@ describe "MetadataHandler", ->
             handler.getTableMetadata PROVIDER, TABLE, onReadySpy
 
             _createTableMetadataMessageStub.should.have.been.calledOnce
-            _getCacheKeyStub.should.have.been.calledOnce
-            _getCacheKeyStub.should.have.been.calledWithExactly PROVIDER, REQUEST
+            _generateCacheKeyStub.should.have.been.calledOnce
+            _generateCacheKeyStub.should.have.been.calledWithExactly PROVIDER, REQUEST
             cacheHandlerGetStub.should.have.been.calledOnce
             cacheHandlerGetStub.should.have.been.calledWithExactly KEY
             endpointsGetMetaDataAddressStub.should.calledOnce
@@ -467,8 +467,8 @@ describe "MetadataHandler", ->
             onReadySpy = sandbox.spy()
             _createTableMetadataMessageStub = sandbox.stub handler, "_createTableMetadataMessage"
             _createTableMetadataMessageStub.returns REQUEST
-            _getCacheKeyStub = sandbox.stub handler, "_getCacheKey"
-            _getCacheKeyStub.returns KEY
+            _generateCacheKeyStub = sandbox.stub handler, "_generateCacheKey"
+            _generateCacheKeyStub.returns KEY
             cacheHandlerGetStub = sandbox.stub CacheHandler, "get"
             cacheHandlerGetStub.returns null
             conn = sinon.createStubInstance MetadataConnection
@@ -482,8 +482,8 @@ describe "MetadataHandler", ->
             handler.getTableMetadata PROVIDER, TABLE, onReadySpy
 
             _createTableMetadataMessageStub.should.have.been.calledOnce
-            _getCacheKeyStub.should.have.been.calledOnce
-            _getCacheKeyStub.should.have.been.calledWithExactly PROVIDER, REQUEST
+            _generateCacheKeyStub.should.have.been.calledOnce
+            _generateCacheKeyStub.should.have.been.calledWithExactly PROVIDER, REQUEST
             cacheHandlerGetStub.should.have.been.calledOnce
             cacheHandlerGetStub.should.have.been.calledWithExactly KEY
             endpointsGetMetaDataAddressStub.should.calledOnce
