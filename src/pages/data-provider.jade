@@ -42,10 +42,11 @@ div
                         input(type="checkbox" ng-model="_table.selected" ng-disabled="_table.configured" ng-change="dataProvider.tableSelectionChanged()")
                     td(ng-click="dataProvider.selectTable(_table.name)") {{_table.name}}
         div(ng-class="{'col-md-6': table !== null && metaData !== null, 'col-md-8': table === null || metaData === null}")
-            h3 
+            h3
                 span Data
-                span.pull-right.glyphicon.glyphicon-retweet(ng-if="table !== null", ng-click='dataProvider.transposeData()')
-            br
+                button.pull-right.btn.btn-sm.btn-info(ng-if="table !== null", ng-click='dataProvider.transposeData()')
+                    span.glyphicon.glyphicon-retweet
+                    span  Transpose
             div.data-table
                 virtdb-table(data="dataRows", header="dataHeader", callback="dataProvider.selectField", selected-field="field", transposed="dataProvider.transposed")
         div.col-md-2(ng-if="table !== null && metaData !== null")
