@@ -1,0 +1,5 @@
+div.panel.panel-default
+    div.panel-body
+        button.provider.btn.btn-success(ng-repeat="_provider in dataProvider.providers" ng-click="dataProvider.selectProvider(_provider)" ng-class="{active: provider == _provider}")
+            span.glyphicon.glyphicon-hdd
+            span  {{_provider}}
