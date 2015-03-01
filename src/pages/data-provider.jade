@@ -1,66 +1,9 @@
+include includes/providerList
 div
-    div.panel.panel-default
-        div.panel-body
-            button.provider.btn.btn-success(ng-repeat="_provider in dataProvider.providers" ng-click="dataProvider.selectProvider(_provider)" ng-class="{active: provider == _provider}")
-                span.glyphicon.glyphicon-hdd
-                span  {{_provider}}
     div.row
         div.col-md-4
-            h3 
-                span Tables ({{tableListCount}})
-                a(data-toggle="collapse", data-parent="#accordion", target="_self", href="#collapseFilter", ng-click="dataProvider.filterTableList()")
-                    span(ng-class="{empty: tableListFilter == null || tableListFilter.length == 0}").glyphicon.glyphicon-filter.text-right.pull-right
-                span.pull-right.glyphicon.glyphicon-chevron-right(ng-class="{disabled: tableListTo == tableListCount}", ng-disabled="tableListTo == tableListCount", ng-click="dataProvider.getNextTables()")
-                span.pull-right.glyphicon.glyphicon-chevron-left(ng-class="{disabled: tableListFrom <= 1}", ng-disabled="tableListFrom <= 1", ng-click="dataProvider.getPreviousTables()")
-            div.panel-group(id="accordion")
-                div.panel.panel-default
-                    div.panel-collapse.collapse(id="collapseFilter")
-                        div.panel-body
-                            p
-                                textarea.form-control(ng-model="tableListFilter" rows=10 ng-change="dataProvider.checkTableFilter()")
-            div.row
-                div.col-md-12.alert(ng-class="{'alert-info': selectionCounter > 0}")
-                    span(ng-if="selectionCounter == 0") Check tables that you want to integrate 
-                    span(ng-if="selectionCounter == 1") {{selectionCounter}} table to be integrated to host database
-                    span(ng-if="selectionCounter > 1") {{selectionCounter}} tables to be integrated to host database
-                    span.btn-group.btn-group-xs.pull-right(ng-if="selectionCounter > 0", ng-click="dataProvider.addTablesToDBConfig()")
-                        span.pull-right.btn.btn-warning
-                            span.glyphicon.glyphicon-play
-                            span Add    
-            div.right-inner-addon
-                input.form-control(type="text" ng-model="search" ng-change="dataProvider.searchTableNames()" id="searchInput")
-                i.glyphicon.glyphicon-search
-            br
-            div
-                span(ng-if="tableListCount > 0")
-                    input(type="checkbox", ng-model="dataProvider.isAllTableSelected", ng-change="dataProvider.selectAllTableChanged()") 
-                    label Select all        
-                span.pull-right(ng-if="tableListFrom > 1 || tableListTo < tableListCount") Displaying: {{tableListFrom}} - {{tableListTo}}
-            table.table
-                tr(ng-repeat="_table in dataProvider.tableList" ng-class="{info: table == _table.name}")
-                    td
-                        input(type="checkbox" ng-model="_table.selected" ng-disabled="_table.configured" ng-change="dataProvider.tableSelectionChanged()")
-                    td(ng-click="dataProvider.selectTable(_table.name)") {{_table.name}}
+            include includes/tableList
         div(ng-class="{'col-md-6': table !== null && metaData !== null, 'col-md-8': table === null || metaData === null}")
-            h3
-                span Data
-                button.pull-right.btn.btn-sm.btn-info(ng-if="table !== null", ng-click='dataProvider.transposeData()')
-                    span.glyphicon.glyphicon-retweet
-                    span  Transpose
-            div.data-table
-                virtdb-table(data="dataRows", header="dataHeader", callback="dataProvider.selectField", selected-field="field", transposed="dataProvider.transposed")
+            include includes/dataView
         div.col-md-2(ng-if="table !== null && metaData !== null")
-            h3 Meta data
-                h4 Description
-                table.table
-                    tr(ng-repeat="(key, value) in metaData.Desc")
-                        td {{key}}
-                        td {{value}}
-                h4 Comments
-                div.container(ng-repeat="comment in metaData.Comments")
-                    div {{comment.Text}}
-                h4 Properties
-                table.table
-                    tr(ng-repeat="(key, value) in metaData.Properties")
-                        td {{key}}
-                        td {{value.Value[0]}}
+            include includes/metaView

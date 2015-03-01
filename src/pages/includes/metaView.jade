@@ -1,0 +1,14 @@
+h3 Meta data
+    h4 Description
+    table.table
+        tr(ng-repeat="(key, value) in metaData.Desc")
+            td {{key}}
+            td {{value}}
+    h4 Comments
+    div.container(ng-repeat="comment in metaData.Comments")
+        div {{comment.Text}}
+    h4 Properties
+    table.table
+        tr(ng-repeat="(key, value) in metaData.Properties")
+            td {{key}}
+            td {{value.Value[0]}}
