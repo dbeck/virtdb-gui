@@ -2,13 +2,14 @@ DIAG = React.createClass(
     displayName: 'DIAG'
     render: ->
         style = (field) =>
+            ret = "diag-item"
             switch field.level
                 when "ERROR"
-                    "text-danger"
+                    ret += " text-danger"
                 when "INFO"
-                    "text-info"
+                    ret += " text-info"
                 when "SIMPLE_TRACE"
-                    "text-muted"
+                    ret += " text-muted"
 
         rows = []
         header = []
@@ -25,12 +26,12 @@ DIAG = React.createClass(
                 console.log itemDate
                 children.push React.DOM.td null, itemDate.toLocaleString()
                 children.push React.DOM.td null, item.component
-                children.push React.DOM.td null, item.file+':'+item.line+':'+item.function
+                children.push React.DOM.td null, item.function + ' @ ' + item.file + ':' + item.line
                 children.push React.DOM.td null, item.message
                 rows.push React.DOM.tr {className: style(item), key: index}, children 
         head = React.DOM.thead null, React.DOM.tr null, header 
         body = React.DOM.tbody null, rows
-        return React.DOM.table {className: "table"}, [head, body]
+        return React.DOM.table {className: "table table-condensed table-striped diag-item"}, [head, body]
 )
 
 diagTableDirective = -> 
