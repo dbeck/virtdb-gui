@@ -72,6 +72,7 @@ app.controller 'DataProviderController',
             @$scope.tableListTo = 0
             @$scope.tableListCount = 0
             @$scope.selectionCounter = 0
+            @$scope.configuredCounter = 0
 
         requestTableList: () =>
             requestData =
@@ -111,6 +112,7 @@ app.controller 'DataProviderController',
 
             @isMoreTable = data.results.length is DataProviderController.TABLE_LIST_DISPLAY_COUNT
             @tableList = []
+            @$scope.configuredCounter = 0
             for tableName in data.results
                 table =
                     name: tableName
@@ -193,6 +195,7 @@ app.controller 'DataProviderController',
             @requestTableList()
 
         addTablesToDBConfig: () =>
+            @$scope.configuredCounter = 0
             for table in @tableList
                 if table.selected and not table.configured
                     data =
@@ -200,6 +203,7 @@ app.controller 'DataProviderController',
                         provider: @$scope.provider
                     table.selected = false
                     table.configured = true
+                    @$scope.configuredCounter += 1
                     @ServerConnector.sendDBConfig data, (data) =>
                         @$timeout(@requestConfiguredTables, 2000)
             return
@@ -210,13 +214,16 @@ app.controller 'DataProviderController',
             return
 
         onConfiguredTables: (configuredTableList) =>
+            @$scope.configuredCounter = 0
             for _table in @tableList
                 _table.configured = false
                 _table.selected = false
                 for table in configuredTableList
                     if table is _table.name
+                        @$scope.configuredCounter += 1
                         _table.configured = true
                         _table.selected = true
+            @updateSelectionCounter()            
 
         filterTableList: () =>
             @$scope.search = ""

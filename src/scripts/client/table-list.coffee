@@ -33,6 +33,7 @@ tableListDirective = ->
         check: "="
         click: "="
         selectionCounter: "="
+        configuredCounter: "="
     link: (scope, el, attrs) ->
         display = (data, table, check, click) =>
             if data?
@@ -42,4 +43,6 @@ tableListDirective = ->
         scope.$watch 'table', (newValue, oldValue) ->
             display scope.data, newValue, scope.check, scope.click
         scope.$watch 'selectionCounter', (newValue, oldValue) ->
+            display scope.data, scope.table, scope.check, scope.click
+        scope.$watch 'configuredCounter', (newValue, oldValue) ->
             display scope.data, scope.table, scope.check, scope.click
