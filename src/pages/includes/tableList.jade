@@ -28,7 +28,7 @@ div
         input(type="checkbox", ng-model="dataProvider.isAllTableSelected", ng-change="dataProvider.selectAllTableChanged()") 
         label Select all        
     span.pull-right(ng-if="tableListFrom > 1 || tableListTo < tableListCount") Displaying: {{tableListFrom}} - {{tableListTo}}
-    table-list(ng-if="!dataProvider.isLoading", data="dataProvider.tableList", table="table", check="dataProvider.changeSelection", click="dataProvider.selectTable", selection-counter="selectionCounter")
+    table-list(ng-if="!dataProvider.isLoading", data="dataProvider.tableList", table="table", check="dataProvider.changeSelection", click="dataProvider.selectTable", selection-counter="selectionCounter", configured-counter="configuredCounter")
     div(ng-if="dataProvider.isLoading")
         include spinner
 

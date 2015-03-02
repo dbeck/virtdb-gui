@@ -47,7 +47,7 @@ class DiagConnector
         if @_records.length > 0
             for rec in @_records
                 if rec.time >= from and rec.level in levels
-                    records.push rec
+                    records.unshift rec
         return records
 
     @_onRecord: (channel, data) =>
@@ -56,7 +56,7 @@ class DiagConnector
             processedRecord = @_processLogRecord record
             if not processedRecord?
                 return
-            @_records.push processedRecord
+            @_records.unshift processedRecord
             if @_records.length > DiagConnector.MAX_STORED_MESSAGE_COUNT
                 @_records.splice 0, 1
 

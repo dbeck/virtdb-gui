@@ -50,7 +50,7 @@ dgController = app.controller 'DiagnosticsController',
                     else
                         parts.push part.name + "=" + part.value
                 log.message = parts.join ", "
-                @logEntries.push log
+                @logEntries.unshift log
                 if @logEntries.length > DiagnosticsController.MAX_DISPLAYED_DIAG_MSG
                     @logEntries.splice 0,1
 
