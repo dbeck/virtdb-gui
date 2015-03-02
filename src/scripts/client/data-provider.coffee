@@ -161,8 +161,12 @@ app.controller 'DataProviderController',
 
         selectField: (field) =>
             @$scope.$apply () =>
-                @$scope.field = field
-                @$scope.metaData = (fieldMeta for fieldMeta in @tableMetaData.Fields when fieldMeta.Name is field)[0]
+                if @$scope.field == field
+                    @$scope.field = null
+                    @$scope.metaData = null
+                else
+                    @$scope.field = field
+                    @$scope.metaData = (fieldMeta for fieldMeta in @tableMetaData.Fields when fieldMeta.Name is field)[0]
             return
 
         transposeData: () =>
