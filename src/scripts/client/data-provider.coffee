@@ -84,11 +84,11 @@ app.controller 'DataProviderController',
             return
 
         onTableList: (data) =>
-            delete @requestIds[@TABLE_LIST]
-            @tableList = []
             if not data?
                 return
 
+            delete @requestIds[@TABLE_LIST]
+            @tableList = []
             if @tableListEndTimerPromise?
                 @$timeout.cancel(@tableListEndTimerPromise)
                 @tableListEndTimerPromise = null
