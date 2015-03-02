@@ -1,28 +1,28 @@
 div.container
     div.row
-        div.col-md-2
+        div.col-md-3
             h3 Components
-            div.list-group
-                a.list-group-item(
+            table.table.table-bordered
+                tbody
+                    tr(
                     ng-repeat='component in componentList'
-                    ng-click="$parent.selectedComponent = component"
-                    ng-class="{active: $parent.selectedComponent === component}") {{component}}
+                    ng-click="$parent.selectedComponent = component")
+                        td.btn-success(ng-class="{'selected-component': $parent.selectedComponent === component}")
+                            span.glyphicon.glyphicon-hdd
+                            span  {{component}}
         div.col-md-6
             h3 Configuration
-            dov.row(ng-repeat="item in componentConfig")
-                div.col-md-6 {{ item.Data.Scope.Value[0] }} / {{ item.Name }}
-                div.col-md-6
-                    input(type="text" ng-model="item.Data.Value.Value[0]")
-            button.btn.btn-default(ng-click="endpointController.sendConfig()") Save
-
-        div.col-md-4
-            h3 Endpoints
+                button.pull-right.btn.btn-success(ng-click="endpointController.sendConfig()") Save
             table.table
-                tr
-                    th Service type
-                    th Socket type
-                    th Addresses
-                tr(ng-repeat='infoRow in componentInfo')
-                    td {{infoRow.SvcType}}
-                    td {{infoRow.SocketType}}
-                    td {{infoRow.Address}}
+                tr(ng-repeat="item in componentConfig")
+                    td {{ item.Data.Scope.Value[0] }} / {{ item.Name }}
+                    td
+                        input(type="text" ng-model="item.Data.Value.Value[0]")
+
+        div.col-md-3
+            h3 Endpoints
+            div.list-group
+                div.small.list-group-item(ng-repeat='infoRow in componentInfo')
+                    h6 {{infoRow.SvcType}}
+                    div {{infoRow.SocketType}}
+                    div {{infoRow.Address}}
