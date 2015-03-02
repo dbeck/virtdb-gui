@@ -18,12 +18,10 @@ DIAG = React.createClass(
         header.push React.DOM.th null, 'Location'
         header.push React.DOM.th null, 'Message'
         if @props.data?
-            @props.data.sort (a, b) ->
-                b.time - a.time
+            console.log "Collection size: ", @props.data.length
             for item,index in @props.data
                 children = []
                 itemDate = new Date parseInt item.time
-                console.log itemDate
                 children.push React.DOM.td null, itemDate.toLocaleString()
                 children.push React.DOM.td null, item.component
                 children.push React.DOM.td null, item.function + ' @ ' + item.file + ':' + item.line
@@ -44,7 +42,6 @@ diagTableDirective = ->
         scope.$watch ->
             return scope.data
         , (newValue, oldValue) ->
-            console.log newValue
             display newValue
         , true
         return
