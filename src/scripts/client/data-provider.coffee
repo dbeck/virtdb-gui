@@ -29,6 +29,8 @@ app.controller 'DataProviderController',
             @isMoreTable = true
 
             @tablesToFilter = []
+            @isLoading = false
+            @isLoadingTable = false
 
             @getDataProviders()
 
@@ -81,14 +83,16 @@ app.controller 'DataProviderController',
 
             @stopPreviousRequest @TABLE_LIST
             @requestIds[@TABLE_LIST] = @ServerConnector.getTableList(requestData, @onTableList)
+            @isLoading = true
             return
 
         onTableList: (data) =>
-            delete @requestIds[@TABLE_LIST]
-            @tableList = []
             if not data?
                 return
+            @isLoading = false
 
+            delete @requestIds[@TABLE_LIST]
+            @tableList = []
             if @tableListEndTimerPromise?
                 @$timeout.cancel(@tableListEndTimerPromise)
                 @tableListEndTimerPromise = null
@@ -121,6 +125,7 @@ app.controller 'DataProviderController',
             return
 
         requestMetaData: () =>
+            @isLoadingTable = true
             requestData =
                 provider: @$rootScope.provider
                 table: @$scope.table
@@ -150,6 +155,7 @@ app.controller 'DataProviderController',
             return
 
         onData: (data) =>
+            @isLoadingTable = false
             delete @requestIds[@DATA]
             @$scope.dataRows = data
 
@@ -161,8 +167,12 @@ app.controller 'DataProviderController',
 
         selectField: (field) =>
             @$scope.$apply () =>
-                @$scope.field = field
-                @$scope.metaData = (fieldMeta for fieldMeta in @tableMetaData.Fields when fieldMeta.Name is field)[0]
+                if @$scope.field == field
+                    @$scope.field = null
+                    @$scope.metaData = null
+                else
+                    @$scope.field = field
+                    @$scope.metaData = (fieldMeta for fieldMeta in @tableMetaData.Fields when fieldMeta.Name is field)[0]
             return
 
         transposeData: () =>

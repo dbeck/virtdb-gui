@@ -1,5 +1,5 @@
 app = angular.module 'virtdb'
-app.controller 'DiagnosticsController',
+dgController = app.controller 'DiagnosticsController',
     class DiagnosticsController
 
         @REQUEST_INTERVAL = 2000
@@ -53,3 +53,5 @@ app.controller 'DiagnosticsController',
                 @logEntries.push log
                 if @logEntries.length > DiagnosticsController.MAX_DISPLAYED_DIAG_MSG
                     @logEntries.splice 0,1
+
+dgController.directive 'diagTable', diagTableDirective
