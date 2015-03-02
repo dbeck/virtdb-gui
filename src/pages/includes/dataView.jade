@@ -5,3 +5,6 @@ h3
         span  Transpose
 div.data-table
     virtdb-table(data="dataRows", header="dataHeader", callback="dataProvider.selectField", selected-field="field", transposed="dataProvider.transposed")
+div(ng-if="dataProvider.isLoadingTable")
+    include spinner
+

@@ -29,6 +29,8 @@ app.controller 'DataProviderController',
             @isMoreTable = true
 
             @tablesToFilter = []
+            @isLoading = false
+            @isLoadingTable = false
 
             @getDataProviders()
 
@@ -81,11 +83,13 @@ app.controller 'DataProviderController',
 
             @stopPreviousRequest @TABLE_LIST
             @requestIds[@TABLE_LIST] = @ServerConnector.getTableList(requestData, @onTableList)
+            @isLoading = true
             return
 
         onTableList: (data) =>
             if not data?
                 return
+            @isLoading = false
 
             delete @requestIds[@TABLE_LIST]
             @tableList = []
@@ -121,6 +125,7 @@ app.controller 'DataProviderController',
             return
 
         requestMetaData: () =>
+            @isLoadingTable = true
             requestData =
                 provider: @$rootScope.provider
                 table: @$scope.table
@@ -150,6 +155,7 @@ app.controller 'DataProviderController',
             return
 
         onData: (data) =>
+            @isLoadingTable = false
             delete @requestIds[@DATA]
             @$scope.dataRows = data
 
