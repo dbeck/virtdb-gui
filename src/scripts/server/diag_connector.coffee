@@ -58,7 +58,7 @@ class DiagConnector
                 return
             @_records.unshift processedRecord
             if @_records.length > DiagConnector.MAX_STORED_MESSAGE_COUNT
-                @_records.splice 0, 1
+                @_records.splice -1, 1
 
         catch ex
             log.debug "Couldn't process diag message", V_(ex), V_(record)

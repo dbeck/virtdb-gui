@@ -1,3 +1,5 @@
+MAX_LENGTH = 100
+
 DIAG = React.createClass(
     displayName: 'DIAG'
     render: ->
@@ -25,7 +27,7 @@ DIAG = React.createClass(
                 children.push React.DOM.td null, itemDate.toLocaleString()
                 children.push React.DOM.td null, item.component
                 children.push React.DOM.td null, item.function + ' @ ' + item.file + ':' + item.line
-                children.push React.DOM.td null, item.message
+                children.push React.DOM.td null, item.message.substring 0, MAX_LENGTH
                 rows.push React.DOM.tr {className: style(item), key: index}, children 
         head = React.DOM.thead null, React.DOM.tr null, header 
         body = React.DOM.tbody null, rows

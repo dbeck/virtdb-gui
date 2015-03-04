@@ -52,6 +52,6 @@ dgController = app.controller 'DiagnosticsController',
                 log.message = parts.join ", "
                 @logEntries.unshift log
                 if @logEntries.length > DiagnosticsController.MAX_DISPLAYED_DIAG_MSG
-                    @logEntries.splice 0,1
+                    @logEntries.splice -1,1
 
 dgController.directive 'diagTable', diagTableDirective
