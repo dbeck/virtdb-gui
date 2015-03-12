@@ -1,5 +1,5 @@
 zmq = require "zmq"
-Const = (require "virtdb-connector").Constants
+Const = (require "virtdb-connector").Const
 log = (require "virtdb-connector").log
 V_ = log.Variable
 Proto = require "virtdb-proto"

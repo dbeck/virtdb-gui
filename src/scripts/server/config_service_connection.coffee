@@ -2,7 +2,7 @@ require("source-map-support").install()
 zmq = require "zmq"
 Proto = require "virtdb-proto"
 VirtDBConnector = require "virtdb-connector"
-Const = VirtDBConnector.Constants
+Const = VirtDBConnector.Const
 log = VirtDBConnector.log
 V_ = log.Variable
 

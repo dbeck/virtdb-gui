@@ -1,7 +1,7 @@
 DataConnection = require "./data_connection"
 MetadataHandler = require "./meta_data_handler"
 ColumnReceiver = require "./column_receiver"
-Const = (require "virtdb-connector").Constants
+Const = (require "virtdb-connector").Const
 Endpoints = require "./endpoints"
 
 log = (require "virtdb-connector").log

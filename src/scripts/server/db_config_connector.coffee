@@ -9,7 +9,7 @@ Endpoints = require "./endpoints"
 
 VirtDBConnector = require "virtdb-connector"
 Config = require "./config"
-Const = VirtDBConnector.Constants
+Const = VirtDBConnector.Const
 log = VirtDBConnector.log
 V_ = log.Variable
 

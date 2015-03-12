@@ -1,7 +1,7 @@
 zmq = require "zmq"
 MetadataConnection = require "../src/scripts/server/metadata_connection"
 VirtDBConnector = require "virtdb-connector"
-Const = VirtDBConnector.Constants
+Const = VirtDBConnector.Const
 Proto = (require "virtdb-proto")
 
 chai = require "chai"

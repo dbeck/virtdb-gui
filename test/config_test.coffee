@@ -2,7 +2,7 @@ Config = require "../src/scripts/server/config"
 ConfigService = require "../src/scripts/server/config_service"
 VirtDBConnector = (require "virtdb-connector")
 convert = VirtDBConnector.Convert
-Const = VirtDBConnector.Constants
+Const = VirtDBConnector.Const
 Proto = require "virtdb-proto"
 
 chai = require "chai"
