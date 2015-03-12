@@ -1,5 +1,5 @@
 VirtDBConnector = require "virtdb-connector"
-Const = VirtDBConnector.Constants
+Const = VirtDBConnector.Const
 
 class Endpoints
 

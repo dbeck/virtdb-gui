@@ -1,7 +1,7 @@
 zmq = require "zmq"
 DataConnection = require "../src/scripts/server/data_connection"
 VirtDBConnector = require "virtdb-connector"
-Const = VirtDBConnector.Constants
+Const = VirtDBConnector.Const
 Proto = (require "virtdb-proto")
 lz4 = require "lz4"
 

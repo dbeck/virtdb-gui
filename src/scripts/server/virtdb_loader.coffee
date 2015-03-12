@@ -4,7 +4,7 @@ Endpoints = require "./endpoints"
 DiagConnector = require "./diag_connector"
 CacheHandler = require "./cache_handler"
 VirtDBConnector = require "virtdb-connector"
-Const = VirtDBConnector.Constants
+Const = VirtDBConnector.Const
 
 class VirtDBLoader
 
@@ -16,8 +16,8 @@ class VirtDBLoader
         console.log "GUI starting: ", name
         console.log "Config-service address: ", address
 
-        VirtDBConnector.onAddress VirtDBConnector.ALL_TYPE, VirtDBConnector.ALL_TYPE, (name, addresses, svcType, connectionType) =>
-            Endpoints.onEndpoint name, svcType, connectionType, addresses
+        VirtDBConnector.onAddress Const.ALL_TYPE, Const.ALL_TYPE, (name, addresses, svcType, connectionType) =>
+            Endpoints.onEndpoint name, svcType, connectionType, addresses, 
 
         VirtDBConnector.onAddress Const.ENDPOINT_TYPE.CONFIG, Const.SOCKET_TYPE.REQ_REP, (name, addresses) =>
             Endpoints.onEndpoint name, Const.ENDPOINT_TYPE.CONFIG, addresses

@@ -2,7 +2,7 @@ CacheHandler = require "./cache_handler"
 MetadataConnection = require "./metadata_connection"
 Endpoints = require "./endpoints"
 VirtDBConnector = require "virtdb-connector"
-Const = VirtDBConnector.Constants
+Const = VirtDBConnector.Const
 log = VirtDBConnector.log
 V_ = log.Variable
 

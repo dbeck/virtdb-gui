@@ -1,5 +1,5 @@
 VirtDBConnector = require "virtdb-connector"
-Const = VirtDBConnector.Constants
+Const = VirtDBConnector.Const
 Endpoints = require "../src/scripts/server/endpoints"
 util = require "util"
 
