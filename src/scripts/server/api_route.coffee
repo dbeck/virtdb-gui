@@ -139,8 +139,11 @@ router.post "/db_config/add", timeout(Config.getCommandLineParameter("timeout"))
     try
         metadataHandler = new MetadataHandler()
         metadataHandler.getTableMetadata provider, table, (metaData) ->
-            DBConfig.addTable(provider, metaData)
-            res.status(200).send()
+            DBConfig.addTable provider, metaData, (err) ->
+                if not err?
+                    res.status(200).send()
+                else
+                    res.status(500).send()
             return
     catch ex
         log.error V_(ex)
@@ -177,7 +180,7 @@ router.post "/get_diag", timeout(Config.getCommandLineParameter("timeout")), (re
     res.json DiagConnector.getRecords from, levels
 
 router.use (err, req, res, next) =>
-    log.error V_(req.url), V_(req.body), V_(err)
+    log.error V_(req.url), V_(req.body), V_(err.message)
     res.status(if err.status? then err.status else 500).send(err.message)
 
 module.exports = router

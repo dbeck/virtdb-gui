@@ -36,6 +36,8 @@ cobertura-coverage.xml
 
 # ide files
 .idea/
+tags
+*.swp
 
 # build tmp files
 build-result/

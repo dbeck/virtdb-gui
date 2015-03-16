@@ -33,8 +33,8 @@
     "source-map-support": "^0.2.7",
     "static-favicon": "~1.0.0",
     "stylus": "0.42.3",
-    "virtdb-connector": "^1.0.3",
-    "virtdb-proto": "^1.6.0",
+    "virtdb-proto": "^2.0.0",
+    "virtdb-connector": "^1.0.6",
     "zmq": "2.8.0"
   },
   "devDependencies": {
