@@ -45,25 +45,34 @@ class DBConfig
             log.debug "db config cache expired", V_(key)
 
 
-    @addTable: (provider, tableMeta) =>
+    @addTable: (provider, tableMeta, callback) =>
         try
             if not tableMeta?
                 log.error "couldn't add table to the db config due to a problem with the meta data", V_(tableMeta)
                 return
-            
+
+            if tableMeta.Tables.length is not 1
+                log.error "exactly one table should be in metadata", V_(tableMeta)
+
             if not @_dbConfigService?
                 log.error "missing db config service"
                 return
+
+            tableMeta.Table = tableMeta.Tables[0]
             
             connection = DBConfigConnection.getConnection(@_dbConfigService)
             if not connection?
                 log.error "unable to get db config connection"
                 return    
             
-            connection.sendServerConfig provider, tableMeta
-            log.info "table added to the db config", V_(tableMeta.Name), V_(provider)
-            @_configuredTablesCache.del(provider)
-            log.debug "db config cache were emptied", V_(tableMeta.Name), V_(provider)
+            connection.sendServerConfig provider, tableMeta, (err) ->
+                if not err? or err isnt {}
+                    log.info "table added to the db config", V_(tableMeta.Name), V_(provider)
+                else
+                    log.error "table could not be added to db config", V_(err), V_(tableMeta.Name), V_(provider)
+                @_configuredTablesCache.del(provider)
+                log.debug "db config cache were emptied", V_(tableMeta.Name), V_(provider)
+                callback err
         catch ex
             log.error V_(ex)
             throw ex
@@ -87,19 +96,18 @@ class DBConfig
                     return    
                 connection.getTables provider, (msg) =>
                         try
-                            if msg.Servers.length > 0
-                                if msg?.Servers[0]?.Tables?
-                                    tableList = []
-                                    for table in msg.Servers[0].Tables
-                                        if not table.Schema? or table.Schema is ""
-                                            tableList.push table.Name
-                                        else
-                                            tableList.push table.Schema + "." + table.Name
-                                    if tableList.length > 0
-                                        if not @_configuredTablesCache?
-                                            @_initCache()
-                                        @_configuredTablesCache.set(provider, tableList)
-                                    onReady tableList
+                            if msg?.Tables?.length > 0
+                                tableList = []
+                                for table in msg.Tables
+                                    if not table.Schema? or table.Schema is ""
+                                        tableList.push table.Name
+                                    else
+                                        tableList.push table.Schema + "." + table.Name
+                                if tableList.length > 0
+                                    if not @_configuredTablesCache?
+                                        @_initCache()
+                                    @_configuredTablesCache.set(provider, tableList)
+                                onReady tableList
                             else
                                 onReady []
                         catch ex
@@ -131,17 +139,21 @@ class DBConfigConnection
 
     constructor: (@serverConfigAddress, @dbConfigQueryAddress) ->
 
-    sendServerConfig: (provider, tableMeta) =>
+    sendServerConfig: (provider, tableMeta, callback) =>
 
-        @_pushPullSocket = zmq.socket(Const.ZMQ_PUSH)
+        @_pushPullSocket = zmq.socket(Const.ZMQ_REQ)
+        @_pushPullSocket.on "message", (msg) =>
+            reply = dbConfigProto.parse msg, "virtdb.interface.pb.ServerConfigReply"
+            callback reply
+
         for addr in @serverConfigAddress
             @_pushPullSocket.connect addr
 
         tableMeta.Schema ?= ""
         serverConfigMessage =
-            Type: Const.SERVER_CONFIG_TYPE
             Name: provider
-            Tables: tableMeta.Tables
+            Table: tableMeta.Table
+            Action: 'CREATE'
         @_pushPullSocket.send dbConfigProto.serialize serverConfigMessage, "virtdb.interface.pb.ServerConfig"
 
     getTables: (provider, onReady) =>
