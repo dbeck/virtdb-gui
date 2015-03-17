@@ -10,15 +10,6 @@ div.panel-group(id="accordion")
             div.panel-body
                 p
                     textarea.form-control(ng-model="tableListFilter" rows=10 ng-change="dataProvider.checkTableFilter()")
-div.row
-    div.col-md-12.alert(ng-class="{'alert-info': selectionCounter > 0}")
-        span(ng-if="selectionCounter == 0") Check tables that you want to integrate 
-        span(ng-if="selectionCounter == 1") {{selectionCounter}} table to be integrated to host database
-        span(ng-if="selectionCounter > 1") {{selectionCounter}} tables to be integrated to host database
-        span.btn-group.btn-group-xs.pull-right(ng-if="selectionCounter > 0", ng-click="dataProvider.addTablesToDBConfig()")
-            span.pull-right.btn.btn-warning
-                span.glyphicon.glyphicon-play
-                span Add    
 div.right-inner-addon
     input.form-control(type="text" ng-model="search" ng-change="dataProvider.searchTableNames()" id="searchInput")
     i.glyphicon.glyphicon-search
@@ -32,8 +23,3 @@ div
     div(ng-if="dataProvider.isLoading")
         include spinner
 
- // table.table
- //   tr(ng-repeat="_table in dataProvider.tableList" ng-class="{info: table == _table.name}")
- //       td
-//            input(type="checkbox" ng-model="_table.selected" ng-disabled="_table.configured" ng-change="dataProvider.tableSelectionChanged()")
-//        td(ng-click="dataProvider.selectTable(_table.name)") {{_table.name}}

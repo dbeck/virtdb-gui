@@ -1,29 +1,66 @@
-TABLELIST = React.createClass(
-    displayName: 'TABLELIST'
+R = React.DOM
+
+TableItem = React.createClass(
+    displayName: "TableItem"
     render: ->
-        getClass = (current, selected)  ->
-            if (current == selected)
-                return {className: 'info' }
-            else
-                return null
+        getClass = =>
+            ret =
+                onClick: @props.onClick
+            if @props.selected then ret.className = 'info'
+            return ret
 
         checkHandler = (table) =>
             return (ev) =>
-                @props.check(table)
+                @props.check table
 
         clickHandler = (tableName) =>
             return (ev) =>
                 @props.click tableName
 
+        refreshButton = (table) =>
+            if not table.selected or not table.outdated
+                return null
+            R.span
+                className: 'glyphicon glyphicon-refresh'
+            , null
+
+        children = []
+
+        # Refresh
+        children.push R.td null, refreshButton @props.table
+
+        # onoff
+        children.push R.td null, R.div {className: "switch"},
+            [
+                R.input
+                    onChange: checkHandler(@props.table)
+                    checked: @props.table.selected
+                    type: 'checkbox'
+                    name: 'switch'
+                    className: 'cmn-toggle cmn-toggle-round-flat'
+                    id: 'switch' + @props.table.name
+                , null
+            ,
+                R.label
+                    htmlFor: 'switch' + @props.table.name
+            ]
+
+        children.push R.td 
+            onClick: clickHandler(@props.table.name)
+        , @props.table.name
+        
+        return R.tr getClass(), children   
+)
+
+TableList = React.createClass(
+    displayName: 'TableList'
+    render: ->
         children = []
         if this.props.data?
             for table in this.props.data
-                row = []
-                row.push React.DOM.td null, React.DOM.input { onChange: checkHandler(table), checked: table.selected, type: 'checkbox'}, null
-                row.push React.DOM.td { onClick: clickHandler(table.name) }, table.name
-                children.push React.DOM.tr getClass(table.name, this.props.selectedTable), row
+                children.push React.createElement TableItem, {table: table, click: @props.click,  check: @props.check, selected: table.name == @props.selectedTable}
         return React.DOM.table {className: 'table'}, React.DOM.tbody null, children 
-    )
+)
 
 tableListDirective = ->
     restrict: 'E'
@@ -37,7 +74,7 @@ tableListDirective = ->
     link: (scope, el, attrs) ->
         display = (data, table, check, click) =>
             if data?
-                React.render TABLELIST(data: data, selectedTable: table, check: check, click: click), el[0]
+                React.render TableList(data: data, selectedTable: table, check: check, click: click), el[0]
         scope.$watch 'data', (newValue, oldValue) ->
             display newValue, scope.table, scope.check, scope.click
         scope.$watch 'table', (newValue, oldValue) ->

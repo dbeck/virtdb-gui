@@ -1,4 +1,27 @@
 app = angular.module 'virtdb'
+app.controller 'ProviderController',
+    class ProviderController
+        constructor: ($scope, ServerConnector) ->
+            @$scope = $scope
+            @ServerConnector = ServerConnector
+            @providers = []
+            @getDataProviders()
+
+        getDataProviders: () =>
+            @ServerConnector.getDataProviders(
+                (data) =>
+                    @providers = data
+                    @providers.sort()
+                    @selectProvider @providers[0]
+            )
+            return
+
+        selectProvider: (provider) =>
+            @$scope.$parent.selectedProvider = provider
+
+        isSelected: (provider) =>
+            provider is @$scope.$parent.selectedProvider
+
 app.controller 'DataProviderController',
     class DataProviderController
 
@@ -8,15 +31,19 @@ app.controller 'DataProviderController',
         DATA = "data"
         META_DATA = "metadata"
 
-        constructor: ($rootScope, $scope, $http, $timeout, ServerConnector) ->
-            @$rootScope = $rootScope
+        constructor: ($scope, $http, $timeout, ServerConnector) ->
             @$scope = $scope
             @$http = $http
             @$timeout = $timeout
             @ServerConnector = ServerConnector
-            @providers = []
-            @$rootScope.provider = null
             @requestIds = {}
+            @$scope.selectedProvider = null
+            @$scope.$watch 'selectedProvider', (newValue, oldValue) =>
+                console.log "Selected provider changed to: ", newValue
+                angular.element("#searchInput").focus()
+                @resetProviderLevelView()
+                @requestTableList()
+
 
             @tableListEndTimerPromise = null
 
@@ -32,24 +59,8 @@ app.controller 'DataProviderController',
             @isLoading = false
             @isLoadingTable = false
 
-            @getDataProviders()
 
-        getDataProviders: () =>
-            @ServerConnector.getDataProviders(
-                (data) =>
-                    @providers = data
-                    @providers.sort()
-                    @selectProvider(@providers[0])
-            )
-            return
 
-        selectProvider: (provider) =>
-            if provider is @$rootScope.provider
-                return
-            @$rootScope.provider = provider
-            angular.element("#searchInput").focus()
-            @resetProviderLevelView()
-            @requestTableList()
 
         resetTableLevelView: () =>
             @tableData = null
@@ -78,7 +89,7 @@ app.controller 'DataProviderController',
             requestData =
                 tables: @tablesToFilter
                 search: @$scope.search
-                provider: @$rootScope.provider
+                provider: @$scope.selectedProvider
                 from: @tableListPosition + 1
                 to: @tableListPosition + DataProviderController.TABLE_LIST_DISPLAY_COUNT
 
@@ -118,6 +129,7 @@ app.controller 'DataProviderController',
                     name: tableName
                     selected: false
                     configured: false
+                    outdated: false
                 @tableList.push table
 
             @tableSelectionChanged()
@@ -129,7 +141,7 @@ app.controller 'DataProviderController',
         requestMetaData: () =>
             @isLoadingTable = true
             requestData =
-                provider: @$rootScope.provider
+                provider: @$scope.selectedProvider
                 table: @$scope.table
 
             @stopPreviousRequest @META_DATA
@@ -148,7 +160,7 @@ app.controller 'DataProviderController',
 
         requestData: () =>
             requestData =
-                provider: @$rootScope.provider
+                provider: @$scope.selectedProvider
                 table: @$scope.table
                 count: DataProviderController.DATA_LIMIT
 
@@ -194,22 +206,15 @@ app.controller 'DataProviderController',
             @tableListPosition = 0
             @requestTableList()
 
-        addTablesToDBConfig: () =>
-            @$scope.configuredCounter = 0
-            for table in @tableList
-                if table.selected and not table.configured
-                    data =
-                        table: table.name
-                        provider: @$scope.provider
-                    table.selected = false
-                    table.configured = true
-                    @$scope.configuredCounter += 1
-                    @ServerConnector.sendDBConfig data, (data) =>
-                        @$timeout(@requestConfiguredTables, 2000)
-            return
+        addTableToDBConfig: (table) =>
+            data =
+                table: table.name
+                provider: @$scope.selectedProvider
+            @ServerConnector.sendDBConfig data, (data) =>
+                @$timeout(@requestConfiguredTables, 2000)
 
         requestConfiguredTables: () =>
-            data = provider: @$scope.provider
+            data = provider: @$scope.selectedProvider
             @ServerConnector.getDBConfig(data, @onConfiguredTables)
             return
 
@@ -218,11 +223,13 @@ app.controller 'DataProviderController',
             for _table in @tableList
                 _table.configured = false
                 _table.selected = false
+                _table.outdated = false
                 for table in configuredTableList
                     if table is _table.name
                         @$scope.configuredCounter += 1
                         _table.configured = true
                         _table.selected = true
+                        _table.outdated = true
             @updateSelectionCounter()            
 
         filterTableList: () =>
@@ -236,16 +243,14 @@ app.controller 'DataProviderController',
                 @tablesToFilter.push item
 
         changeSelection: (table) =>
-            @$scope.$apply () =>
-                table.selected = not table.selected
-                @updateSelectionCounter()
+            @addTableToDBConfig table
 
         selectAllTableChanged: () =>
             for table in @tableList when not table.configured
                 table.selected = @isAllTableSelected
             @updateSelectionCounter()
 
-        tableSelectionChanged: () =>
+        tableSelectionChanged: (table) =>
             @isAllTableSelected = true
             for _table in @tableList when not _table.selected and not _table.configured
                 @isAllTableSelected = false
