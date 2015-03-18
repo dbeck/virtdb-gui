@@ -2,54 +2,34 @@ app = angular.module 'virtdb'
 app.controller 'DataProviderController',
     class DataProviderController
 
-        @TABLE_LIST_DISPLAY_COUNT = 50
         @DATA_LIMIT = 20
-        TABLE_LIST = "tablelist"
         DATA = "data"
         META_DATA = "metadata"
 
-        constructor: ($rootScope, $scope, $http, $timeout, ServerConnector) ->
-            @$rootScope = $rootScope
+        constructor: ($scope, ServerConnector) ->
             @$scope = $scope
-            @$http = $http
-            @$timeout = $timeout
             @ServerConnector = ServerConnector
-            @providers = []
-            @$rootScope.provider = null
             @requestIds = {}
+            @$scope.selectedProvider = null
+            @$scope.$watch 'selectedProvider', (newValue, oldValue) =>
+                angular.element("#searchInput").focus()
+                @resetTableLevelView()
+                @$scope.$broadcast "selectedProviderChanged", newValue
 
-            @tableListEndTimerPromise = null
+            @$scope.$on 'tableSelected', (event, table) =>
+                @$scope.table = table
+                @resetTableLevelView()
+                @requestMetaData()
 
             @tableMetaData = null
             @tableList = null
             @isAllTableSelected = false
 
             @transposed = false
-            @tableListPosition = 0
             @isMoreTable = true
 
-            @tablesToFilter = []
             @isLoading = false
             @isLoadingTable = false
-
-            @getDataProviders()
-
-        getDataProviders: () =>
-            @ServerConnector.getDataProviders(
-                (data) =>
-                    @providers = data
-                    @providers.sort()
-                    @selectProvider(@providers[0])
-            )
-            return
-
-        selectProvider: (provider) =>
-            if provider is @$rootScope.provider
-                return
-            @$rootScope.provider = provider
-            angular.element("#searchInput").focus()
-            @resetProviderLevelView()
-            @requestTableList()
 
         resetTableLevelView: () =>
             @tableData = null
@@ -60,76 +40,10 @@ app.controller 'DataProviderController',
             @$scope.field = null
             @$scope.metaData = null
 
-        resetProviderLevelView: () =>
-            @resetTableLevelView()
-
-            @tableList = []
-            @tableListPosition = 0
-
-            @$scope.table = null
-            @$scope.search = ""
-            @$scope.tableListFrom = 0
-            @$scope.tableListTo = 0
-            @$scope.tableListCount = 0
-            @$scope.selectionCounter = 0
-            @$scope.configuredCounter = 0
-
-        requestTableList: () =>
-            requestData =
-                tables: @tablesToFilter
-                search: @$scope.search
-                provider: @$rootScope.provider
-                from: @tableListPosition + 1
-                to: @tableListPosition + DataProviderController.TABLE_LIST_DISPLAY_COUNT
-
-            @stopPreviousRequest @TABLE_LIST
-            @requestIds[@TABLE_LIST] = @ServerConnector.getTableList(requestData, @onTableList)
-            @isLoading = true
-            return
-
-        onTableList: (data) =>
-            if not data?
-                return
-            @isLoading = false
-
-            delete @requestIds[@TABLE_LIST]
-            @tableList = []
-            if @tableListEndTimerPromise?
-                @$timeout.cancel(@tableListEndTimerPromise)
-                @tableListEndTimerPromise = null
-
-            @$scope.tableListCount = data.count
-            if data.count > 0
-                @$scope.tableListFrom = data.from + 1
-                @$scope.tableListTo = data.to + 1
-            else
-                @$scope.tableListFrom = data.from
-                @$scope.tableListTo = data.to
-
-            if data.results.length is 0
-                @isMoreTable = false
-                return
-
-            @isMoreTable = data.results.length is DataProviderController.TABLE_LIST_DISPLAY_COUNT
-            @tableList = []
-            @$scope.configuredCounter = 0
-            for tableName in data.results
-                table =
-                    name: tableName
-                    selected: false
-                    configured: false
-                @tableList.push table
-
-            @tableSelectionChanged()
-            @tableListEndTimerPromise = @$timeout(() =>
-                @requestConfiguredTables()
-            , 500)
-            return
-
         requestMetaData: () =>
             @isLoadingTable = true
             requestData =
-                provider: @$rootScope.provider
+                provider: @$scope.selectedProvider
                 table: @$scope.table
 
             @stopPreviousRequest @META_DATA
@@ -148,7 +62,7 @@ app.controller 'DataProviderController',
 
         requestData: () =>
             requestData =
-                provider: @$rootScope.provider
+                provider: @$scope.selectedProvider
                 table: @$scope.table
                 count: DataProviderController.DATA_LIMIT
 
@@ -160,12 +74,6 @@ app.controller 'DataProviderController',
             @isLoadingTable = false
             delete @requestIds[@DATA]
             @$scope.dataRows = data
-
-        selectTable: (table) =>
-            @$scope.table = table
-            @resetTableLevelView()
-            @requestMetaData()
-            return
 
         selectField: (field) =>
             @$scope.$apply () =>
@@ -180,84 +88,7 @@ app.controller 'DataProviderController',
         transposeData: () =>
             @transposed = !@transposed
 
-        getNextTables: () =>
-            if @isMoreTable
-                @tableListPosition = @tableListPosition + DataProviderController.TABLE_LIST_DISPLAY_COUNT
-                @requestTableList()
-
-        getPreviousTables: () =>
-            if @tableListPosition isnt 0
-                @tableListPosition = @tableListPosition - DataProviderController.TABLE_LIST_DISPLAY_COUNT
-                @requestTableList()
-
-        searchTableNames: () =>
-            @tableListPosition = 0
-            @requestTableList()
-
-        addTablesToDBConfig: () =>
-            @$scope.configuredCounter = 0
-            for table in @tableList
-                if table.selected and not table.configured
-                    data =
-                        table: table.name
-                        provider: @$scope.provider
-                    table.selected = false
-                    table.configured = true
-                    @$scope.configuredCounter += 1
-                    @ServerConnector.sendDBConfig data, (data) =>
-                        @$timeout(@requestConfiguredTables, 2000)
-            return
-
-        requestConfiguredTables: () =>
-            data = provider: @$scope.provider
-            @ServerConnector.getDBConfig(data, @onConfiguredTables)
-            return
-
-        onConfiguredTables: (configuredTableList) =>
-            @$scope.configuredCounter = 0
-            for _table in @tableList
-                _table.configured = false
-                _table.selected = false
-                for table in configuredTableList
-                    if table is _table.name
-                        @$scope.configuredCounter += 1
-                        _table.configured = true
-                        _table.selected = true
-            @updateSelectionCounter()            
-
-        filterTableList: () =>
-            @$scope.search = ""
-            @tableListPosition = 0
-            @requestTableList()
-
-        checkTableFilter: () =>
-            @tablesToFilter = []
-            for item in @$scope.tableListFilter.split("\n") when item.length > 0
-                @tablesToFilter.push item
-
-        changeSelection: (table) =>
-            @$scope.$apply () =>
-                table.selected = not table.selected
-                @updateSelectionCounter()
-
-        selectAllTableChanged: () =>
-            for table in @tableList when not table.configured
-                table.selected = @isAllTableSelected
-            @updateSelectionCounter()
-
-        tableSelectionChanged: () =>
-            @isAllTableSelected = true
-            for _table in @tableList when not _table.selected and not _table.configured
-                @isAllTableSelected = false
-            @updateSelectionCounter()
-
-        updateSelectionCounter: () =>
-            @$scope.selectionCounter = 0
-            for _table in @tableList when _table.selected and not _table.configured
-                @$scope.selectionCounter++
-
         stopPreviousRequest: (type) =>
             if @requestIds[type]?
                 @ServerConnector.cancelRequest @requestIds[type]
 .directive 'virtdbTable', virtdbTableDirective
-.directive 'tableList', tableListDirective 
