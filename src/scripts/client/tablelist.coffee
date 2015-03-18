@@ -27,12 +27,17 @@ TableItem = React.createClass(
         children = []
 
         # Refresh
-        children.push R.td null, refreshButton @props.table
+        children.push R.td
+            key: "refresh" + @props.table.name
+        , refreshButton @props.table
 
         # onoff
-        children.push R.td null, R.div {className: "switch"},
+        children.push R.td
+            key: "onoff" + @props.table.name
+        , R.div {className: "switch"},
             [
                 R.input
+                    key: "input-onoff" + @props.table.name
                     onChange: checkHandler(@props.table)
                     checked: @props.table.selected
                     type: 'checkbox'
@@ -42,10 +47,12 @@ TableItem = React.createClass(
                 , null
             ,
                 R.label
+                    key: "label-onoff" + @props.table.name
                     htmlFor: 'switch' + @props.table.name
             ]
 
         children.push R.td
+            key: "tableName" + @props.table.name
             onClick: clickHandler(@props.table)
         , @props.table.name
         
@@ -57,8 +64,9 @@ TableList = React.createClass(
     render: ->
         children = []
         if this.props.data?
-            for table in this.props.data
+            for table,index in this.props.data
                 children.push React.createElement TableItem,
+                    key: index
                     table: table
                     click: @props.click
                     check: @props.check
@@ -78,7 +86,7 @@ tableListDirective = ->
         display = (data, table, check, click) ->
             if data?
                 React.render(
-                    TableList
+                    React.createElement TableList,
                         data: data
                         selectedTable: table
                         check: check
