@@ -20,7 +20,7 @@ app.factory 'ServerConnector', ['$http', 'ErrorService', '$q', ($http, ErrorServ
                 onSuccess []
             )
 
-        getTableList: (data, onSuccess) =>
+        getTableList: (data, onSuccess, onError) =>
             data.id = generateRequestId()
 
             $http.post(@address + "/api/data_provider/table_list", data, {timeout: @createCanceler data.id})
@@ -29,7 +29,7 @@ app.factory 'ServerConnector', ['$http', 'ErrorService', '$q', ($http, ErrorServ
             )
             .error( (response, status) =>
                 ErrorService.errorHappened "Couldn't get table list! " + JSON.stringify(data) + " response: " + response
-                onSuccess null
+                onError response
             )
             return data.id
 

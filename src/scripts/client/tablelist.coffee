@@ -13,11 +13,11 @@ TableItem = React.createClass(
             return (ev) =>
                 @props.check table
 
-        clickHandler = (tableName) =>
+        clickHandler = (table) =>
             return (ev) =>
-                @props.click tableName
+                @props.click table
 
-        refreshButton = (table) =>
+        refreshButton = (table) ->
             if not table.selected or not table.outdated
                 return null
             R.span
@@ -45,11 +45,11 @@ TableItem = React.createClass(
                     htmlFor: 'switch' + @props.table.name
             ]
 
-        children.push R.td 
-            onClick: clickHandler(@props.table.name)
+        children.push R.td
+            onClick: clickHandler(@props.table)
         , @props.table.name
         
-        return R.tr getClass(), children   
+        return R.tr getClass(), children
 )
 
 TableList = React.createClass(
@@ -58,8 +58,12 @@ TableList = React.createClass(
         children = []
         if this.props.data?
             for table in this.props.data
-                children.push React.createElement TableItem, {table: table, click: @props.click,  check: @props.check, selected: table.name == @props.selectedTable}
-        return React.DOM.table {className: 'table'}, React.DOM.tbody null, children 
+                children.push React.createElement TableItem,
+                    table: table
+                    click: @props.click
+                    check: @props.check
+                    selected: table.name == @props.selectedTable
+        return React.DOM.table {className: 'table'}, React.DOM.tbody null, children
 )
 
 tableListDirective = ->
@@ -69,17 +73,20 @@ tableListDirective = ->
         table: "="
         check: "="
         click: "="
-        selectionCounter: "="
         configuredCounter: "="
     link: (scope, el, attrs) ->
-        display = (data, table, check, click) =>
+        display = (data, table, check, click) ->
             if data?
-                React.render TableList(data: data, selectedTable: table, check: check, click: click), el[0]
+                React.render(
+                    TableList
+                        data: data
+                        selectedTable: table
+                        check: check
+                        click: click
+                , el[0])
         scope.$watch 'data', (newValue, oldValue) ->
             display newValue, scope.table, scope.check, scope.click
         scope.$watch 'table', (newValue, oldValue) ->
             display scope.data, newValue, scope.check, scope.click
-        scope.$watch 'selectionCounter', (newValue, oldValue) ->
-            display scope.data, scope.table, scope.check, scope.click
         scope.$watch 'configuredCounter', (newValue, oldValue) ->
             display scope.data, scope.table, scope.check, scope.click
