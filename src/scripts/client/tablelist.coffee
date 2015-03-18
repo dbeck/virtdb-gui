@@ -27,9 +27,9 @@ TableItem = React.createClass(
         children = []
 
         # Refresh
-        children.push R.td
-            key: "refresh" + @props.table.name
-        , refreshButton @props.table
+        # children.push R.td
+        #     key: "refresh" + @props.table.name
+        # , refreshButton @props.table
 
         # onoff
         children.push R.td

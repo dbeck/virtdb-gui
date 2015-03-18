@@ -1,7 +1,7 @@
 app = angular.module 'virtdb'
 app.controller 'TableListController',
     class TableListController
-        @ITEMS_PER_PAGE = 2
+        @ITEMS_PER_PAGE = 50
 
         constructor: ($scope, $timeout, ServerConnector) ->
             @$scope = $scope
@@ -123,15 +123,13 @@ app.controller 'TableListController',
                         _table.selected = true
                         _table.outdated = true
 
-        changeSelection: (table) =>
-            @addTableToDBConfig table
-
-        addTableToDBConfig: (table) =>
+        changeStatus: (table) =>
             data =
                 table: table.name
+                action: if table.configured then 'DELETE' else 'CREATE'
                 provider: @$scope.selectedProvider
             @ServerConnector.sendDBConfig data, (data) =>
-                @$timeout(@requestConfiguredTables, 2000)
+                @requestConfiguredTables()
 
         filterTableList: () =>
             @$scope.search = ""
