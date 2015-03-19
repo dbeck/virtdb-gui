@@ -12,6 +12,12 @@ class MetadataHandler
 
     constructor: ->
 
+    emptyProviderCache: (provider) =>
+        for key in CacheHandler.listKeys()
+            [cachedProvider, request] = @_parseCacheKey key
+            if cachedProvider is provider
+                CacheHandler.delete key
+
     getTableList: (provider, search, from, to, filterList, onReady) =>
         try
             tableListRequest = @_createTableListMessage()
@@ -33,18 +39,6 @@ class MetadataHandler
             log.error V_(ex)
             throw ex
 
-    _putMetadataInCache: (cacheKey, metadata, isPermanent) =>
-        if metadata.Tables.length > 0
-            CacheHandler.set cacheKey, metadata
-            if isPermanent
-                CacheHandler.addKeyExpirationListener cacheKey, @_refillMetadataCache
-
-    _refillMetadataCache: (key) =>
-        [provider, request] = @_parseCacheKey key
-        metadataConnection = MetadataConnection.createInstance Endpoints.getMetadataAddress provider
-        metadataConnection.getMetadata request, (metadata) =>
-            @_putMetadataInCache key, metadata, true
-    
     getTableMetadata: (provider, table, onReady) =>
         try
             tableMetadataRequest = @_createTableMetadataMessage(table)
@@ -63,6 +57,18 @@ class MetadataHandler
         catch ex
             log.error V_(ex)
             throw ex
+
+    _putMetadataInCache: (cacheKey, metadata, isPermanent) =>
+        if metadata.Tables.length > 0
+            CacheHandler.set cacheKey, metadata
+            if isPermanent
+                CacheHandler.addKeyExpirationListener cacheKey, @_refillMetadataCache
+
+    _refillMetadataCache: (key) =>
+        [provider, request] = @_parseCacheKey key
+        metadataConnection = MetadataConnection.createInstance Endpoints.getMetadataAddress provider
+        metadataConnection.getMetadata request, (metadata) =>
+            @_putMetadataInCache key, metadata, true
 
     _processTableListResponse: (metadata, search, from, to, filterList) =>
         tables = @_createTableList metadata
