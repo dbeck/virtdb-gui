@@ -39,6 +39,11 @@ CLI_OPTIONS =
         default: "info"
         choices: ['trace', 'debug', 'info', 'warn', 'error']
         help: 'log level'
+    authFile:
+        abbr: 'a'
+        full: "auth-file"
+        default: "login.json"
+        help: "JSON file containing array of user objects with username and password fields"
 
 nomnom.options(CLI_OPTIONS).parse()
 

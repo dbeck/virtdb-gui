@@ -30,11 +30,13 @@
     "node-cache": "^1.0.2",
     "nomnom": "^1.8.1",
     "okay": "^0.3.0",
+    "passport": "^0.2.1",
+    "passport-http": "^0.2.2",
     "source-map-support": "^0.2.7",
     "static-favicon": "~1.0.0",
     "stylus": "0.42.3",
-    "virtdb-proto": "^2.0.0",
     "virtdb-connector": "^1.0.6",
+    "virtdb-proto": "^2.0.0",
     "zmq": "2.8.0"
   },
   "devDependencies": {
