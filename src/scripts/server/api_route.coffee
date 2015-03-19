@@ -135,11 +135,12 @@ router.post "/db_config/get", timeout(Config.getCommandLineParameter("timeout"))
 router.post "/db_config/add", timeout(Config.getCommandLineParameter("timeout")), (req, res, next) ->
     table = req.body.table
     provider = req.body.provider
+    action = req.body.action
 
     try
         metadataHandler = new MetadataHandler()
         metadataHandler.getTableMetadata provider, table, (metaData) ->
-            DBConfig.addTable provider, metaData, (err) ->
+            DBConfig.addTable provider, metaData, action, (err) ->
                 if not err?
                     res.status(200).send()
                 else

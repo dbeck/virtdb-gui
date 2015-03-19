@@ -1,5 +1,6 @@
-VIRTDB = React.createClass(
-    displayName: 'VIRTDB'
+R = React.DOM
+VirtDB = React.createClass(
+    displayName: 'VirtDB'
     render: ->
         clickHandler = (fieldName) =>
             return (ev) =>
@@ -14,31 +15,52 @@ VIRTDB = React.createClass(
         rows = []
         if @props.data?
             transposedData = []
-            for row in @props.data
+            for row, rowIndex in @props.data
                 children = []
                 for field, index in row
-                    item = React.DOM.td { onClick: clickHandler(@props.header[index]), className: style(@props.header[index])}, field
+                    item = R.td 
+                        key: index + "-" + rowIndex
+                        onClick: clickHandler(@props.header[index])
+                        className: style(@props.header[index])
+                    , field
                     if @props.transposed
-                        transposedData[index] ?= [ React.DOM.th {onClick: clickHandler(@props.header[index]), className: style(@props.header[index])}, @props.header[index] ]
+                        transposedData[index] ?= [ R.th
+                                key: 'header' + index + '-' + rowIndex
+                                onClick: clickHandler(@props.header[index])
+                                className: style(@props.header[index])
+                            , @props.header[index] 
+                        ]
                         transposedData[index].push item
                     else
                         children.push item
                 if not @props.transposed
-                    rows.push React.DOM.tr(null, children)
+                    rows.push R.tr
+                        key: 'row' + rowIndex
+                    , children
             if @props.transposed
-                for row in transposedData
-                    rows.push React.DOM.tr(null, row)
+                for row, rowIndex in transposedData
+                    rows.push R.tr
+                        key: 'transposed' + rowIndex
+                    , row
 
         headItems = []
         if @props.header?
             for field in @props.header
-                headItems.push React.DOM.th { onClick: clickHandler(field), className: style(field)}, field
+                headItems.push R.th
+                    key: field
+                    onClick: clickHandler(field)
+                    className: style(field)
+                , field
         tableParts = []
         if not @props.transposed
-            headerRow = React.DOM.tr null, headItems
-            tableParts.push React.DOM.thead null, headerRow
-        tableParts.push React.DOM.tbody null, rows
-        return React.DOM.table {className: "table table-bordered"}, tableParts
+            headerRow = R.tr null, headItems
+            tableParts.push R.thead
+                key: "thead"
+            , headerRow
+        tableParts.push R.tbody
+            key: 'tbody'
+        , rows
+        return R.table {className: "table table-bordered"}, tableParts
 )
 
 virtdbTableDirective = ->
@@ -50,8 +72,15 @@ virtdbTableDirective = ->
         selectedField: '='
         transposed: '='
     link: (scope, el, attrs) ->
-        display = (data, header, callback, selectedField, transposed) =>
-            React.render VIRTDB(data: data, header: header, callback: callback, selectedField: selectedField, transposed: transposed), el[0]
+        display = (data, header, callback, selectedField, transposed) ->
+            React.render(
+                React.createElement VirtDB,
+                    data: data
+                    header: header
+                    callback: callback
+                    selectedField: selectedField
+                    transposed: transposed
+            , el[0])
         scope.$watch 'data', (newValue, oldValue) ->
             display newValue, scope.header, scope.callback, scope.selectedField, scope.transposed
         scope.$watch 'selectedField', (newValue, oldValue) ->

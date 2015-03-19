@@ -1,7 +1,7 @@
 app = angular.module 'virtdb'
 app.controller 'TableListController',
     class TableListController
-        @ITEMS_PER_PAGE = 2
+        @ITEMS_PER_PAGE = 50
 
         constructor: ($scope, $timeout, ServerConnector) ->
             @$scope = $scope
@@ -70,7 +70,6 @@ app.controller 'TableListController',
                     selected: false
                     configured: false
                     outdated: false
-                console.log tableName, " deselected"
 
         scheduleDBConfigQuery: (delay) =>
             @tableListEndTimerPromise = @$timeout () =>
@@ -116,25 +115,21 @@ app.controller 'TableListController',
             for _table in @tableList
                 _table.configured = false
                 _table.selected = false
-                console.log _table.name, " deselected"
                 _table.outdated = false
                 for table in configuredTableList
                     if table is _table.name
                         @$scope.configuredCounter += 1
                         _table.configured = true
                         _table.selected = true
-                        console.log _table.name, " selected"
                         _table.outdated = true
 
-        changeSelection: (table) =>
-            @addTableToDBConfig table
-
-        addTableToDBConfig: (table) =>
+        changeStatus: (table) =>
             data =
                 table: table.name
+                action: if table.configured then 'DELETE' else 'CREATE'
                 provider: @$scope.selectedProvider
             @ServerConnector.sendDBConfig data, (data) =>
-                @$timeout(@requestConfiguredTables, 2000)
+                @requestConfiguredTables()
 
         filterTableList: () =>
             @$scope.search = ""

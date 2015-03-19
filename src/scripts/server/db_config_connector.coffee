@@ -45,7 +45,7 @@ class DBConfig
             log.debug "db config cache expired", V_(key)
 
 
-    @addTable: (provider, tableMeta, callback) =>
+    @addTable: (provider, tableMeta, action, callback) =>
         try
             if not tableMeta?
                 log.error "couldn't add table to the db config due to a problem with the meta data", V_(tableMeta)
@@ -65,9 +65,10 @@ class DBConfig
                 log.error "unable to get db config connection"
                 return    
             
-            connection.sendServerConfig provider, tableMeta, (err) ->
+            connection.sendServerConfig provider, tableMeta, action, (err) =>
                 if not err? or err isnt {}
                     log.info "table added to the db config", V_(tableMeta.Name), V_(provider)
+                    err = null
                 else
                     log.error "table could not be added to db config", V_(err), V_(tableMeta.Name), V_(provider)
                 @_configuredTablesCache.del(provider)
@@ -139,7 +140,7 @@ class DBConfigConnection
 
     constructor: (@serverConfigAddress, @dbConfigQueryAddress) ->
 
-    sendServerConfig: (provider, tableMeta, callback) =>
+    sendServerConfig: (provider, tableMeta, action, callback) =>
 
         @_pushPullSocket = zmq.socket(Const.ZMQ_REQ)
         @_pushPullSocket.on "message", (msg) =>
@@ -153,7 +154,7 @@ class DBConfigConnection
         serverConfigMessage =
             Name: provider
             Table: tableMeta.Table
-            Action: 'CREATE'
+            Action: action
         @_pushPullSocket.send dbConfigProto.serialize serverConfigMessage, "virtdb.interface.pb.ServerConfig"
 
     getTables: (provider, onReady) =>

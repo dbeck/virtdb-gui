@@ -16,11 +16,8 @@ div(ng-controller="TableListController as tableListCtrl")
         i.glyphicon.glyphicon-search
     br
     div
-        span(ng-if="tableListCount > 0")
-            input(type="checkbox", ng-model="tableListCtrl.isAllTableSelected", ng-change="tableListCtrl.selectAllTableChanged()") 
-            label Select all        
         span.pull-right(ng-if="tableListFrom > 0 || tableListTo < tableListCount - 1") Displaying: {{tableListFrom + 1}} - {{tableListTo + 1}}
-        table-list(ng-if="!tableListCtrl.isLoading", data="tableListCtrl.tableList", table="table", check="tableListCtrl.changeSelection", click="tableListCtrl.selectTable", configured-counter="configuredCounter", selected-table="tableListCtrl.selectedTable")
+        table-list(ng-if="!tableListCtrl.isLoading", data="tableListCtrl.tableList", table="table", check="tableListCtrl.changeStatus", click="tableListCtrl.selectTable", configured-counter="configuredCounter", selected-table="tableListCtrl.selectedTable")
         div(ng-if="tableListCtrl.isLoading")
             include spinner
 

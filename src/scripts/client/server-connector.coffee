@@ -28,7 +28,8 @@ app.factory 'ServerConnector', ['$http', 'ErrorService', '$q', ($http, ErrorServ
                 onSuccess response.data
             )
             .error( (response, status) =>
-                ErrorService.errorHappened "Couldn't get table list! " + JSON.stringify(data) + " response: " + response
+                if status not in [0, 503]
+                    ErrorService.errorHappened "Couldn't get table list! " + JSON.stringify(data) + " response: " + response + status
                 onError response
             )
             return data.id
@@ -86,7 +87,6 @@ app.factory 'ServerConnector', ['$http', 'ErrorService', '$q', ($http, ErrorServ
         cancelRequest: (id) =>
             canceler = @pendingRequestIds[id]
             if canceler?
-                console.warn "Cancel request: " + id
                 canceler.resolve "Request outdated"
                 delete @pendingRequestIds[id]
 
