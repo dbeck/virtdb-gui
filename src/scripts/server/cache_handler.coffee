@@ -32,6 +32,17 @@ class CacheHandler
             ret = JSON.parse ret
         return ret
 
+    @delete: (key) =>
+        if not @_cache?
+            return
+        @_cache.del key
+        return
+
+    @listKeys: =>
+        if not @_cache?
+            return []
+        return @_cache.keys()
+
     @addKeyExpirationListener: (key, listener) =>
         @_keyExpirationListeners[key] ?= []
         @_keyExpirationListeners[key].push listener

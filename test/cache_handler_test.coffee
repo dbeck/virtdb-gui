@@ -214,3 +214,34 @@ describe "CacheHandler", ->
 
         should.not.exist CacheHandler._keyExpirationListeners[KEY1]
 
+    it "should list the stored keys", (done) ->
+        this.timeout(1200)
+        CacheHandler._cacheTTL = 1
+
+        DATA = "data"
+        KEY1 = "key1"
+        KEY2 = "key2"
+
+        CacheHandler.set KEY1, DATA
+        CacheHandler.set KEY2, DATA
+        setTimeout () ->
+            keys = CacheHandler.listKeys()
+            keys.should.be.deep.equal [KEY1, KEY2]
+            done()
+        , 800
+
+    it "should delete the entry", (done) ->
+        this.timeout(1100)
+        CacheHandler._cacheTTL = 1
+
+        DATA = "data"
+        KEY = "key"
+
+        CacheHandler.set KEY, DATA
+        setTimeout () ->
+            CacheHandler.delete KEY
+            result = CacheHandler.get KEY
+            should.not.exist result
+            done()
+        , 300
+

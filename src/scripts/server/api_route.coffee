@@ -168,6 +168,8 @@ router.post "/set_config/:component", timeout(Config.getCommandLineParameter("ti
         config = req.body
 
         ConfigService.sendConfig component, config
+        metadataHandler = new MetadataHandler
+        metadataHandler.emptyProviderConfig component
         if not res.headersSent
             res.status(200).send()
 

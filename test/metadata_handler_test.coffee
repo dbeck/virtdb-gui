@@ -6,7 +6,7 @@ Config = require "../src/scripts/server/config"
 Endpoints = require "../src/scripts/server/endpoints"
 
 chai = require "chai"
-chai.should()
+should = chai.should()
 expect = chai.expect
 
 sinon = require "sinon"
@@ -58,6 +58,7 @@ describe "MetadataHandler", ->
         sandbox.stub VirtDBConnector.log, "error"
 
     afterEach =>
+        CacheHandler._reset()
         sandbox.restore()
 
     describe "_createTableList", ->
@@ -495,3 +496,26 @@ describe "MetadataHandler", ->
             cacheHandlerSetStub.should.not.called
             onReadySpy.should.have.been.calledOnce
             onReadySpy.should.have.been.calledWithExactly METADATA
+
+    it "should drop all cache entry for given provider", ->
+        PROVIDER = "prov1"
+        REQUEST1 =
+            Tables: "someatbles23"
+        METADATA1 = "esgsrgdgdrhdthgf"
+        REQUEST2 =
+            Tables: "someatbles56"
+        METADATA2 = "dadadayuy.;"
+
+        metadataHandler = new MetadataHandler
+        key1 = metadataHandler._generateCacheKey PROVIDER, REQUEST1
+        key2 = metadataHandler._generateCacheKey PROVIDER, REQUEST2
+        console.log key1, METADATA1
+        console.log key2, METADATA2
+        CacheHandler.set key1, METADATA1
+        CacheHandler.set key2, METADATA2
+
+        metadataHandler.emptyProviderCache PROVIDER
+        result1 = CacheHandler.get key1
+        should.not.exist result1
+        result2 = CacheHandler.get key2
+        should.not.exist result2
