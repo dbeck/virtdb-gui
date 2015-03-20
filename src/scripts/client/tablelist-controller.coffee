@@ -25,6 +25,9 @@ app.controller 'TableListController',
             @$scope.tableListFrom = 0
             @$scope.tableListTo = 0
             @$scope.configuredCounter = 0
+            @$scope.tableListCount = null
+            @tablesToFilter = []
+            @$scope.tableListFilter = ""
 
         requestTableList: (provider) =>
             requestData =

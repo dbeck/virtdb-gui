@@ -1,6 +1,7 @@
 div(ng-controller="TableListController as tableListCtrl")
     h3 
-        span Tables ({{tableListCount}})
+        span Tables
+        span(ng-if="tableListCount != null")  ({{tableListCount}})
         a(data-toggle="collapse", data-parent="#accordion", target="_self", href="#collapseFilter", ng-click="tableListCtrl.filterTableList()")
             span(ng-class="{empty: tableListFilter == null || tableListFilter.length == 0}").glyphicon.glyphicon-filter.text-right.pull-right
         span.pull-right.glyphicon.glyphicon-chevron-right(ng-class="{disabled: tableListTo == tableListCount - 1}", ng-disabled="tableListTo == tableListCount - 1", ng-click="tableListCtrl.getNextTables()")
