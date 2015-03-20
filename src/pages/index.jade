@@ -24,6 +24,7 @@ head
     script(type='text/javascript' src='../scripts/tablelist.js')
     script(type='text/javascript' src='../scripts/data-provider.js')
     script(type='text/javascript' src='../scripts/requests.js')
+    script(type='text/javascript' src='../scripts/user-controller.js')
     script(type='text/javascript' src='../scripts/provider-controller.js')
     script(type='text/javascript' src='../scripts/tablelist-controller.js')
     script(type='text/javascript' src='../scripts/endpoint-controller.js')
@@ -56,6 +57,9 @@ body
                         a(href='#status') Status
                     li
                         a(href='#diag') Diagnostics
+                ul.nav.navbar-nav.navbar-right(ng-controller="UserController as user")
+                    li
+                        a(href="/logout", ng-if="user.name != null && user.name.length > 0") {{ user.name }} 
 
     div.container-fluid(ng-controller="ErrorController as errors")
     // - div.container-fluid(ng-controller="ErrorController as errors" ng-hide="errors.errorList.length === 0")

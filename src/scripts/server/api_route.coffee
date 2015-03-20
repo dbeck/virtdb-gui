@@ -13,10 +13,11 @@ ok = require "okay"
 log = VirtDBConnector.log
 V_ = log.Variable
 Endpoints = require "./endpoints"
-passport = require 'passport'
+auth = require './authentication'
 
 DataHandler = require "./data_handler"
 MetadataHandler = require "./meta_data_handler"
+Authentication = require "./authentication"
 
 require('source-map-support').install()
 
@@ -24,14 +25,25 @@ router.use require 'express-domain-middleware'
 
 # GET home page.
 router.get "/" 
-    , passport.authenticate('basic', { session: false })
+    , auth.ensureAuthenticated
     , timeout(Config.getCommandLineParameter("timeout"))
 , (req, res, next) ->
     res.json "{message: virtdb api}"
     return
 
+router.get "/authmethods"
+    , timeout(Config.getCommandLineParameter("timeout"))
+, (req, res, next) ->
+    res.json Authentication.methods
+
+router.get "/user"
+    , timeout(Config.getCommandLineParameter("timeout"))
+, (req, res, next) ->
+    res.json req.user
+
+
 router.get "/endpoints" 
-    , passport.authenticate('basic', { session: false })
+    , auth.ensureAuthenticated
     , timeout(Config.getCommandLineParameter("timeout"))
 , (req, res, next) ->
     try
@@ -42,7 +54,7 @@ router.get "/endpoints"
         throw ex
 
 router.post "/data_provider/meta_data/"
-    , passport.authenticate('basic', { session: false })
+    , auth.ensureAuthenticated
     , timeout(Config.getCommandLineParameter("timeout"))
 , (req, res, next) ->
     provider = req.body.provider
@@ -71,7 +83,7 @@ router.post "/data_provider/meta_data/"
         throw ex
 
 router.get "/data_provider/list"
-    , passport.authenticate('basic', { session: false })
+    , auth.ensureAuthenticated
     , timeout(Config.getCommandLineParameter("timeout"))
 , (req, res, next) ->
     try
@@ -82,7 +94,7 @@ router.get "/data_provider/list"
         throw ex
 
 router.post "/data_provider/table_list"
-    , passport.authenticate('basic', { session: false })
+    , auth.ensureAuthenticated
     , timeout(Config.getCommandLineParameter("timeout"))
 , (req, res, next) =>
     provider = req.body.provider
@@ -106,7 +118,7 @@ router.post "/data_provider/table_list"
         throw ex
 
 router.post "/data_provider/data"
-    , passport.authenticate('basic', { session: false })
+    , auth.ensureAuthenticated
     , timeout(Config.getCommandLineParameter("timeout"))
 , (req, res, next) ->
     try
@@ -143,7 +155,7 @@ router.post "/data_provider/data"
         throw ex
 
 router.post "/db_config/get"
-    , passport.authenticate('basic', { session: false })
+    , auth.ensureAuthenticated
     , timeout(Config.getCommandLineParameter("timeout"))
 , (req, res, next) ->
     provider = req.body.provider
@@ -155,7 +167,7 @@ router.post "/db_config/get"
         throw ex
 
 router.post "/db_config/add"
-    , passport.authenticate('basic', { session: false })
+    , auth.ensureAuthenticated
     , timeout(Config.getCommandLineParameter("timeout"))
 , (req, res, next) ->
     table = req.body.table
@@ -176,7 +188,7 @@ router.post "/db_config/add"
         throw ex
 
 router.get "/get_config/:component"
-    , passport.authenticate('basic', { session: false })
+    , auth.ensureAuthenticated
     , timeout(Config.getCommandLineParameter("timeout"))
 , (req, res, next) =>
     try
@@ -191,7 +203,7 @@ router.get "/get_config/:component"
         throw ex
 
 router.post "/set_config/:component"
-    , passport.authenticate('basic', { session: false })
+    , auth.ensureAuthenticated
     , timeout(Config.getCommandLineParameter("timeout"))
 , (req, res, next) =>
     try
@@ -209,7 +221,7 @@ router.post "/set_config/:component"
         throw ex
 
 router.post "/get_diag"
-    , passport.authenticate('basic', { session: false })
+    , auth.ensureAuthenticated
     , timeout(Config.getCommandLineParameter("timeout"))
 , (req, res, next) =>
     from = Number req.body.from

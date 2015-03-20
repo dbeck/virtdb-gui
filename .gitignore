@@ -41,3 +41,7 @@ tags
 
 # build tmp files
 build-result/
+
+# settings
+github.json
+local.json

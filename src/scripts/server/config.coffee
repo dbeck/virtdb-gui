@@ -1,4 +1,5 @@
 nomnom = require "nomnom"
+path = require 'path'
 CLI_OPTIONS =
     name:
         abbr: 'n',
@@ -85,6 +86,9 @@ class Configuration
         if @_parameters[parameterPath]?
             return @_parameters[parameterPath]
         return null
+
+    @projectRoot: ->
+        path.dirname require.main.filename
 
     @addConfigListener: (parameterPath, listener) =>
         if not listener?

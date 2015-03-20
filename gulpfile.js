@@ -65,16 +65,18 @@ gulp.task('compile-stylus', function() {
         .pipe(gulp.dest('./static/styles'));
     gulp.src('./src/styles/*.css')
         .pipe(gulp.dest('./static/styles'));
+    gulp.src('./src/styles/fonts/*')
+        .pipe(gulp.dest('./static/fonts'));
 })
 
 gulp.task('compile-jade', function() {
-    gulp.src(['./src/pages/*.jade', '!./src/pages/index.jade'])
+    gulp.src(['./src/pages/*.jade', '!./src/pages/index.jade', '!./src/pages/login.jade'])
         .pipe(jade({pretty: true}))
         .pipe(gulp.dest('./static/pages'));
 })
 
 gulp.task('copy-index-to-static', function(){
-    gulp.src('./src/pages/index.jade')
+    gulp.src(['./src/pages/index.jade', './src/pages/login.jade'])
         .pipe(gulp.dest('./static/pages'));
 });
 

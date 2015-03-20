@@ -10,13 +10,27 @@ app.factory 'ServerConnector', ['$http', 'ErrorService', '$q', ($http, ErrorServ
             $http.get(@address + "/api/endpoints").success(onSuccess)
             .error(
                 (response, status) =>
-                    ErrorService.errorHappened "Couldn't get endpoint list from server! response: " + response
+                    ErrorService.errorHappened status, "Couldn't get endpoint list from server! response: " + response
             )
 
         getDataProviders: (onSuccess) =>
             $http.get(@address + "/api/data_provider/list").success(onSuccess)
             .error( (response, status) =>
-                ErrorService.errorHappened "Couldn't get data provider list! " + JSON.stringify(data) + " response: " + response
+                ErrorService.errorHappened status, "Couldn't get data provider list! " + JSON.stringify(data) + " response: " + response
+                onSuccess []
+            )
+
+        getAuthenticationMethods: (onSuccess) =>
+            $http.get(@address + "/api/authmethods").success(onSuccess)
+            .error( (response, status) =>
+                ErrorService.errorHappened status, "Couldn't get authentication methods! " + JSON.stringify(data) + " response: " + response
+                onSuccess []
+            )
+
+        getCurrentUser: (onSuccess) =>
+            $http.get(@address + "/api/user").success(onSuccess)
+            .error( (response, status) =>
+                ErrorService.errorHappened status, "Couldn't get user info! " + JSON.stringify(data) + " response: " + response
                 onSuccess []
             )
 
@@ -29,7 +43,7 @@ app.factory 'ServerConnector', ['$http', 'ErrorService', '$q', ($http, ErrorServ
             )
             .error( (response, status) =>
                 if status not in [0, 503]
-                    ErrorService.errorHappened "Couldn't get table list! " + JSON.stringify(data) + " response: " + response + status
+                    ErrorService.errorHappened status, "Couldn't get table list! " + JSON.stringify(data) + " response: " + response + status
                 onError response
             )
             return data.id
@@ -41,7 +55,7 @@ app.factory 'ServerConnector', ['$http', 'ErrorService', '$q', ($http, ErrorServ
                 onSuccess response.data
             )
             .error( (response, status) =>
-                ErrorService.errorHappened "Couldn't get meta data! " + JSON.stringify(data) + " response: " + response
+                ErrorService.errorHappened status, "Couldn't get meta data! " + JSON.stringify(data) + " response: " + response
                 onSuccess []
             )
             return data.id
@@ -53,7 +67,7 @@ app.factory 'ServerConnector', ['$http', 'ErrorService', '$q', ($http, ErrorServ
                 onSuccess response.data
             )
             .error( (response, status) =>
-                ErrorService.errorHappened "Couldn't get data! " + JSON.stringify(data) + " response: " + response
+                ErrorService.errorHappened status, "Couldn't get data! " + JSON.stringify(data) + " response: " + response
                 onSuccess []
             )
             return data.id
@@ -62,14 +76,14 @@ app.factory 'ServerConnector', ['$http', 'ErrorService', '$q', ($http, ErrorServ
             $http.post(@address + "/api/db_config/add", data)
             .success(onSuccess)
             .error( (response, status) =>
-                    ErrorService.errorHappened "Couldn't add table to db config! " + JSON.stringify(data) + " response: " + response
+                    ErrorService.errorHappened status, "Couldn't add table to db config! " + JSON.stringify(data) + " response: " + response
             )
 
         getDBConfig: (data, onSuccess) =>
             $http.post(@address + "/api/db_config/get", data)
             .success(onSuccess)
             .error( (response, status) =>
-                ErrorService.errorHappened "Couldn't get table list from db config! " + JSON.stringify(data) + " response: " + response
+                ErrorService.errorHappened status, "Couldn't get table list from db config! " + JSON.stringify(data) + " response: " + response
                 onSuccess []
             )
 
@@ -77,7 +91,7 @@ app.factory 'ServerConnector', ['$http', 'ErrorService', '$q', ($http, ErrorServ
             $http.post(@address + "/api/get_diag/", data)
             .success(onDiagMessage)
             .error( (response, status) =>
-                ErrorService.errorHappened "Couldn't get diag messages! " + JSON.stringify(data) + " response: " + response
+                ErrorService.errorHappened status, "Couldn't get diag messages! " + JSON.stringify(data) + " response: " + response
                 onDiagMessage []
             )
 
