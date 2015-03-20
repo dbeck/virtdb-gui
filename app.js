@@ -6,7 +6,7 @@ var favicon = require('static-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
-
+var fs = require('fs');
 
 var EXPRESS_PORT = config.getCommandLineParameter("port")
 var LIVERELOAD_PORT = 3001;
@@ -21,6 +21,14 @@ var allowCrossDomain = function(req, res, next) {
 
     next();
 }
+
+// Authentication
+var session = require('express-session')
+app.use(session({secret: 'keyboard cat'}));
+var auth = require('./server/authentication');
+auth.initalize(app);
+// Authentication end 
+
 
 app.set('view engine', 'jade');
 app.set('views', path.join(__dirname, 'static/pages'));

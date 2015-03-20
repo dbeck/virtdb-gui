@@ -13,20 +13,39 @@ ok = require "okay"
 log = VirtDBConnector.log
 V_ = log.Variable
 Endpoints = require "./endpoints"
+auth = require './authentication'
 
 DataHandler = require "./data_handler"
 MetadataHandler = require "./meta_data_handler"
+Authentication = require "./authentication"
 
 require('source-map-support').install()
 
 router.use require 'express-domain-middleware'
 
 # GET home page.
-router.get "/", timeout(Config.getCommandLineParameter("timeout")), (req, res, next) ->
+router.get "/" 
+    , auth.ensureAuthenticated
+    , timeout(Config.getCommandLineParameter("timeout"))
+, (req, res, next) ->
     res.json "{message: virtdb api}"
     return
 
-router.get "/endpoints", timeout(Config.getCommandLineParameter("timeout")), (req, res, next) ->
+router.get "/authmethods"
+    , timeout(Config.getCommandLineParameter("timeout"))
+, (req, res, next) ->
+    res.json Authentication.methods
+
+router.get "/user"
+    , timeout(Config.getCommandLineParameter("timeout"))
+, (req, res, next) ->
+    res.json req.user
+
+
+router.get "/endpoints" 
+    , auth.ensureAuthenticated
+    , timeout(Config.getCommandLineParameter("timeout"))
+, (req, res, next) ->
     try
         if not res.headersSent
             res.json Endpoints.getCompleteEndpointList()
@@ -34,7 +53,10 @@ router.get "/endpoints", timeout(Config.getCommandLineParameter("timeout")), (re
         log.error V_(ex)
         throw ex
 
-router.post "/data_provider/meta_data/", timeout(Config.getCommandLineParameter("timeout")), (req, res, next) ->
+router.post "/data_provider/meta_data/"
+    , auth.ensureAuthenticated
+    , timeout(Config.getCommandLineParameter("timeout"))
+, (req, res, next) ->
     provider = req.body.provider
     table = req.body.table
     id = Number req.body.id
@@ -60,7 +82,10 @@ router.post "/data_provider/meta_data/", timeout(Config.getCommandLineParameter(
         log.error V_(ex)
         throw ex
 
-router.get "/data_provider/list", timeout(Config.getCommandLineParameter("timeout")), (req, res, next) ->
+router.get "/data_provider/list"
+    , auth.ensureAuthenticated
+    , timeout(Config.getCommandLineParameter("timeout"))
+, (req, res, next) ->
     try
         if not res.headersSent
             res.json Endpoints.getDataProviders()
@@ -68,7 +93,10 @@ router.get "/data_provider/list", timeout(Config.getCommandLineParameter("timeou
         log.error V_(ex)
         throw ex
 
-router.post "/data_provider/table_list", timeout(Config.getCommandLineParameter("timeout")), (req, res, next) =>
+router.post "/data_provider/table_list"
+    , auth.ensureAuthenticated
+    , timeout(Config.getCommandLineParameter("timeout"))
+, (req, res, next) =>
     provider = req.body.provider
     from = Number req.body.from
     to = Number req.body.to
@@ -89,7 +117,10 @@ router.post "/data_provider/table_list", timeout(Config.getCommandLineParameter(
         log.error V_(ex)
         throw ex
 
-router.post "/data_provider/data", timeout(Config.getCommandLineParameter("timeout")), (req, res, next) ->
+router.post "/data_provider/data"
+    , auth.ensureAuthenticated
+    , timeout(Config.getCommandLineParameter("timeout"))
+, (req, res, next) ->
     try
         provider = req.body.provider
         table = req.body.table
@@ -123,7 +154,10 @@ router.post "/data_provider/data", timeout(Config.getCommandLineParameter("timeo
         log.error V_(ex)
         throw ex
 
-router.post "/db_config/get", timeout(Config.getCommandLineParameter("timeout")), (req, res, next) ->
+router.post "/db_config/get"
+    , auth.ensureAuthenticated
+    , timeout(Config.getCommandLineParameter("timeout"))
+, (req, res, next) ->
     provider = req.body.provider
     try
         DBConfig.getTables provider, (tableList) =>
@@ -132,7 +166,10 @@ router.post "/db_config/get", timeout(Config.getCommandLineParameter("timeout"))
         log.error V_(ex)
         throw ex
 
-router.post "/db_config/add", timeout(Config.getCommandLineParameter("timeout")), (req, res, next) ->
+router.post "/db_config/add"
+    , auth.ensureAuthenticated
+    , timeout(Config.getCommandLineParameter("timeout"))
+, (req, res, next) ->
     table = req.body.table
     provider = req.body.provider
     action = req.body.action
@@ -150,7 +187,10 @@ router.post "/db_config/add", timeout(Config.getCommandLineParameter("timeout"))
         log.error V_(ex)
         throw ex
 
-router.get "/get_config/:component", timeout(Config.getCommandLineParameter("timeout")), (req, res, next) =>
+router.get "/get_config/:component"
+    , auth.ensureAuthenticated
+    , timeout(Config.getCommandLineParameter("timeout"))
+, (req, res, next) =>
     try
         component = req.params.component
         ConfigService.getConfig component, (config) =>
@@ -162,7 +202,10 @@ router.get "/get_config/:component", timeout(Config.getCommandLineParameter("tim
         log.error V_(ex)
         throw ex
 
-router.post "/set_config/:component", timeout(Config.getCommandLineParameter("timeout")), (req, res, next) =>
+router.post "/set_config/:component"
+    , auth.ensureAuthenticated
+    , timeout(Config.getCommandLineParameter("timeout"))
+, (req, res, next) =>
     try
         component = req.params.component
         config = req.body
@@ -177,7 +220,10 @@ router.post "/set_config/:component", timeout(Config.getCommandLineParameter("ti
         log.error V_(ex)
         throw ex
 
-router.post "/get_diag", timeout(Config.getCommandLineParameter("timeout")), (req, res, next) =>
+router.post "/get_diag"
+    , auth.ensureAuthenticated
+    , timeout(Config.getCommandLineParameter("timeout"))
+, (req, res, next) =>
     from = Number req.body.from
     levels = req.body.levels
     res.json DiagConnector.getRecords from, levels

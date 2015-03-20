@@ -1,4 +1,5 @@
 nomnom = require "nomnom"
+path = require 'path'
 CLI_OPTIONS =
     name:
         abbr: 'n',
@@ -39,6 +40,11 @@ CLI_OPTIONS =
         default: "info"
         choices: ['trace', 'debug', 'info', 'warn', 'error']
         help: 'log level'
+    authFile:
+        abbr: 'a'
+        full: "auth-file"
+        default: "login.json"
+        help: "JSON file containing array of user objects with username and password fields"
 
 nomnom.options(CLI_OPTIONS).parse()
 
@@ -80,6 +86,9 @@ class Configuration
         if @_parameters[parameterPath]?
             return @_parameters[parameterPath]
         return null
+
+    @projectRoot: ->
+        path.dirname require.main.filename
 
     @addConfigListener: (parameterPath, listener) =>
         if not listener?

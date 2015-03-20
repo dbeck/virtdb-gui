@@ -1,0 +1,43 @@
+doctype html
+html(ng-app='virtdb')
+head
+    title= title
+    link(rel='stylesheet', href='../styles/bootstrap.freelancer.min.css')
+    link(rel='stylesheet', href='../styles/freelancer.css')
+    link(rel='stylesheet', href='../styles/spinner.css')
+    link(rel='stylesheet', href='../styles/onoffbutton.css')
+    link(href='../styles/font-awesome.freelancer.min.css', rel='stylesheet', type='text/css')
+    link(href='http://fonts.googleapis.com/css?family=Montserrat:400,700', rel='stylesheet', type='text/css')
+    link(href='http://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic', rel='stylesheet', type='text/css')
+    link(rel='stylesheet', href='../styles/style.css')
+    script(type='text/javascript' src='../libs/jquery.js')
+    script(type='text/javascript' src='../libs/angular.js')
+    script(type='text/javascript' src='../libs/react.js')
+    script(type='text/javascript' src='../libs/ngReact.js')
+    script(type='text/javascript' src='../libs/angular-route.js')
+    script(type='text/javascript' src='../scripts/virtdb-app.js')
+    script(type='text/javascript' src='../scripts/error-controller.js')
+    script(type='text/javascript' src='../scripts/error-service.js')
+    script(type='text/javascript' src='../scripts/server-connector.js')
+    script(type='text/javascript' src='../scripts/user-controller.js')
+body
+    div.navbar.navbar-default
+        div.container-fluid
+            .navbar-header
+                a.navbar-brand(href='/')
+                    img(src="/images/final_logo_ws_compressed.png", width="100")
+    div.container(ng-controller="UserController as user")
+        h1 Login
+        div(ng-if="user.methods.local")
+            form(action='/login', method="post")
+                div
+                    label Username
+                    input(type="text", name="username")
+                div
+                    label Password
+                    input(type="password", name="password")
+                div
+                    span
+                        input(type="submit", value="Log In")
+        div(ng-if="user.methods.github")
+            a.fa.fa-github.fa-3x(href="/login/github")

@@ -9,7 +9,10 @@ app.factory 'ErrorService', [ ->
             @errorListeners.push callback
             return
 
-        errorHappened: (error) =>
+        errorHappened: (status, error) =>
+            if status == 401
+                window.location = '/'
+                return
             console.error error
             for callback in @errorListeners
                 callback error
