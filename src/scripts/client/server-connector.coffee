@@ -44,7 +44,7 @@ app.factory 'ServerConnector', ['$http', 'ErrorService', '$q', ($http, ErrorServ
             .error( (response, status) =>
                 if status not in [0, 503]
                     ErrorService.errorHappened status, "Couldn't get table list! " + JSON.stringify(data) + " response: " + response + status
-                onError response
+                onError response, status
             )
             return data.id
 
