@@ -55,10 +55,11 @@ app.controller 'TableListController',
             @fillTableList data
             @scheduleDBConfigQuery 500
 
-        finishedLoading: =>
+        finishedLoading: (response, status) =>
             @isLoading = false
-            @previousRequest = null
-            @cancelDBConfigLoad()
+            if status isnt 0
+                @previousRequest = null
+                @cancelDBConfigLoad()
 
         cancelDBConfigLoad: =>
             if @tableListEndTimerPromise?
