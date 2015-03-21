@@ -8,6 +8,7 @@ bodyparser = require 'body-parser'
 BasicStrategy = (require 'passport-http').BasicStrategy
 GithubStrategy = (require 'passport-github').Strategy
 LocalStrategy = (require 'passport-local').Strategy
+FacebookStrategy = (require 'passport-facebook').Strategy
 
 passport.serializeUser (user, done) ->
     done(null, user)
@@ -54,6 +55,20 @@ class Authentication
             @methods.local = true
         catch ex
             return
+
+    @initFacebook: =>
+        try
+            facebookSettings = JSON.parse fs.readFileSync config.projectRoot()+ '/facebook.json'
+            passport.use new FacebookStrategy facebookSettings
+            , (accessToken, refreshToken, profile, done) =>
+                for user in @users
+                    if user.facebookid is profile.id
+                        profile.username = user.username
+                        return done null, profile
+                done null, null
+            @methods.facebook = true
+        catch ex
+            return
             
     @initalize: (app) =>
         @methods =
@@ -66,6 +81,7 @@ class Authentication
         catch ex
             console.error ex
         @initGithub()
+        @initFacebook()
         @initLocal()
         app.use bodyparser.urlencoded({ extended: false })
         app.use bodyparser.json()
@@ -91,6 +107,11 @@ class Authentication
             return passport.authenticate('github')(req, res, next)
         next()
 
+    @authenticateFacebook: (req, res, next) =>
+        if @methods.facebook
+            return passport.authenticate('facebook')(req, res, next)
+        next()
+
 router.get '/login', (req, res) ->
     res.render 'login'
 
@@ -107,8 +128,19 @@ router.get '/login/github'
     console.log "This method is not enabled."
     res.redirect '/'
 
+router.get '/login/facebook'
+    , Authentication.authenticateFacebook
+, (req, res) ->
+    console.log "This method is not enabled."
+    res.redirect '/'
+
 router.get '/auth/github/callback'
     , passport.authenticate('github', { failureRedirect: '/login' })
+, (req, res) ->
+    res.redirect '/'
+
+router.get '/auth/facebook/callback'
+    , passport.authenticate('facebook', { failureRedirect: '/login' })
 , (req, res) ->
     res.redirect '/'
 

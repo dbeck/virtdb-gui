@@ -5,6 +5,7 @@ app.controller 'UserController',
             @methods =
                 local: false
                 github: false
+                facebook: false
             @$scope = $scope
             @ServerConnector = ServerConnector
             @name = ""
