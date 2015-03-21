@@ -39,5 +39,8 @@ body
                 div
                     span
                         input(type="submit", value="Log In")
-        div(ng-if="user.methods.github")
-            a.fa.fa-github.fa-3x(href="/login/github")
+        div
+            span(ng-if="user.methods.facebook")
+                a.fa.fa-facebook.fa-2x(href="/login/facebook")
+            span(ng-if="user.methods.github")
+                a.fa.fa-github.fa-2x(href="/login/github")
