@@ -212,7 +212,7 @@ router.post "/set_config/:component"
 
         ConfigService.sendConfig component, config
         metadataHandler = new MetadataHandler
-        metadataHandler.emptyProviderConfig component
+        metadataHandler.emptyProviderCache component
         if not res.headersSent
             res.status(200).send()
 
