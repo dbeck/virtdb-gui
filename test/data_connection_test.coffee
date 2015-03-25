@@ -55,6 +55,7 @@ describe "DataConnection", ->
             connect: () ->
             subscribe: () ->
             on: () ->
+            setsockopt: () ->
 
         ON_MSG = () ->
         QUERY_ID = 42
@@ -66,6 +67,7 @@ describe "DataConnection", ->
         zmqMock.expects("connect").calledWith COLUMN_ADDRESSES[0]
         zmqMock.expects("connect").calledWith COLUMN_ADDRESSES[1]
         zmqMock.expects("subscribe").calledWith QUERY_ID
+        zmqMock.expects("setsockopt").calledWith "ZMQ_RCVHWM", 100000
         zmqMock.expects("on").calledWithExactly "message", ON_MSG
 
         conn = new DataConnection QUERY_ADDRESSES, COLUMN_ADDRESSES

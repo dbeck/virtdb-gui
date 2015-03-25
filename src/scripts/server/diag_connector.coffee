@@ -32,6 +32,7 @@ class DiagConnector
             # if Config.getCommandLineParameter("trace") is true then @LEVELS = @LEVELS.concat ["VIRTDB_SIMPLE_TRACE", "VIRTDB_SCOPED_TRACE"]
             @_logRecordSocket = zmq.socket(Const.ZMQ_SUB)
             @_logRecordSocket.on "message", @_onRecord
+            @_logRecordSocket.setsockopt 'ZMQ_RCVHWM', 100000
             for level in @LEVELS
                 @_logRecordSocket.subscribe @LOG_LEVELS[level] + " "
             for addr in Endpoints.getLogRecordAddress()
