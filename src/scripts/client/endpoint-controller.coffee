@@ -62,4 +62,9 @@ class EndpointController
         return
 
     sendConfig: () =>
+        for item in @$scope.componentConfig
+            if item.Data.Value.Type == 'BOOL' and item.Data.Value.Value[0]?.toLowerCase?() == 'false'
+                item.Data.Value.Value[0] = false
+            if item.Data.Value.Type == 'BOOL' and item.Data.Value.Value[0]?.toLowerCase?() == 'true'
+                item.Data.Value.Value[0] = true
         @$http.post("/api/set_config/" + @$scope.selectedComponent, @$scope.componentConfig)
