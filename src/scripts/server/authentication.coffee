@@ -51,7 +51,7 @@ class Authentication
             localSettings = JSON.parse fs.readFileSync config.projectRoot()+ '/local.json'
             passport.use new LocalStrategy (username, password, done) =>
                 @findByUserName username, (err, user) =>
-                    if user.password is password then done(null, user) else done(null, false, { message: 'Incorrect username of password' })
+                    if user?.password is password then done(null, user) else done(null, false, { message: 'Incorrect username of password' })
             @methods.local = true
         catch ex
             return
@@ -95,9 +95,9 @@ class Authentication
                 return callback null, user
         callback null, null
 
-    @authenticateLocal: (req, res) =>
+    @authenticateLocal: (req, res, next) =>
         if @methods.local
-            return passport.authenticate('local', { successRedirect: '/', failureRedirect: '/login'})(req, res)
+            return passport.authenticate('local', { successRedirect: '/', failureRedirect: '/login'})(req, res, next)
         else
             console.log "This method is not enabled"
             res.redirect '/'
@@ -119,8 +119,8 @@ router.get '/logout', (req, res) ->
     req.logout()
     res.redirect '/'
 
-router.post '/login', (req, res) ->
-    Authentication.authenticateLocal(req ,res)
+router.post '/login', (req, res, next) ->
+    Authentication.authenticateLocal(req ,res, next)
 
 router.get '/login/github'
     , Authentication.authenticateGithub
