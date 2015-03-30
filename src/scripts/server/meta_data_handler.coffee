@@ -114,7 +114,7 @@ class MetadataHandler
 
     _filterTableList: (tables, search, filterList) =>
         results = []
-        if filterList.length > 0
+        if filterList?.length > 0
             for tableToFind in filterList
                 for table in tables
                     if tableToFind is table or tableToFind is (table.split("."))[1]

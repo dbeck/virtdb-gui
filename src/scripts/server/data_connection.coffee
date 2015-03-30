@@ -53,7 +53,7 @@ class DataConnection
         try
             @_columnSocket = zmq.socket(Const.ZMQ_SUB)
             @_columnSocket.subscribe @_queryId
-            @_columnSocket.setsockopt 'ZMQ_RCVHWM', 100000
+            @_columnSocket.setsockopt zmq.ZMQ_RCVHWM, 100000
             @_columnSocket.on "message", @_onColumnMessage
             for addr in @_columnAddresses
                 @_columnSocket.connect addr
