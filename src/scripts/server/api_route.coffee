@@ -14,6 +14,7 @@ log = VirtDBConnector.log
 V_ = log.Variable
 Endpoints = require "./endpoints"
 auth = require './authentication'
+validator = require "./validator"
 
 DataHandler = require "./data_handler"
 MetadataHandler = require "./meta_data_handler"
@@ -55,11 +56,17 @@ router.get "/endpoints"
 
 router.post "/data_provider/meta_data/"
     , auth.ensureAuthenticated
+    , validator("/data_provider/meta_data",
+        provider:
+            required: true
+        table:
+            required: true
+    )
     , timeout(Config.getCommandLineParameter("timeout"))
 , (req, res, next) ->
     provider = req.body.provider
     table = req.body.table
-    id = Number req.body.id
+    id = if req.body.id? then Number req.body.id else 0
     onMetadata = (metadataMessage) ->
         metaData = metadataMessage.Tables[0]
         if not res.headersSent
@@ -95,13 +102,21 @@ router.get "/data_provider/list"
 
 router.post "/data_provider/table_list"
     , auth.ensureAuthenticated
+    , validator("/data_provider/table_list",
+        provider:
+            required: true
+        from:
+            required: true
+        to:
+            required: true
+    )
     , timeout(Config.getCommandLineParameter("timeout"))
 , (req, res, next) =>
     provider = req.body.provider
     from = Number req.body.from
     to = Number req.body.to
     search = req.body.search
-    id = Number req.body.id
+    id = if req.body.id? then Number req.body.id else 0
     tablesToFilter = req.body.tables
 
     try
@@ -117,15 +132,26 @@ router.post "/data_provider/table_list"
         log.error V_(ex)
         throw ex
 
+
 router.post "/data_provider/data"
     , auth.ensureAuthenticated
+    , validator("/data_provider/data",
+        provider:
+            required: true
+        table:
+            required: true
+        count:
+            required: true
+            validate: (value) ->
+                value > 0 and value <= 100
+    )
     , timeout(Config.getCommandLineParameter("timeout"))
 , (req, res, next) ->
     try
         provider = req.body.provider
         table = req.body.table
         count = req.body.count
-        id = Number req.body.id
+        id = if req.body.id? then Number req.body.id else 0
         onData = (data) ->
             if not res.headersSent
                 if data.length is 0
@@ -156,6 +182,10 @@ router.post "/data_provider/data"
 
 router.post "/db_config/get"
     , auth.ensureAuthenticated
+    , validator("/data_provider/data",
+        provider:
+            required: true
+    )
     , timeout(Config.getCommandLineParameter("timeout"))
 , (req, res, next) ->
     provider = req.body.provider
@@ -168,6 +198,14 @@ router.post "/db_config/get"
 
 router.post "/db_config/add"
     , auth.ensureAuthenticated
+    , validator("/data_provider/data",
+        provider:
+            required: true
+        table:
+            required: true
+        action:
+            required: true
+    )
     , timeout(Config.getCommandLineParameter("timeout"))
 , (req, res, next) ->
     table = req.body.table
