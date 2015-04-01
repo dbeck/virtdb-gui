@@ -8,7 +8,7 @@ var server = require('gulp-express');
 var mocha = require('gulp-mocha');
 require('coffee-script/register')
 var istanbul = require('gulp-coffee-istanbul');
-
+var bower = require('gulp-bower');
 var jsFiles = [];
 var coffeeFiles = ['src/scripts/**/*.coffee'];
 var specFiles = ['test/*.coffee'];
@@ -36,6 +36,10 @@ var LIVERELOAD_PORT = 3001;
 var NOT_LIVERELOAD_PORT = 3002;
 
 var lr;
+
+gulp.task('bower', function() {
+  return bower();
+});
 
 gulp.task('start-livereload-server', function() {
   lr = require('tiny-lr')();
@@ -123,7 +127,7 @@ gulp.task('prepare-files', [
     }
 )
 
-gulp.task('collect-libs', function() {
+gulp.task('collect-libs', ['bower'], function() {
     var destDir = 'static/libs';
 
     var files = mainBowerFiles();
