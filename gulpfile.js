@@ -107,7 +107,7 @@ gulp.task('start-dev-server', ['prepare-files','start-livereload-server'], start
 
 gulp.task('restart-express', ['compile-server-coffee'], startExpress)
 
-gulp.task('coffee', ['compile-server-coffee', 'compile-client-coffee']);
+gulp.task('coffee', ['prepare-files']);
 
 gulp.task('prepare-files', [
     'collect-libs',
