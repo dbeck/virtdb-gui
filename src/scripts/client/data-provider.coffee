@@ -1,5 +1,8 @@
-app = angular.module 'virtdb'
-app.controller 'DataProviderController',
+app = require './virtdb-app.js'
+
+virtdbTableDirective = require './virtdb-table.js'
+
+dataProviderController = app.controller 'DataProviderController',
     class DataProviderController
 
         @DATA_LIMIT = 20
@@ -91,4 +94,7 @@ app.controller 'DataProviderController',
         stopPreviousRequest: (type) =>
             if @requestIds[type]?
                 @ServerConnector.cancelRequest @requestIds[type]
-.directive 'virtdbTable', virtdbTableDirective
+
+dataProviderController.directive 'virtdbTable', virtdbTableDirective
+
+module.exports = dataProviderController

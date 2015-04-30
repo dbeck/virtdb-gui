@@ -18,7 +18,7 @@ VirtDB = React.createClass(
             for row, rowIndex in @props.data
                 children = []
                 for field, index in row
-                    item = R.td 
+                    item = R.td
                         key: index + "-" + rowIndex
                         onClick: clickHandler(@props.header[index])
                         className: style(@props.header[index])
@@ -28,7 +28,7 @@ VirtDB = React.createClass(
                                 key: 'header' + index + '-' + rowIndex
                                 onClick: clickHandler(@props.header[index])
                                 className: style(@props.header[index])
-                            , @props.header[index] 
+                            , @props.header[index]
                         ]
                         transposedData[index].push item
                     else
@@ -89,3 +89,4 @@ virtdbTableDirective = ->
             display scope.data, scope.header, scope.callback, scope.selectedField, newValue
         return
 
+module.exports = virtdbTableDirective

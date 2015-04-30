@@ -1,5 +1,5 @@
-app = angular.module 'virtdb'
-app.factory 'ErrorService', [ ->
+app = require './virtdb-app.js'
+module.exports = app.factory 'ErrorService', [ ->
     new class ErrorService
 
         constructor: () ->

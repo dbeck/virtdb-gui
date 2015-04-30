@@ -1,4 +1,4 @@
-class Requests
+module.exports = class Requests
 
     _address: null
     _providerName: null

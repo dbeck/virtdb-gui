@@ -1,5 +1,5 @@
-app = angular.module 'virtdb'
-app.controller 'ProviderController',
+app = require './virtdb-app.js'
+module.exports = app.controller 'ProviderController',
     class ProviderController
         constructor: ($scope, ServerConnector) ->
             @$scope = $scope

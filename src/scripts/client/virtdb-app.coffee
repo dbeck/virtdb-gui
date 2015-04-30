@@ -28,3 +28,5 @@ app.config ($routeProvider) ->
             controllerAs  : 'statusController',
         }
     return
+
+module.exports = app

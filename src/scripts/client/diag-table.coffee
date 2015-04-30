@@ -28,13 +28,13 @@ DiagTable = React.createClass(
                 children.push React.DOM.td { key: index + 'component' }, item.component
                 children.push React.DOM.td { key: index + 'location' }, item.function + ' @ ' + item.file + ':' + item.line
                 children.push React.DOM.td { key: index + 'message' }, item.message.substring 0, MAX_LENGTH
-                rows.push React.DOM.tr {className: style(item), key: index}, children 
-        head = React.DOM.thead { key: 'head' }, React.DOM.tr null, header 
+                rows.push React.DOM.tr {className: style(item), key: index}, children
+        head = React.DOM.thead { key: 'head' }, React.DOM.tr null, header
         body = React.DOM.tbody { key: 'body' }, rows
         return React.DOM.table {className: "table table-condensed table-striped diag-item"}, [head, body]
 )
 
-diagTableDirective = -> 
+diagTableDirective = ->
     restrict: 'E'
     scope:
         data: "="
@@ -50,3 +50,5 @@ diagTableDirective = ->
             display newValue
         , true
         return
+
+module.exports = diagTableDirective

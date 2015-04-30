@@ -1,5 +1,7 @@
-app = angular.module 'virtdb'
-app.controller 'TableListController',
+app = require './virtdb-app.js'
+tableListDirective = require './tablelist.js'
+
+module.exports = app.controller 'TableListController',
     class TableListController
         @ITEMS_PER_PAGE = 50
 
@@ -41,7 +43,7 @@ app.controller 'TableListController',
             @previousRequest = @ServerConnector.getTableList requestData, @onTableList, @finishedLoading
             @isLoading = true
             return
-        
+
         onTableList: (data) =>
             if not data?
                 return
