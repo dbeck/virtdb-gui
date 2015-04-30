@@ -1,5 +1,5 @@
-app = angular.module 'virtdb'
-app.factory 'ServerConnector', ['$http', 'ErrorService', '$q', ($http, ErrorService, $q) ->
+app = require './virtdb-app.js'
+module.exports = app.factory 'ServerConnector', ['$http', 'ErrorService', '$q', ($http, ErrorService, $q) ->
     new class ServerConnector
 
         constructor: () ->

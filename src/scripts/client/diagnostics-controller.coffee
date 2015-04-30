@@ -1,4 +1,6 @@
-app = angular.module 'virtdb'
+app = require './virtdb-app.js'
+diagTableDirective = require './diag-table.js'
+
 dgController = app.controller 'DiagnosticsController',
     class DiagnosticsController
 

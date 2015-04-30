@@ -1,5 +1,5 @@
-app = angular.module 'virtdb'
-app.controller 'EndpointController',
+app = require './virtdb-app.js'
+module.exports = app.controller 'EndpointController',
 class EndpointController
     endpoints: null
 

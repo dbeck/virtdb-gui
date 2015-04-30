@@ -1,5 +1,8 @@
-app = angular.module 'virtdb'
-app.controller 'StatusController',
+app = require './virtdb-app.js'
+
+DiagnosticsController = require './diagnostics-controller.js'
+
+module.exports = app.controller 'StatusController',
     class StatusController
 
         @REQUEST_INTERVAL = 2000

@@ -1,5 +1,6 @@
-app = angular.module 'virtdb'
-app.controller 'ErrorController',
+app = require './virtdb-app.js'
+
+module.exports = app.controller 'ErrorController',
         class ErrorController
 
             errorList: null

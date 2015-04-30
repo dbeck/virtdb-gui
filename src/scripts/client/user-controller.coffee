@@ -1,5 +1,8 @@
-app = angular.module 'virtdb'
-app.controller 'UserController',
+app = require './virtdb-app.js'
+
+ServerConnector = require './server-connector.js'
+
+userController = app.controller 'UserController',
     class UserController
         constructor: ($scope, ServerConnector) ->
             @methods =
@@ -15,3 +18,5 @@ app.controller 'UserController',
             @ServerConnector.getAuthenticationMethods (methods) =>
                 @methods = methods
                 console.log "Setting @methods:", @methods
+
+module.exports = userController

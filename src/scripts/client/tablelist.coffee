@@ -55,7 +55,7 @@ TableItem = React.createClass(
             key: "tableName" + @props.table.name
             onClick: clickHandler(@props.table)
         , @props.table.name
-        
+
         return R.tr getClass(), children
 )
 
@@ -98,3 +98,5 @@ tableListDirective = ->
             display scope.data, newValue, scope.check, scope.click
         scope.$watch 'configuredCounter', (newValue, oldValue) ->
             display scope.data, scope.table, scope.check, scope.click
+
+module.exports = tableListDirective
