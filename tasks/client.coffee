@@ -41,9 +41,10 @@ gulp.task 'compile-client-coffee', ->
         .pipe sourcemaps.write '.'
         .pipe gulp.dest './static/scripts/'
 
-gulp.task 'collect-libs', ->
+gulp.task 'bower-install', ->
     bower()
-    destDir =
+
+gulp.task 'collect-libs', ['bower-install'], ->
     gulp.src mainBowerFiles()
         .pipe gulp.dest 'static/libs'
 
