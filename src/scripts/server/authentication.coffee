@@ -11,13 +11,10 @@ LocalStrategy = (require 'passport-local').Strategy
 FacebookStrategy = (require 'passport-facebook').Strategy
 
 passport.serializeUser (user, done) ->
-    done(null, user)
+    done null, user
 
-passport.deserializeUser (obj, done) ->
-    Authentication.findByUserName obj.username, (err, user) ->
-        if not err? and user?
-            user = obj
-        done err, user
+passport.deserializeUser (user, done) ->
+    done null, user
 
 class Authentication
     @isEnabled: =>
@@ -51,8 +48,21 @@ class Authentication
             localSettings = JSON.parse fs.readFileSync config.projectRoot()+ '/local.json'
             passport.use new LocalStrategy (username, password, done) =>
                 @findByUserName username, (err, user) =>
-                    if user?.password is password then done(null, user) else done(null, false, { message: 'Incorrect username of password' })
+                    if user?.password is password 
+                        done(null, user)
+                    else 
+                        done(null, false, { message: 'Incorrect username of password' })
             @methods.local = true
+        catch ex
+            return
+
+    @initSecurityService: () =>
+        try
+            localSettings = JSON.parse fs.readFileSync config.projectRoot()+ '/security-service.json'
+            passport.use new LocalStrategy (username, password, done) =>
+                user = new User username, password
+                user.authenticate done
+            @methods.securityService = true
         catch ex
             return
 
@@ -80,9 +90,10 @@ class Authentication
             @users = JSON.parse fs.readFileSync authFile
         catch ex
             console.error ex
-        @initGithub()
-        @initFacebook()
-        @initLocal()
+        # @initGithub()
+        # @initFacebook()
+        # @initLocal()
+        @initSecurityService()
         app.use bodyparser.urlencoded({ extended: false })
         app.use bodyparser.json()
         app.use passport.initialize()
@@ -103,6 +114,8 @@ class Authentication
             res.redirect '/'
 
     @authenticateGithub: (req, res, next) =>
+        console.log req.body
+        console.log req.params
         if @methods.github
             return passport.authenticate('github')(req, res, next)
         next()
