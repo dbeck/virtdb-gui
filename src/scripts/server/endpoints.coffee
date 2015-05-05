@@ -26,6 +26,9 @@ class Endpoints
     @getConfigServiceAddress: =>
         return @_findAddresses Const.CONFIG_SERVICE, Const.ENDPOINT_TYPE.CONFIG, Const.SOCKET_TYPE.REQ_REP
 
+    @getUserManagerAddress: =>
+        return @_findAddresses Const.SECURITY_SERVICE, Const.ENDPOINT_TYPE.USER_MGR, Const.SOCKET_TYPE.REQ_REP
+
     @getDataProviders: =>
         providers = []
         for endpointName, endpoint of @_endpoints
