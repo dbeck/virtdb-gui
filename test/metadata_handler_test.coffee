@@ -509,8 +509,6 @@ describe "MetadataHandler", ->
         metadataHandler = new MetadataHandler
         key1 = metadataHandler._generateCacheKey PROVIDER, REQUEST1
         key2 = metadataHandler._generateCacheKey PROVIDER, REQUEST2
-        console.log key1, METADATA1
-        console.log key2, METADATA2
         CacheHandler.set key1, METADATA1
         CacheHandler.set key2, METADATA2
 
