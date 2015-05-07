@@ -15,20 +15,23 @@ chai.use sinonChai
 describe "CacheHandler", ->
 
     sandbox = null
+    clock = null
 
     beforeEach =>
+        clock = sinon.useFakeTimers()
         sandbox = sinon.sandbox.create()
         sandbox.stub VirtDBConnector.log, "info"
         sandbox.stub VirtDBConnector.log, "debug"
         sandbox.stub VirtDBConnector.log, "trace"
         sandbox.stub VirtDBConnector.log, "error"
+        clock.tick 100
 
     afterEach =>
         sandbox.restore()
+        clock.restore()
         CacheHandler._reset()
 
-    it "should store the data and give it back if we get it before ttl", (done) ->
-        this.timeout(1200)
+    it "should store the data and give it back if we get it before ttl", ->
         CacheHandler._cacheTTL = 1
 
         DATA = "data"
@@ -37,14 +40,11 @@ describe "CacheHandler", ->
         OBJ[KEY] = DATA
 
         CacheHandler.set KEY, DATA
-        setTimeout () ->
-            result = CacheHandler.get KEY
-            result.should.be.deep.equal DATA
-            done()
-        , 800
+        clock.tick 800
+        result = CacheHandler.get KEY
+        result.should.be.deep.equal DATA
 
-    it "should store an array and give it back if we get it before ttl", (done) ->
-        this.timeout(1200)
+    it "should store an array and give it back if we get it before ttl", ->
         CacheHandler._cacheTTL = 1
 
         DATA = {
@@ -81,13 +81,11 @@ describe "CacheHandler", ->
         OBJ[KEY] = DATA
 
         CacheHandler.set KEY, DATA
-        setTimeout () ->
-            result = CacheHandler.get KEY
-            result.should.deep.equal DATA
-            done()
-        , 100
+        clock.tick 200
+        result = CacheHandler.get KEY
+        result.should.deep.equal DATA
 
-    it "should store large data and give it back if we get it before ttl", () ->
+    it "should store large data and give it back if we get it before ttl", ->
         CacheHandler._cacheTTL = 1
 
         DATA =
@@ -108,22 +106,20 @@ describe "CacheHandler", ->
         OBJ[KEY] = DATA
 
         CacheHandler.set KEY, DATA
+        clock.tick 200
         result = CacheHandler.get KEY
         result.should.deep.equal DATA
 
-    it "should return null if data requested after ttl", (done) ->
-        this.timeout(1500)
+    it "should return null if data requested after ttl", ->
         CacheHandler._cacheTTL = 1
 
         DATA = "data"
         KEY = "key"
 
         CacheHandler.set KEY, DATA
-        setTimeout () ->
-            result = CacheHandler.get KEY
-            should.not.exist result
-            done()
-        , 1300
+        clock.tick 1500
+        result = CacheHandler.get KEY
+        should.not.exist result
 
 
     it "should save new ttl value and create new cache", ->
@@ -203,7 +199,7 @@ describe "CacheHandler", ->
     it "should not crash when there are no any listener to key and it was expired", ->
         KEY1 = "KEY1"
         CacheHandler._onKeyExpired KEY1
-    
+
     it "should delete key expiration listeners after they have been", ->
         expListener1 = sandbox.spy()
         expListener2 = sandbox.spy()
@@ -214,8 +210,7 @@ describe "CacheHandler", ->
 
         should.not.exist CacheHandler._keyExpirationListeners[KEY1]
 
-    it "should list the stored keys", (done) ->
-        this.timeout(1200)
+    it "should list the stored keys", ->
         CacheHandler._cacheTTL = 1
 
         DATA = "data"
@@ -224,24 +219,18 @@ describe "CacheHandler", ->
 
         CacheHandler.set KEY1, DATA
         CacheHandler.set KEY2, DATA
-        setTimeout () ->
-            keys = CacheHandler.listKeys()
-            keys.should.be.deep.equal [KEY1, KEY2]
-            done()
-        , 800
+        clock.tick 300
+        keys = CacheHandler.listKeys()
+        keys.should.be.deep.equal [KEY1, KEY2]
 
-    it "should delete the entry", (done) ->
-        this.timeout(1100)
+    it "should delete the entry", ->
         CacheHandler._cacheTTL = 1
 
         DATA = "data"
         KEY = "key"
 
         CacheHandler.set KEY, DATA
-        setTimeout () ->
-            CacheHandler.delete KEY
-            result = CacheHandler.get KEY
-            should.not.exist result
-            done()
-        , 300
+        CacheHandler.delete KEY
+        result = CacheHandler.get KEY
+        should.not.exist result
 
