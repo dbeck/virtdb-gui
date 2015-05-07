@@ -24,6 +24,7 @@ describe "User", ->
         sandbox.stub zmq, "socket", (type) ->
             type.should.equal 'req'
             return socket
+        sandbox.stub (require "virtdb-connector").log, "error"
 
     afterEach =>
         sandbox.restore()

@@ -2,6 +2,7 @@
 UserManagerConnection = require './user_manager_connection'
 log = (require "virtdb-connector").log
 V_ = log.Variable
+ReportError = require "./report-error"
 
 class TokenManager
 
@@ -15,7 +16,7 @@ class TokenManager
                 Password: pass
         connection = new UserManagerConnection
         connection.send request, (reply) =>
-            if not (reportErrors reply, callback)
+            if not (ReportError reply, callback)
                 callback null, reply.CrLoginTok.LoginToken
 
     createSourceSystemToken: (token, sourceSystemName, callback) =>
@@ -26,7 +27,7 @@ class TokenManager
                 SourceSysName: sourceSystemName
         connection = new UserManagerConnection
         connection.send request, (reply) =>
-            if not (reportErrors reply, callback)
+            if not (ReportError reply, callback)
                 callback null, reply.CrSSTok.SourceSysToken
 
     getSourceSystemToken: (token, sourceSystemName, callback) =>
@@ -37,7 +38,7 @@ class TokenManager
                 SourceSysName: sourceSystemName
         connection = new UserManagerConnection
         connection.send request, (reply) =>
-            if not (reportErrors reply, callback)
+            if not (ReportError reply, callback)
                 callback null, reply.GetSSTok.SourceSysToken
 
     createTableToken: (token, sourceSystemName, callback) =>
@@ -48,7 +49,7 @@ class TokenManager
                 SourceSysName: sourceSystemName
         connection = new UserManagerConnection
         connection.send request, (reply) =>
-            if not (reportErrors reply, callback)
+            if not (ReportError reply, callback)
                 callback null, reply.CrTabTok.TableToken
 
     deleteToken: (loginToken, anyToken, callback) =>
@@ -59,20 +60,7 @@ class TokenManager
                 AnyTokenValue: anyToken
         connection = new UserManagerConnection
         connection.send request, (reply) =>
-            if not (reportErrors reply, callback)
+            if not (ReportError reply, callback)
                 callback null, null
-
-    reportErrors = (reply, callback) =>
-        if not reply?
-            err = new Error "Problem during communicating with the security service"
-            callback err, null
-            return true
-        if reply.Type is "ERROR_MSG"
-            err = new Error reply.Err.Msg
-            log.error "Security service responded with error", V_(err)
-            callback err, null
-            return true
-        return false
-
 
 module.exports = TokenManager

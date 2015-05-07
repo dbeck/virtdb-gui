@@ -4,11 +4,13 @@ router = express.Router()
 config = require("./config")
 fs = require 'fs'
 bodyparser = require 'body-parser'
+User = require "./user"
 
 BasicStrategy = (require 'passport-http').BasicStrategy
 GithubStrategy = (require 'passport-github').Strategy
 LocalStrategy = (require 'passport-local').Strategy
 FacebookStrategy = (require 'passport-facebook').Strategy
+
 
 passport.serializeUser (user, done) ->
     done null, user
@@ -43,26 +45,26 @@ class Authentication
         catch ex
             return
 
+    # @initLocal: () =>
+    #     try
+    #         localSettings = JSON.parse fs.readFileSync config.projectRoot()+ '/local.json'
+    #         passport.use new LocalStrategy (username, password, done) =>
+    #             @findByUserName username, (err, user) =>
+    #                 if user?.password is password 
+    #                     done(null, user)
+    #                 else 
+    #                     done(null, false, { message: 'Incorrect username of password' })
+    #         @methods.local = true
+    #     catch ex
+    #         return
+
     @initLocal: () =>
         try
             localSettings = JSON.parse fs.readFileSync config.projectRoot()+ '/local.json'
             passport.use new LocalStrategy (username, password, done) =>
-                @findByUserName username, (err, user) =>
-                    if user?.password is password 
-                        done(null, user)
-                    else 
-                        done(null, false, { message: 'Incorrect username of password' })
-            @methods.local = true
-        catch ex
-            return
-
-    @initSecurityService: () =>
-        try
-            localSettings = JSON.parse fs.readFileSync config.projectRoot()+ '/security-service.json'
-            passport.use new LocalStrategy (username, password, done) =>
                 user = new User username, password
                 user.authenticate done
-            @methods.securityService = true
+            @methods.local = true
         catch ex
             return
 
@@ -92,8 +94,8 @@ class Authentication
             console.error ex
         # @initGithub()
         # @initFacebook()
-        # @initLocal()
-        @initSecurityService()
+        @initLocal()
+        # @initSecurityService()
         app.use bodyparser.urlencoded({ extended: false })
         app.use bodyparser.json()
         app.use passport.initialize()
@@ -112,6 +114,13 @@ class Authentication
         else
             console.log "This method is not enabled"
             res.redirect '/'
+    
+    # @authenticateSecurityService: (req, res, next) =>
+    #         if @methods.securityService
+    #             return passport.authenticate('local', { successRedirect: '/', failureRedirect: '/login'})(req, res, next)
+    #         else
+    #             console.log "This method is not enabled"
+    #             res.redirect '/'
 
     @authenticateGithub: (req, res, next) =>
         console.log req.body
