@@ -6,6 +6,26 @@ module.exports = app.factory 'ServerConnector', ['$http', 'ErrorService', '$q', 
             @address = ""
             @pendingRequestIds = {}
 
+        getCertificates: (onSuccess) ->
+            $http.get @address + "/api/certificate"
+                .success(onSuccess)
+                .error (response, status) ->
+                    ErrorService.errorHappened status, "Couldn't get certificate list.", status
+
+        approveCertificate: (authCode, component, onSuccess) ->
+            data =
+                authCode: authCode
+            $http.put @address + "/api/certificate/#{encodeURIComponent(component.ComponentName)}", data
+                .success(onSuccess)
+                .error (response, status) ->
+                    ErrorService.errorHappened status, "Couldn't approve certificate: #{component.ComponentName}", status
+
+        removeCertificate: (component, onSuccess) ->
+            $http.delete(@address + "/api/certificate/#{encodeURIComponent(component.ComponentName)}")
+                .success(onSuccess)
+                .error (response, status) =>
+                        ErrorService.errorHappened status, "Couldn't remove certificate: #{component.ComponentName}", status
+
         getEndpoints: (onSuccess, onError) =>
             $http.get(@address + "/api/endpoints").success(onSuccess)
             .error(

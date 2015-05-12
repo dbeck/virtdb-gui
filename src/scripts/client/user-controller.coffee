@@ -12,8 +12,11 @@ userController = app.controller 'UserController',
             @$scope = $scope
             @ServerConnector = ServerConnector
             @name = ""
+            @$scope.userName = "Guest"
             @ServerConnector.getCurrentUser (user) =>
-                @name = user.displayName or user.username
+                if user? and user isnt ""
+                    @name = user.displayName or user.username
+                    @$scope.userName = @name
 
             @ServerConnector.getAuthenticationMethods (methods) =>
                 @methods = methods

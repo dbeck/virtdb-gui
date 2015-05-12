@@ -1,0 +1,39 @@
+div.navbar.navbar-default
+    div.container-fluid
+        .navbar-header
+            button.navbar-toggle.collapsed(type='button', data-toggle='collapse', data-target='#navbar-content')
+                span.sr-only Toggle navigation
+                span.icon-bar
+                span.icon-bar
+                span.icon-bar
+            a.navbar-brand(href='/')
+                img(src="/images/final_logo_ws_compressed.png", width="100")
+        #navbar-content.collapse.navbar-collapse
+            ul.nav.navbar-nav
+                li
+                    a(href='#data-providers') Data
+            ul.nav.navbar-nav.navbar-right
+                li.dropdown(ng-controller="AdminController")
+                    a.dropdown-toggle(data-toggle="dropdown") Security
+                        span.badge(ng-if="waitingCertCount > 0") {{ waitingCertCount }}
+                        strong.caret
+                    ul.nav.nav-stacked.dropdown-menu
+                        li
+                            a(href='#admin') Credentials
+                                span.badge(ng-if="waitingCertCount > 0") {{ waitingCertCount }}
+                        li
+                            a(href='#admin') Users
+                li.dropdown(ng-controller="UserController")
+                    a.dropdown-toggle(data-toggle="dropdown") {{ userName }} 
+                        strong.caret
+                    ul.nav.nav-stacked.dropdown-menu
+                        li
+                            a(href='#component-config') Settings
+                        li
+                            a(href='#status') Status
+                        li
+                            a(href='#diag') Diag
+                        li
+                            a(href='/logout' ng-if="userName != ''") Logout
+
+

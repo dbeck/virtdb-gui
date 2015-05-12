@@ -9,7 +9,8 @@ var bodyParser = require('body-parser');
 var fs = require('fs');
 
 var EXPRESS_PORT = config.getCommandLineParameter("port")
-var LIVERELOAD_PORT = 3001;
+var LIVERELOAD_PORT = 35729;
+var test = 'cica4';
 
 var app = module.exports.app = exports.app = express();
 
@@ -29,9 +30,8 @@ var auth = require('./server/authentication');
 auth.initalize(app);
 // Authentication end 
 
-
-app.set('view engine', 'jade');
-app.set('views', path.join(__dirname, 'static/pages'));
+// app.set('view engine', 'html');
+// app.set('views', path.join(__dirname, 'static/pages'));
 
 app.use(favicon());
 app.use(bodyParser.json());
@@ -39,6 +39,7 @@ app.use(bodyParser.urlencoded());
 app.use(cookieParser());
 app.use(allowCrossDomain);
 app.use(express.static(path.join(__dirname, 'static')));
+app.use(express.static(path.join(__dirname, 'static/pages')));
 
 if (app.get('env') === 'development') {
     app.use(require('connect-livereload')({
