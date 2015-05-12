@@ -1,5 +1,5 @@
-express = require "express"
-router = express.Router()
+require './certificates'
+router = require './router'
 util = require "util"
 DBConfig = require "./db_config_connector"
 Config = require "./config"
@@ -9,7 +9,6 @@ KeyValue = require "./key_value"
 ConfigService = require "./config_service"
 DiagConnector = require "./diag_connector"
 timeout = require "connect-timeout"
-ok = require "okay"
 log = VirtDBConnector.log
 V_ = log.Variable
 Endpoints = require "./endpoints"
@@ -25,7 +24,7 @@ require('source-map-support').install()
 router.use require 'express-domain-middleware'
 
 # GET home page.
-router.get "/" 
+router.get "/"
     , auth.ensureAuthenticated
     , timeout(Config.getCommandLineParameter("timeout"))
 , (req, res, next) ->
@@ -42,8 +41,7 @@ router.get "/user"
 , (req, res, next) ->
     res.json req.user
 
-
-router.get "/endpoints" 
+router.get "/endpoints"
     , auth.ensureAuthenticated
     , timeout(Config.getCommandLineParameter("timeout"))
 , (req, res, next) ->
