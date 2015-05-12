@@ -28,7 +28,7 @@ body
                     img(src="/images/final_logo_ws_compressed.png", width="100")
     div.container(ng-controller="UserController as user")
         h1 Login
-        div(ng-if="user.methods.local")
+        div
             form(action='/login', method="post")
                 div
                     label Username
@@ -39,8 +39,3 @@ body
                 div
                     span
                         input(type="submit", value="Log In")
-        div
-            span(ng-if="user.methods.facebook")
-                a.fa.fa-facebook.fa-2x(href="/login/facebook")
-            span(ng-if="user.methods.github")
-                a.fa.fa-github.fa-2x(href="/login/github")
