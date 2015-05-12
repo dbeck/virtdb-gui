@@ -168,7 +168,14 @@ describe "Endpoints", ->
         Endpoints.onEndpoint Const.SECURITY_SERVICE, Const.ENDPOINT_TYPE.USER_MGR, Const.SOCKET_TYPE.REQ_REP, ADDRESSES
         result = Endpoints.getUserManagerAddress()
         result.should.be.deep.equal ADDRESSES
-    
+
+    it "should return the source system credential service addresses", ->
+        ADDRESSES = ["address1", "address2"]
+
+        Endpoints.onEndpoint Const.SECURITY_SERVICE, Const.ENDPOINT_TYPE.SRCSYS_CRED_MGR, Const.SOCKET_TYPE.REQ_REP, ADDRESSES
+        result = Endpoints.getSourceSystemCredentialAddress()
+        result.should.be.deep.equal ADDRESSES
+
     it "should return the query addresses of the current provider", ->
         NAME = "NAME"
         CONNTYPE = "PUSH_PULL"
