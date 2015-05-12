@@ -5,10 +5,6 @@ ServerConnector = require './server-connector.js'
 userController = app.controller 'UserController',
     class UserController
         constructor: ($scope, ServerConnector) ->
-            @methods =
-                local: false
-                github: false
-                facebook: false
             @$scope = $scope
             @ServerConnector = ServerConnector
             @name = ""
@@ -18,8 +14,5 @@ userController = app.controller 'UserController',
                     @name = user.displayName or user.username
                     @$scope.userName = @name
 
-            @ServerConnector.getAuthenticationMethods (methods) =>
-                @methods = methods
-                console.log "Setting @methods:", @methods
 
 module.exports = userController

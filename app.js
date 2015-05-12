@@ -27,7 +27,7 @@ var allowCrossDomain = function(req, res, next) {
 var session = require('express-session')
 app.use(session({secret: 'keyboard cat'}));
 var auth = require('./server/authentication');
-auth.initalize(app);
+auth.initialize(app);
 // Authentication end 
 
 // app.set('view engine', 'html');
