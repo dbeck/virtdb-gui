@@ -39,6 +39,7 @@ router.get "/authmethods"
 router.get "/user"
     , timeout(Config.getCommandLineParameter("timeout"))
 , (req, res, next) ->
+    console.log "user", req.user
     res.json req.user
 
 router.get "/endpoints"
