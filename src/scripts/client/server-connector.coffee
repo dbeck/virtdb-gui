@@ -21,6 +21,8 @@ module.exports = app.factory 'ServerConnector', ['$http', 'ErrorService', '$q', 
                     ErrorService.errorHappened status, "Couldn't approve certificate: #{component.ComponentName}", status
 
         removeCertificate: (component, onSuccess) ->
+            data =
+                publicKey: component.PublicKey
             $http.delete(@address + "/api/certificate/#{encodeURIComponent(component.ComponentName)}")
                 .success(onSuccess)
                 .error (response, status) =>

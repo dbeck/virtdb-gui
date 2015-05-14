@@ -4,12 +4,15 @@ ServerConnector = require './server-connector.js'
 
 adminController = app.controller 'AdminController',
     ($scope, $rootScope, ServerConnector) ->
-        ServerConnector.getCertificates (components) ->
-            $scope.components = components
-            updateWaitingCount $rootScope, $scope
+        updateCertificates ServerConnector, $scope, $rootScope
 
         $scope.approve = approve.bind null, ServerConnector, $rootScope, $scope
         $scope.remove = remove.bind null, ServerConnector, $rootScope, $scope
+
+updateCertificates = (connector, scope, rootScope) ->
+    connector.getCertificates (components) ->
+        scope.components = components
+        updateWaitingCount rootScope, scope
 
 countWaiting = (components) ->
     count = 0
@@ -21,9 +24,7 @@ countWaiting = (components) ->
 
 approve = (ServerConnector, rootScope, scope, component, authCode) ->
     ServerConnector.approveCertificate authCode, component, ->
-        component.Approved = true
-        console.log scope
-        updateWaitingCount rootScope, scope
+        updateCertificates ServerConnector, scope, rootScope
 
 remove = (ServerConnector, rootScope, scope, component) ->
     ServerConnector.removeCertificate component, ->

@@ -32,7 +32,7 @@ class Authentication
                 user.authenticate done
         catch ex
             return
-            
+
     @initialize: (app) =>
         @users = []
         @init()
@@ -46,7 +46,7 @@ class Authentication
         return passport.authenticate('local', { successRedirect: '/', failureRedirect: '/login'})(req, res, next)
 
 router.get '/login', (req, res) ->
-    res.render 'login'
+    res.sendFile 'login.html', { root: config.projectRoot() + '/static/pages' }
 
 router.get '/logout', (req, res) ->
     req.logout()

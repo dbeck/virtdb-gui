@@ -22,8 +22,6 @@ notifyLivereload = (event) ->
 testWatch = (args...) ->
     console.log args
 
-debug = require 'gulp-debug'
-
 gulp.task 'update-server', ['compile-server-coffee'], ->
     console.log server
     server?.start()

@@ -39,7 +39,6 @@ app.use(bodyParser.urlencoded());
 app.use(cookieParser());
 app.use(allowCrossDomain);
 app.use(express.static(path.join(__dirname, 'static')));
-app.use(express.static(path.join(__dirname, 'static/pages')));
 
 if (app.get('env') === 'development') {
     app.use(require('connect-livereload')({
