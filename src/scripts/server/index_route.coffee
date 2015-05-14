@@ -1,6 +1,7 @@
 express = require("express")
 router = express.Router()
 passport = require 'passport'
+config = require("./config")
 
 require("source-map-support").install()
 auth = require './authentication'
@@ -9,6 +10,6 @@ auth = require './authentication'
 router.get "/"
     , auth.ensureAuthenticated
 , (req, res) ->
-    res.render "index"
+    res.sendFile 'index.html', { root: config.projectRoot() + '/static/pages' }
 
 module.exports = router

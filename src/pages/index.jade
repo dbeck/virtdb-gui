@@ -12,6 +12,7 @@ head
     link(rel='stylesheet', href='../styles/style.css')
     
     script(type='text/javascript' src='../libs/jquery.js')
+    script(type='text/javascript' src='../libs/bootstrap.js')
     script(type='text/javascript' src='../libs/angular.js')
     script(type='text/javascript' src='../libs/react.js')
     script(type='text/javascript' src='../libs/ngReact.js')
@@ -22,28 +23,6 @@ head
     script(type='text/javascript' src='../scripts/dist/virtdb.js')
 
 body
-    div.navbar.navbar-default
-        div.container-fluid
-            .navbar-header
-                button.navbar-toggle.collapsed(type='button', data-toggle='collapse', data-target='#navbar-content')
-                    span.sr-only Toggle navigation
-                    span.icon-bar
-                    span.icon-bar
-                    span.icon-bar
-                a.navbar-brand(href='/')
-                    img(src="/images/final_logo_ws_compressed.png", width="100")
-            #navbar-content.collapse.navbar-collapse
-                ul.nav.navbar-nav
-                    li
-                        a(href='#data-providers') Data sources
-                    li
-                        a(href='#component-config') Component config
-                    li
-                        a(href='#status') Status
-                    li
-                        a(href='#diag') Diagnostics
-                ul.nav.navbar-nav.navbar-right(ng-controller="UserController as user")
-                    li
-                        a(href="/logout", ng-if="user.name != null && user.name.length > 0") {{ user.name }} 
+    include includes/navbar
     div.container-fluid(ng-controller="ErrorController as errors")
     div.container-fluid(ng-View)

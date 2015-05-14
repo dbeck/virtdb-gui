@@ -14,7 +14,7 @@ gulp.task 'compile-server-coffee', ->
         .pipe gulp.dest destDir
 
 gulp.task 'server-watch', ->
-    gulp.watch ['src/scripts/server/**/*.coffee'], ['compile-server-coffee']
+    gulp.watch ['src/scripts/server/**/*.coffee'], ['update-server']
     gulp.watch ['bower.json'], ['collect-libs']
 
 gulp.task 'server-build', ['compile-server-coffee']

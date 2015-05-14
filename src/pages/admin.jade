@@ -1,0 +1,35 @@
+mixin approve
+    input(type='text' ng-model="authCode") 
+    button.btn.btn-success.glyphicon.glyphicon-ok(ng-click="approve(component, authCode)" ng-disabled="authCode.length == null || authCode.length == 0")
+
+div
+    div.panel.panel-danger(ng-if="waitingCertCount > 0")
+        h3.panel-title Components waiting for approval
+        table.table
+            tr
+                th Component name
+                th Start time
+                th IP
+                th Action
+            tr(ng-repeat="component in components | filter: { Approved: false }")
+                td {{component.ComponentName}}
+                td {{component.RequestedAtEpoch | date:'yyyy-MM-dd HH:mm:ss'}}
+                td {{component.RequesterIP}}
+                td
+                    +approve
+                    button.btn.btn-danger.glyphicon.glyphicon-remove(ng-click="remove(component)")
+    div.panel.panel-success
+        h3.panel-title Components already approved
+        table.table
+            tr
+                th Component name
+                th Start time
+                th IP
+                th Action
+            tr(ng-repeat="component in components | filter: { Approved : true  }")
+                td {{component.ComponentName}}
+                td {{component.RequestedAtEpoch | date:'yyyy-MM-dd HH:mm:ss'}}
+                td {{component.RequesterIP}}
+                td
+                    button.btn.btn-danger.glyphicon.glyphicon-remove(ng-click="remove(component)")
+

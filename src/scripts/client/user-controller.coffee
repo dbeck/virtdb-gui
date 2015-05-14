@@ -8,8 +8,11 @@ userController = app.controller 'UserController',
             @$scope = $scope
             @ServerConnector = ServerConnector
             @name = ""
+            @$scope.userName = "Guest"
             @ServerConnector.getCurrentUser (user) =>
-                console.log user
-                @name = user.displayName or user.name
+                if user? and user isnt ""
+                    @name = user.displayName or user.name
+                    @$scope.userName = @name
+
 
 module.exports = userController

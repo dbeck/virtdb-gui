@@ -1,58 +1,58 @@
 (require "source-map-support").install()
-UserManagerConnection = require './user_manager_connection'
-log = (require "virtdb-connector").log
+VirtDB = require 'virtdb-connector'
+Const = VirtDB.Const
+log = VirtDB.log
 V_ = log.Variable
-ReportError = require "./report-error"
+
+sendSecurityMessage = (require './protocol').sendSecurityMessage
 
 class UserManager
     constructor: ->
 
     createUser: (username, password, isAdmin, token, done) =>
-        request = 
+        request =
             Type: "CREATE_USER"
             CrUser:
                 UserName: username
                 Password: password
                 IsAdmin: isAdmin
                 LoginToken: token
-        connection = new UserManagerConnection
-        connection.send request, (reply) =>
-            if not (ReportError reply, done)
-                done null, null
-    
+
+        sendSecurityMessage Const.ENDPOINT_TYPE.USER_MGR, request, (err, message) ->
+            done err, null
+
     updateUser: (username, password, isAdmin, token, done) =>
-        request = 
+        request =
             Type: "UPDATE_USER"
-            UpdUser:    
+            UpdUser:
                 UserName: username
                 Password: password
                 IsAdmin: isAdmin
                 LoginToken: token
-        connection = new UserManagerConnection
-        connection.send request, (reply) =>
-            if not (ReportError reply, done)
-                done null, null
+
+        sendSecurityMessage Const.ENDPOINT_TYPE.USER_MGR, request, (err, message) ->
+            done err, null
 
     deleteUser: (username, token, done) =>
-        request = 
+        request =
             Type: "DELETE_USER"
             DelUser:
                 UserName: username
                 LoginToken: token
-        connection = new UserManagerConnection
-        connection.send request, (reply) =>
-            if not (ReportError reply, done)
-                done null, null
+
+        sendSecurityMessage Const.ENDPOINT_TYPE.USER_MGR, request, (err, message) ->
+            done err, null
 
     listUsers: (token, done) =>
-        request = 
+        request =
             Type: "LIST_USERS"
             LstUsers:
                 LoginToken: token
-        connection = new UserManagerConnection
-        connection.send request, (reply) =>
-            if not (ReportError reply, done)
-                console.log reply
-                done null, reply.LstUsers.Users
+
+        sendSecurityMessage Const.ENDPOINT_TYPE.USER_MGR, request, (err, message) ->
+            data = null
+            if not err? and message?.LstUsers?.Users?
+                data = message.LstUsers.Users
+            done err, data
 
 module.exports = UserManager
