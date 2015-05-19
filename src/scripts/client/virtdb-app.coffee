@@ -24,6 +24,9 @@ app.config ($routeProvider) ->
         .when '/admin',
             templateUrl: '../pages/admin.html'
             controller: 'AdminController'
+        .when '/users',
+            templateUrl: '../pages/users.html'
+            controller: 'UserController'
     return
 
 module.exports = app

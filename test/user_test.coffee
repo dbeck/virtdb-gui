@@ -30,12 +30,17 @@ describe "User", ->
         sandbox.restore()
 
     it "should give back the user when authentication was succesful", ->
-        LOGIN_TOKEN = "logisnsgngg-tokensn"
+        USER =
+            LoginToken: "tokensgslgnskgsk"
+            Data:
+                Name: "user"
+                PassHash: "sfsfsfs"
+                IsAdmin: true
         createLoginToken = sandbox.stub TokenManager, "createLoginToken"
         done = sinon.spy()
         user = new User("user", "pass")
         user.authenticate(done)
-        createLoginToken.callArgWith 2, null, LOGIN_TOKEN
+        createLoginToken.callArgWith 2, null, USER
 
         done.should.have.been.calledWithExactly null, user
 

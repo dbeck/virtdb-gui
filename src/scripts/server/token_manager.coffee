@@ -14,10 +14,10 @@ class TokenManager
 
         sendSecurityMessage Const.ENDPOINT_TYPE.USER_MGR, rawRequest, (err, message) ->
             data = null
-            if not err? and message?.CrLoginTok?.LoginToken?
-                data = message.CrLoginTok.LoginToken
+            if not err? and message?.CrLoginTok?
+                data = message.CrLoginTok
             else
-                err ?= new Error "Message does not contain a CrLoginTok.LoginToken member"
+                err ?= new Error "Message does not contain a CrLoginTok member"
             callback err, data
 
     @createSourceSystemToken: (token, sourceSystemName, callback) ->

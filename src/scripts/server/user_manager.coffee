@@ -7,9 +7,8 @@ V_ = log.Variable
 sendSecurityMessage = (require './protocol').sendSecurityMessage
 
 class UserManager
-    constructor: ->
 
-    createUser: (username, password, isAdmin, token, done) =>
+    @createUser: (username, password, isAdmin, token, done) =>
         request =
             Type: "CREATE_USER"
             CrUser:
@@ -21,7 +20,7 @@ class UserManager
         sendSecurityMessage Const.ENDPOINT_TYPE.USER_MGR, request, (err, message) ->
             done err, null
 
-    updateUser: (username, password, isAdmin, token, done) =>
+    @updateUser: (username, password, isAdmin, token, done) =>
         request =
             Type: "UPDATE_USER"
             UpdUser:
@@ -33,7 +32,7 @@ class UserManager
         sendSecurityMessage Const.ENDPOINT_TYPE.USER_MGR, request, (err, message) ->
             done err, null
 
-    deleteUser: (username, token, done) =>
+    @deleteUser: (username, token, done) =>
         request =
             Type: "DELETE_USER"
             DelUser:
@@ -43,7 +42,7 @@ class UserManager
         sendSecurityMessage Const.ENDPOINT_TYPE.USER_MGR, request, (err, message) ->
             done err, null
 
-    listUsers: (token, done) =>
+    @listUsers: (token, done) =>
         request =
             Type: "LIST_USERS"
             LstUsers:

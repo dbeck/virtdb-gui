@@ -41,11 +41,18 @@ describe "TokenManager", ->
             sendRequest.should.have.calledWith "security-service", "USER_MGR", SER_REQUEST
 
         it "should receive UserManagerReply", ->
-            LOGIN_TOKEN = "logisnsgngg-tokensn"
             REPLY =
                 Type: "CREATE_LOGIN_TOKEN"
                 CrLoginTok:
-                    LoginToken: LOGIN_TOKEN
+                    LoginToken: "logisnsgngg-tokensn"
+                    Data:
+                        Name: "Cirmi"
+                        IsAdmin: true
+                        PassHash: "hash"
+                        Salt: 13
+                        LoginTokens: []
+                        SourceSysTokens: []
+                        TableTokens: []
             SER_REPLY = SecurityProto.serialize REPLY, "virtdb.interface.pb.UserManagerReply"
 
             callback = sinon.spy()
@@ -54,7 +61,7 @@ describe "TokenManager", ->
             TokenManager.createLoginToken "user", "pass", callback
             sendRequest.callArgWith 3, null, SER_REPLY
 
-            callback.should.be.calledWithExactly null, LOGIN_TOKEN
+            callback.should.be.calledWithExactly null, REPLY.CrLoginTok
 
         it "should receive error when security service replied with error", ->
             ERROR_TEXT = "WRONG PASSWORD"

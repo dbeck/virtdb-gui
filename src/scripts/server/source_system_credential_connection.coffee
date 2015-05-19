@@ -17,7 +17,6 @@ class SourceSystemCredentialConnection
         @_initSocket()
         @callback = callback
         try
-            console.log message
             socketMessage = SecurityProto.serialize message, "virtdb.interface.pb.SourceSystemCredentialRequest"
             @socket.send socketMessage
         catch ex
