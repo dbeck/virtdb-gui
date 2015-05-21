@@ -13,14 +13,6 @@ userController = app.controller 'UserController',
             @$scope.userName = "Guest"
             @$scope.isAdmin = false
             @$scope.userList = []
-            @$scope.editAction = "Create"
-
-#            @$rootScope.$on "$routeChangeSuccess", (event, current, previous) =>
-#                console.log event
-#                console.log current
-#                console.log previous
-#                if current?.$$route?.originalPath is "/users"
-#                    @getUserList()
 
             @ServerConnector.getCurrentUser (user) =>
                 if user? and user isnt ""
@@ -29,47 +21,83 @@ userController = app.controller 'UserController',
                     @$scope.userName = @name
                     @$scope.isAdmin = @isAdmin
 
+            @ServerConnector.getUserList (users) =>
+                @$scope.userList = users
+
         getUserList: () =>
             @ServerConnector.getUserList (users) =>
                 @$scope.userList = users
 
-        sendUser: () =>
-            data = {}
-            if @$scope.editUserName is ""
-                console.error "User name is have to be filled"
+        validateUsername: () =>
+            if @$scope.editUserName?.length is 0
+                @$scope.error =
+                    message: "Username is empty"
+                return false
+            return true
+
+        validatePassword: () =>
+            if @$scope.editUserPass1 isnt @$scope.editUserPass2
+                @$scope.error =
+                    message: "Password is not matching with its confirmation"
+                return false
+            if @$scope.editUserPass1?.length is 0
+                @$scope.error =
+                    message: "Password is empty"
+                return false
+            return true
+
+        createUser: () =>
+            if not @validateUsername() or not @validatePassword()
                 return
-            if @$scope.editUserPass is "" and @newUser
-                console.error "Password is have to be filled when creating new user"
+            data =
+                name: @$scope.editUserName
+                isAdmin: @$scope.editUserIsAdmin
+                password: @$scope.editUserPass1
+            @ServerConnector.createUser data, () =>
+                $('#create-user-modal').modal("hide")
+                @getUserList()
+
+        deleteUser: () =>
+            @ServerConnector.deleteUser @$scope.editUserName, () =>
+                @getUserList()
+
+        changePassword: () =>
+            if not @validatePassword()
                 return
-
-            data["name"] = @$scope.editUserName
-            data["isAdmin"] = @$scope.editUserIsAdmin
-            if @$scope.editUserPass isnt ""
-                data["password"] = @$scope.editUserPass
-
-            finishAction = () =>
-                @getUserList()
-            if @newUser
-                @ServerConnector.createUser data, finishAction
-            else
-                @ServerConnector.updateUser data, finishAction
-
-        deleteUser: (id) =>
-            @ServerConnector.deleteUser @$scope.userList[id].Name, () =>
+            data =
+                name: @$scope.editUserName
+                isAdmin: @$scope.editUserIsAdmin
+                password: @$scope.editUserPass1
+            @ServerConnector.updateUser data, () =>
+                $('#change-password-modal').modal("hide")
                 @getUserList()
 
-        updateUser: (id) =>
-            @$scope.editUserName = @$scope.userList[id].Name
-            @$scope.editUserPass = ""
-            @$scope.editUserIsAdmin = @$scope.userList[id].IsAdmin
-            @newUser = false
-            @$scope.editAction = "Update"
+        changeAdminStatus: (id) =>
+            data =
+                name: @$scope.userList[id].Name
+                isAdmin: @$scope.userList[id].IsAdmin
+            @ServerConnector.updateUser data, () =>
+                @getUserList()
 
-        createUser: =>
+        initCreateUser: () =>
+            @$scope.error = null
             @$scope.editUserName = ""
-            @$scope.editUserPass = ""
+            @$scope.editUserPass1 = ""
+            @$scope.editUserPass2 = ""
             @$scope.editUserIsAdmin = false
-            @newUser = true
-            @$scope.editAction = "Create"
+
+        initDeleteUser: (id) =>
+            @$scope.error = null
+            @$scope.editUserName = @$scope.userList[id].Name
+            @$scope.editUserPass1 = ""
+            @$scope.editUserPass2 = ""
+            @$scope.editUserIsAdmin = false
+
+        initChangePassword: (id) =>
+            @$scope.error = null
+            @$scope.editUserPass1 = ""
+            @$scope.editUserPass2 = ""
+            @$scope.editUserName = @$scope.userList[id].Name
+            @$scope.editUserIsAdmin = @$scope.userList[id].IsAdmin
 
 module.exports = userController

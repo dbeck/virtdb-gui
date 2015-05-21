@@ -1,46 +1,82 @@
 div(ng-controller="UserController as users")
-    div.modal.fade(id="edit-user-modal" tabindex="-1" role="dialog" aria-labelledby="edit-user-modal-label" aria-hidden="true")
+    div.modal.fade(id="create-user-modal" tabindex="-1" role="dialog" aria-labelledby="create-user-modal-label"
+    aria-hidden="true")
         div.modal-dialog
             div.modal-content
                 div.modal-header
-                    h4.modal-title(id="edit-user-modal-label") {{editAction}} user
+                    h4.modal-title(id="create-user-modal-label") Create user
                 div.modal-body
+                    div.alert.alert-danger(ng-show="error") {{error.message}}
                     form
                         div.form-group
                             label(for="username") Username
-                            input.form-control(type="text" placeholder="Enter username" id="username"
-                            ng-disabled="editAction === 'Update'" ng-model="editUserName")
+                            input.form-control#username(type="text" placeholder="Enter username"
+                            ng-model="editUserName")
                         div.form-group
                             label(for="password") Password
-                            input.form-control(type="password" placeholder="Enter password" id="password"
-                            ng-model="editUserPass")
+                            input.form-control#password(type="password" placeholder="Enter password"
+                            ng-model="editUserPass1")
+                        div.form-group
+                            label(for="confirm-password") Confirm password
+                            input.form-control#confirm-password(type="password" placeholder="Confirm password"
+                            ng-model="editUserPass2")
                         div.checkbox
                             label
                                 input(type="checkbox" ng-model="editUserIsAdmin")
                                 | Admin
                 div.modal-footer
                     button.btn.btn-default(data-dismiss="modal") Close
-                    button.btn.btn-primary(type="submit" ng-click="users.sendUser()" data-dismiss="modal") {{editAction}}
+                    button.btn.btn-primary(ng-click="users.createUser()") Create user
+
+    div.modal.fade(id="change-password-modal" tabindex="-1" role="dialog" aria-labelledby="change-password-modal-label"
+    aria-hidden="true")
+            div.modal-dialog
+                div.modal-content
+                    div.modal-header
+                        h4.modal-title(id="change-password-modal-label") Change password for: {{editUserName}}
+                    div.modal-body
+                        div.alert.alert-danger(ng-show="error") {{error.message}}
+                        form
+                            div.form-group
+                                label(for="password") Password
+                                input.form-control(type="password" placeholder="Enter password" id="password"
+                                ng-model="editUserPass1")
+                            div.form-group
+                                label(for="confirm-password") Confirm password
+                                input.form-control(type="password" placeholder="Confirm password" id="confirm-password"
+                                ng-model="editUserPass2")
+                    div.modal-footer
+                        button.btn.btn-default(data-dismiss="modal") Close
+                        button.btn.btn-primary(ng-click="users.changePassword()") Change password
+
+    div.modal.fade(id="delete-confirm-modal" tabindex="-1" role="dialog" aria-labelledby="delete-confirm-modal" aria-hidden="true")
+            div.modal-dialog
+                div.modal-content
+                    div.modal-header
+                        h4.modal-title(id="delete-confirm-modal-label") Delete user
+                    div.modal-body
+                        div Are you sure you want to delete {{editUserName}}?
+                    div.modal-footer
+                        button.btn.btn-default(data-dismiss="modal") No
+                        button.btn.btn-primary(type="submit" ng-click="users.deleteUser()" data-dismiss="modal") Yes, I want
 
     div
-        button.btn.btn-default(ng-click="users.getUserList()") Get users
-    div
-        button.btn.btn-default.btn-sm(data-toggle="modal" data-target="#edit-user-modal" ng-click="users.createUser()")
+        button.btn.btn-default.btn-sm(data-toggle="modal" data-target="#create-user-modal" ng-click="users.initCreateUser()")
             span.glyphicon.glyphicon-plus(aria-hidden="true")
             |   Create user
-    table.table.table-condensed
-        tr
-            th #
-            th Name
-            th IsAdmin
-            th Action
-        tr(ng-repeat="(id, user) in userList")
-            td {{id}}
-            td {{user.Name}}
-            td {{user.IsAdmin}}
-            td
-                .btn-group.btn-group-sm
-                    button.btn.btn-default(data-toggle="modal" data-target="#edit-user-modal" ng-click="users.updateUser(id)")
-                        span.glyphicon.glyphicon-edit
-                    button.btn.btn-default(ng-click="users.deleteUser(id)")
-                        span.glyphicon.glyphicon-remove
+    table.table
+        thead
+            tr
+                th Name
+                th Admin
+                th
+        tbody
+            tr(ng-repeat="(id, user) in userList")
+                td {{user.Name}}
+                td
+                    div.switch
+                        input.cmn-toggle.cmn-toggle-round-flat(ng-model="user.IsAdmin" id="change-admin-status-{{id}}" type="checkbox" ng-change="users.changeAdminStatus(id)")
+                        label(for="change-admin-status-{{id}}")
+                td
+                    button.btn.btn-default.btn-sm(data-toggle="modal" data-target="#change-password-modal" ng-click="users.initChangePassword(id)") Change password
+                    button.btn.btn-default.btn-sm(data-toggle="modal" data-target="#delete-confirm-modal" ng-click="users.initDeleteUser(id)") Delete
