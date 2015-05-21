@@ -57,8 +57,8 @@ userController = app.controller 'UserController',
                 $('#create-user-modal').modal("hide")
                 @getUserList()
 
-        deleteUser: (id) =>
-            @ServerConnector.deleteUser @$scope.userList[id].Name, () =>
+        deleteUser: () =>
+            @ServerConnector.deleteUser @$scope.editUserName, () =>
                 @getUserList()
 
         changePassword: () =>
@@ -82,6 +82,13 @@ userController = app.controller 'UserController',
         initCreateUser: () =>
             @$scope.error = null
             @$scope.editUserName = ""
+            @$scope.editUserPass1 = ""
+            @$scope.editUserPass2 = ""
+            @$scope.editUserIsAdmin = false
+
+        initDeleteUser: (id) =>
+            @$scope.error = null
+            @$scope.editUserName = @$scope.userList[id].Name
             @$scope.editUserPass1 = ""
             @$scope.editUserPass2 = ""
             @$scope.editUserIsAdmin = false
