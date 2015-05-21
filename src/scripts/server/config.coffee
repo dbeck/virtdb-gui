@@ -61,6 +61,7 @@ class Configuration
     @DEFAULTS[@DB_CONFIG_SERVICE] = "greenplum-config"
     @DEFAULTS[@CACHE_TTL] = 600
     @DEFAULTS[@CACHE_PERIOD] = 60
+    @Installed = false
 
     @_configListeners = {}
     @_parameters = {}
@@ -74,6 +75,9 @@ class Configuration
     @init: () =>
         ConfigService.subscribeToConfigs @onConfigReceived
         ConfigService.getConfig @getCommandLineParameter("name"), @onConfigReceived
+
+    @isInstalled: ->
+        return @Installed
 
     @getCommandLineParameter: (parameter) =>
         if Object.keys(@_commandLine).length is 0

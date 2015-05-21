@@ -1,0 +1,109 @@
+extends ./layout.jade
+
+block content
+    script.
+        window.onload = function() {
+            var addError = function(group, icon, text) {
+                if (group.oldClass == null) {
+                    group.oldClass = group.className;
+                    group.className = group.className + ' has-error has-feedback';
+                    icon.style.display = 'block';
+                    alertMessage.style.display = 'block'
+                    alertMessage.innerHTML = text;
+                 }
+             }
+
+            var revertError = function(group, icon) {
+                if (group.oldClass != null) {
+                    group.className = group.oldClass;
+                    group.oldClass = null;
+                    icon.style.display = 'none';
+                    alertMessage.style.display = 'none';
+                }
+            }
+
+            var clearError = function(ev) {
+                revertError(passwordGroup, passwordIcon);
+                revertError(passwordAgainGroup, passwordAgainIcon);
+                revertError(tokenGroup, tokenIcon);
+                revertError(userGroup, userIcon);
+            }
+
+            var validatePassword = function(ev) {
+                if (password.value.length < 6 || password.value != passwordAgain.value)
+                {
+                    var message = 'Password fields must match and they need to be 6 or more characters long.';
+                    addError(passwordGroup, passwordIcon, message);
+                    addError(passwordAgainGroup, passwordAgainIcon, message);
+                    ev.preventDefault();
+                }
+            }
+
+            var validateToken = function(ev) {
+                if (token.value.length < 1)
+                {
+                    var message = 'Token must not be empty';
+                    addError(tokenGroup, tokenIcon, message);
+                    ev.preventDefault();
+                }
+            }
+
+            var validateUsername = function(ev) {
+                if (userName.value.length < 1)
+                {
+                    var message = 'Username must be at least 2 characters long';
+                    addError(userGroup, userIcon, message);
+                    ev.preventDefault();
+                }
+            }
+
+            password.addEventListener('change', clearError);
+            passwordAgain.addEventListener('change', clearError);
+            token.addEventListener('change', clearError);
+            userName.addEventListener('change', clearError);
+
+            submit.addEventListener('click', function(ev) {
+                validatePassword(ev);
+                validateUsername(ev);
+                validateToken(ev);
+            });
+        };
+    h1.text-center.center Welcome to VirtDB
+    p.text-center.center VirtDB installation is not yet finished. Please use the token given to you by the VirtDB Config Service to approve this GUI installation and enter the credentials for the first Administrator user. (Please note that with Administrative access further Admins can be added to the system.)
+    form.form-horizontal(action="/install" method="post")
+        .row
+            .col-sm-4
+            .col-sm-4
+                .form-group#tokenGroup.text-center
+                    input#token.form-control(placeholder="Token" name="token")
+                    span#tokenIcon.glyphicon.glyphicon-remove.form-control-feedback(style="display: none")
+            .col-sm-4
+        .row
+            .col-sm-4
+            .col-sm-4
+                .form-group#userGroup.text-center
+                    input#userName.form-control(placeholder="Username" name="username")
+                    span#userIcon.glyphicon.glyphicon-remove.form-control-feedback(style="display: none")
+            .col-sm-4
+        .row
+            .col-sm-4
+            .col-sm-4
+                .form-group#passwordGroup.text-center
+                    input#password.form-control(type="password" placeholder="Password" name="password")
+                    span#passwordIcon.glyphicon.glyphicon-remove.form-control-feedback(style="display: none")
+            .col-sm-4
+        .row
+            .col-sm-4
+            .col-sm-4
+                .form-group#passwordAgainGroup.text-center
+                    input#passwordAgain.form-control(type="password" placeholder="Password again" name="passwordAgain")
+                    span#passwordAgainIcon.glyphicon.glyphicon-remove.form-control-feedback(style="display: none")
+            .col-sm-4
+        .row
+            .col-sm-4
+            .col-sm-4
+                #alertMessage.alert.alert-danger(role='alert' style='display: none')
+        .row
+            .col-sm-12
+                .form-group.text-center
+                    button.btn#submit(type=submit) Submit

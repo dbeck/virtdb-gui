@@ -8,16 +8,14 @@ Const = VirtDBConnector.Const
 
 class VirtDBLoader
 
-    @start: () =>
+    @start: (callback) =>
         address = Configuration.getCommandLineParameter("serviceConfig")
         name = Configuration.getCommandLineParameter("name")
         process.title = "virtdb-gui / #{name}"
         isConsoleLogEnabled = Configuration.getCommandLineParameter "forceConsoleLog"
-        console.log "GUI starting: ", name
-        console.log "Config-service address: ", address
 
         VirtDBConnector.onAddress Const.ALL_TYPE, Const.ALL_TYPE, (name, addresses, svcType, connectionType) =>
-            Endpoints.onEndpoint name, svcType, connectionType, addresses, 
+            Endpoints.onEndpoint name, svcType, connectionType, addresses,
 
         VirtDBConnector.onAddress Const.ENDPOINT_TYPE.CONFIG, Const.SOCKET_TYPE.REQ_REP, (name, addresses) =>
             Endpoints.onEndpoint name, Const.ENDPOINT_TYPE.CONFIG, addresses
@@ -34,9 +32,12 @@ class VirtDBLoader
         VirtDBConnector.subscribe Const.ENDPOINT_TYPE.CONFIG, ConfigService.onPublishedConfig, name
 
         Endpoints.addOwnEndpoint name
-        VirtDBConnector.connect(name, address)
-
         VirtDBConnector.log.level = Configuration.getCommandLineParameter("logLevel")
         VirtDBConnector.log.enableConsoleLog isConsoleLogEnabled is true
+        console.log "Connecting to VirtDB: ", address
+        VirtDBConnector.connect name, address, (err) ->
+            console.log "Connected with name: #{VirtDBConnector.componentName} and key: #{VirtDBConnector.publicKey}"
+            callback(err)
+
 
 module.exports = VirtDBLoader

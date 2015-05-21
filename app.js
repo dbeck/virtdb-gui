@@ -51,7 +51,13 @@ var api = require('./server/api_route');
 app.use('/api', api);
 app.use('/', index);
 
-server = app.listen(EXPRESS_PORT, function() {
-    console.log('Listening on port %d', server.address().port);
+VirtDBLoader.start(function(err) {
+    if (err == null) {
+        var server = app.listen(EXPRESS_PORT, function() {
+            console.log('Listening on port %d', server.address().port);
+        });
+    }
+    else {
+        console.error('Error while initializing VirtDB');
+    }
 });
-VirtDBLoader.start();
