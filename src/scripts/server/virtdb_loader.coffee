@@ -15,7 +15,7 @@ class VirtDBLoader
         isConsoleLogEnabled = Configuration.getCommandLineParameter "forceConsoleLog"
 
         VirtDBConnector.onAddress Const.ALL_TYPE, Const.ALL_TYPE, (name, addresses, svcType, connectionType) =>
-            Endpoints.onEndpoint name, svcType, connectionType, addresses,
+            Endpoints.onEndpoint name, svcType, connectionType, addresses
 
         VirtDBConnector.onAddress Const.ENDPOINT_TYPE.CONFIG, Const.SOCKET_TYPE.REQ_REP, (name, addresses) =>
             Endpoints.onEndpoint name, Const.ENDPOINT_TYPE.CONFIG, addresses

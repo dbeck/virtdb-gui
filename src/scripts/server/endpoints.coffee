@@ -45,8 +45,9 @@ class Endpoints
         @_endpoints[name][serviceType] ?= {}
         @_endpoints[name][serviceType][socketType] = addresses
 
-        if @_endpoints[name][serviceType][socketType]?.length is 0
-            delete @_endpoints[name][serviceType][socketType]
+        if not addresses? or addresses.length is 0
+            for socketType of @_endpoints[name][serviceType]
+                delete @_endpoints[name][serviceType][socketType]
             if Object.keys(@_endpoints[name][serviceType]).length is 0
                 delete @_endpoints[name][serviceType]
                 if Object.keys(@_endpoints[name]).length is 0
