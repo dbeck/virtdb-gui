@@ -18,6 +18,10 @@ class DataHandler
             metadataHandler = MetadataHandler.createInstance()
             metadataHandler.getTableMetadata provider, tableName, (metadataMessage) =>
                 tableMeta = metadataMessage.Tables[0]
+                if not tableMeta?.Fields?.length > 0
+                    log.error "Asking for data with no fields provieded"
+                    console.trace "Asking for data with no fields."
+                    return
                 @_columnReceiver = ColumnReceiver.createInstance onData, tableMeta.Fields
                 connection = DataConnection.createInstance((Endpoints.getQueryAddress provider), (Endpoints.getColumnAddress provider))
                 connection.getData tableMeta.Schema, tableMeta.Name, tableMeta.Fields, count, (column) =>
