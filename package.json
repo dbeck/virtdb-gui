@@ -16,6 +16,7 @@
   "author": "",
   "license": "GPL v3",
   "dependencies": {
+    "basic-auth": "^1.0.1",
     "body-parser": "^1.0.2",
     "connect-timeout": "^1.4.0",
     "cookie-parser": "~1.0.1",
