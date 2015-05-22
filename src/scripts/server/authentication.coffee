@@ -17,7 +17,7 @@ passport.deserializeUser (user, done) ->
 class Authentication
 
     @ensureAuthenticated: (req, res, next) =>
-        if req.isAuthenticated()
+        if not config.Features.Security or req.isAuthenticated()
             return next()
         if req.baseUrl == '/api'
             res.status(401).send()

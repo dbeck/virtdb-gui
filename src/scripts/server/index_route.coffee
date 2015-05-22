@@ -13,9 +13,7 @@ serveHtml = (res, name) ->
 
 # Make sure VirtDB Gui is installed
 ensureInstalled = (req, res, next) ->
-    console.log "Checking if it is installed"
-    if not config.isInstalled()
-        console.log "No it is not. Redirecting."
+    if config.Features.Installer and not config.isInstalled()
         res.redirect '/welcome'
     else
         next()
@@ -28,12 +26,17 @@ router.get "/"
     serveHtml res, 'index'
 
 router.get "/welcome", (req, res) ->
-    console.log 'Serving welcome.html'
+    if not config.Features.Installer
+        res.redirect '/'
+        return
     serveHtml res, 'welcome'
 
 router.get '/login'
     , ensureInstalled
 , (req, res) ->
+    if not config.Features.Security
+        res.redirect '/'
+        return
     serveHtml res, 'login'
 
 router.get '/logout', (req, res) ->

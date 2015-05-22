@@ -1,3 +1,5 @@
+Features = require './config.js'
+
 app = angular.module 'virtdb', ['ngRoute', 'react']
 
 app.config ($routeProvider) ->

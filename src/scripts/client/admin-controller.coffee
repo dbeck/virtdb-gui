@@ -3,7 +3,8 @@ app = require './virtdb-app.js'
 ServerConnector = require './server-connector.js'
 
 adminController = app.controller 'AdminController',
-    ($scope, $rootScope, ServerConnector) ->
+    ($scope, $rootScope, $window, ServerConnector) ->
+        $rootScope.Features = $window.Features
         updateCertificates ServerConnector, $scope, $rootScope
 
         $scope.approve = approve.bind null, ServerConnector, $rootScope, $scope

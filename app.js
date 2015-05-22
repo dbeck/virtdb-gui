@@ -58,6 +58,6 @@ VirtDBLoader.start(function(err) {
         });
     }
     else {
-        console.error('Error while initializing VirtDB');
+        console.error('Error while initializing VirtDB', err);
     }
 });

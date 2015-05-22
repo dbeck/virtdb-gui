@@ -4,7 +4,9 @@ class User
     token: null
     constructor: (@name, @password) ->
     authenticate: (done) =>
+        console.log "Creating login token"
         TokenManager.createLoginToken @name, @password, (err, user) =>
+            console.log "Response: ", err, user
             if err?
                 done null, false, {message: err.toString()}
                 return

@@ -13,9 +13,11 @@ getOwnCert = ->
 
 findOwnCert = (callback) ->
     try
+        console.log "FindownCert begins"
         own = getOwnCert()
+        console.log "Calling listkeys"
         certStore.listKeys (err, certs) ->
-            console.log "ListKeys succeeded"
+            console.log "ListKeys succeeded", err, certs
             if not err?
                 for cert in certs when cert.ComponentName is own.ComponentName and cert.PublicKey is own.PublicKey
                     callback null, cert
@@ -30,13 +32,10 @@ createAdmin = (token, username, password, callback) ->
         user.updateUser username, password, true, token, callback
     else
         user.createUser username, password, true, token, (err) ->
+            console.log "Create user response: ", err
             if not err?
+                console.log "Deleting user"
                 user.deleteUser 'admin', token, callback
-
-findOwnCert = (callback) ->
-    callback null,
-        ComponentName: 'virtdb-gui'
-        AuthCode: '123'
 
 Installer =
     process: (options, callback) ->
@@ -46,17 +45,21 @@ Installer =
                 console.log err
                 callback err, null
                 return
-            component = cert.ComponentName
-            authCode = cert.AuthCode
+            component = VirtDB.componentName
+            authCode = VirtDB.authCode
             loginToken = options.token
+            console.log "Approving temp key", component, loginToken, authCode
             certStore.approveTempKey component, authCode, loginToken, (err) ->
                 console.log "Tempkey approved"
                 if not err?
+                    console.log "Creating admin user"
                     createAdmin options.token, options.username, options.password, (err) ->
+                        console.log "Created admin user: ", err
                         if not err?
+                            console.log "Deleting token: ", options.token
                             token.deleteToken options.token, options.token, (err) ->
-                                if not err?
-                                    config.Installed = true
+                                console.log "DeletToken finished.", err
+                                config.Installed = true
                                 callback err
                         else
                             callback err

@@ -52,8 +52,13 @@ ConfigService = require "./config_service"
 util = require "util"
 VirtDBConnector = (require "virtdb-connector")
 
+Features =
+    Installer: true
+    Security: true
+
 class Configuration
 
+    @Features = Features
     @DB_CONFIG_SERVICE = "DatabaseConfigService/ComponentName"
     @CACHE_TTL = "Cache/TTL"
     @CACHE_PERIOD = "Cache/CheckPeriod"

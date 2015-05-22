@@ -14,10 +14,10 @@ div.navbar.navbar-default
                     a(href='#data-providers') Data
             ul.nav.navbar-nav.navbar-right
                 li.dropdown(ng-controller="AdminController")
-                    a.dropdown-toggle(data-toggle="dropdown") Security
+                    a.dropdown-toggle(data-toggle="dropdown" ng-if="Features.Security") Security
                         span.badge(ng-if="waitingCertCount > 0") {{ waitingCertCount }}
                         strong.caret
-                    ul.nav.nav-stacked.dropdown-menu
+                    ul.nav.nav-stacked.dropdown-menu(ng-if="Features.Security")
                         li
                             a(href='#admin') Credentials
                                 span.badge(ng-if="waitingCertCount > 0") {{ waitingCertCount }}

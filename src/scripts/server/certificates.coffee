@@ -8,10 +8,28 @@ Const = Connector.Const
 
 certStoreMessage = (request) ->
     try
-        type = "virtdb.interface.pb.CertStoreRequest"
+        console.log 'Request to be sent to CERT_STORE', request
+        type = 'virtdb.interface.pb.CertStoreRequest'
         return Proto.security.serialize request, type
     catch ex
         console.error ex
+
+parseReply = (callback) ->
+    return (err, reply) ->
+        try
+            console.log err, reply
+            if not err? and reply?
+                type = 'virtdb.interface.pb.CertStoreReply'
+                console.log "Parsing proto"
+                reply = Proto.security.parse reply, type
+                console.log "PRoto parsed"
+                if reply.Type is 'ERROR_MSG'
+                    err = new Error reply.Err.Msg
+        catch ex
+            console.log "Exception: ", ex
+            err ?= ex
+        finally
+            callback? err, reply
 
 CertificateClient =
     listKeys: (cb) ->
@@ -21,16 +39,8 @@ CertificateClient =
                 TempKeys: true
                 ApprovedKeys: true
 
-        Connector.sendRequest Const.SECURITY_SERVICE, "CERT_STORE", request, (err, reply) ->
-            if not err? and reply?
-                reply = Proto.security.parse reply, "virtdb.interface.pb.CertStoreReply"
-                switch reply.Type
-                    when 'ERROR_MSG'
-                        err = new Error reply.Err.Msg
-                    when 'LIST_KEYS'
-                        reply = reply.List.Certs
-                    else
-                        err = new Error "Bad reply type. Asked for LIST_KEYS. Got: #{reply.Type}"
+        Connector.sendRequest Const.SECURITY_SERVICE, "CERT_STORE", request, parseReply (err, reply) ->
+            reply = reply.List.Certs
             cb err, reply
 
     approveTempKey: (component, authCode, loginToken, cb) ->
@@ -39,8 +49,9 @@ CertificateClient =
             Approve:
                 AuthCode: authCode
                 LoginToken: loginToken
+                ComponentName: component
 
-        Connector.sendRequest Const.SECURITY_SERVICE, "CERT_STORE", request, cb
+        Connector.sendRequest Const.SECURITY_SERVICE, "CERT_STORE", request, parseReply cb
 
     deleteKey: (componentName, publicKey, loginToken, cb) ->
         request = certStoreMessage
@@ -53,7 +64,7 @@ CertificateClient =
                 LoginToken: loginToken
         type = "virtdb.interface.pb.CertStoreRequest"
         requestParsed = Proto.security.parse request, type
-        Connector.sendRequest Const.SECURITY_SERVICE, 'CERT_STORE', request, cb
+        Connector.sendRequest Const.SECURITY_SERVICE, 'CERT_STORE', request, parseReply cb
 
 router.get "/certificate"
     , auth.ensureAuthenticated
@@ -70,6 +81,10 @@ router.put "/certificate/:component"
     , timeout(Config.getCommandLineParameter("timeout"))
 , (req, res, next) ->
     CertificateClient.approveTempKey req.params.component, req.body.authCode, req.user.token, (err, results) ->
+        if err?
+            console.log err
+            res.status(500).send()
+            return
         res.json ""
 
 router.delete "/certificate/:component"
@@ -77,6 +92,10 @@ router.delete "/certificate/:component"
     , timeout(Config.getCommandLineParameter("timeout"))
 , (req, res, next) ->
     CertificateClient.deleteKey req.params.component, req.body.publicKey, req.user.token, (err, results) ->
+        if err?
+            console.log err
+            res.status(500).send()
+            return
         res.json ""
 
 module.exports = CertificateClient
