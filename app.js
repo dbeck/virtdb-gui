@@ -7,12 +7,37 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var fs = require('fs');
+var basicAuth = require('basic-auth');
 
 var EXPRESS_PORT = config.getCommandLineParameter("port")
 var LIVERELOAD_PORT = 35729;
 var test = 'cica4';
 
 var app = module.exports.app = exports.app = express();
+
+var httpAuth = function (req, res, next) {
+    function unauthorized(res) {
+        res.set('WWW-Authenticate', 'Basic realm=Authorization Required');
+        return res.sendStatus(401);
+    };
+
+    var user = basicAuth(req);
+
+    if (!user || !user.name || !user.pass) {
+        return unauthorized(res);
+    }
+    if (user.name === authData.name && user.pass === authData.password) {
+        return next();
+    } else {
+        return unauthorized(res);
+    };
+}
+try {
+    var authData = JSON.parse(fs.readFileSync("auth.json").toString());
+    app.use(httpAuth);
+} catch(e) {
+    console.log("Missing auth data, going without authentication")
+}
 
 var allowCrossDomain = function(req, res, next) {
 // Uncomment to allow CORS
