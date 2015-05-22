@@ -30,32 +30,26 @@ describe "User", ->
         sandbox.restore()
 
     it "should give back the user when authentication was succesful", ->
-
-        LOGIN_TOKEN = "logisnsgngg-tokensn"
-        REPLY =
-            Type: "CREATE_LOGIN_TOKEN"
-            CrLoginTok:
-                LoginToken: LOGIN_TOKEN
-        SER_REPLY = SecurityProto.serialize REPLY, "virtdb.interface.pb.UserManagerReply"
-
+        USER =
+            LoginToken: "tokensgslgnskgsk"
+            Data:
+                Name: "user"
+                PassHash: "sfsfsfs"
+                IsAdmin: true
+        createLoginToken = sandbox.stub TokenManager, "createLoginToken"
         done = sinon.spy()
         user = new User("user", "pass")
         user.authenticate(done)
-        socket.receive SER_REPLY
+        createLoginToken.callArgWith 2, null, USER
 
         done.should.have.been.calledWithExactly null, user
 
-    it "should give back the user when authentication failed", ->
+    it "should not give back the user when authentication failed", ->
         ERROR_TEXT = "WRONG PASSWORD"
-        REPLY =
-            Type: "ERROR_MSG"
-            Err:
-                Msg: ERROR_TEXT
-        SER_REPLY = SecurityProto.serialize REPLY, "virtdb.interface.pb.UserManagerReply"
-
+        createLoginToken = sandbox.stub TokenManager, "createLoginToken"
         done = sinon.spy()
         user = new User("user", "pass")
         user.authenticate(done)
-        socket.receive SER_REPLY
+        createLoginToken.callArgWith 2, new Error ERROR_TEXT, null
 
-        done.should.have.been.calledWithExactly null, false, {message: ERROR_TEXT}
+        done.should.have.been.calledWithExactly null, false, {message: "Error: #{ERROR_TEXT}"}

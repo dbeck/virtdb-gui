@@ -9,7 +9,8 @@ var bodyParser = require('body-parser');
 var fs = require('fs');
 
 var EXPRESS_PORT = config.getCommandLineParameter("port")
-var LIVERELOAD_PORT = 3001;
+var LIVERELOAD_PORT = 35729;
+var test = 'cica4';
 
 var app = module.exports.app = exports.app = express();
 
@@ -29,9 +30,8 @@ var auth = require('./server/authentication');
 auth.initialize(app);
 // Authentication end 
 
-
-app.set('view engine', 'jade');
-app.set('views', path.join(__dirname, 'static/pages'));
+// app.set('view engine', 'html');
+// app.set('views', path.join(__dirname, 'static/pages'));
 
 app.use(favicon());
 app.use(bodyParser.json());
@@ -51,7 +51,13 @@ var api = require('./server/api_route');
 app.use('/api', api);
 app.use('/', index);
 
-server = app.listen(EXPRESS_PORT, function() {
-    console.log('Listening on port %d', server.address().port);
+VirtDBLoader.start(function(err) {
+    if (err == null) {
+        var server = app.listen(EXPRESS_PORT, function() {
+            console.log('Listening on port %d', server.address().port);
+        });
+    }
+    else {
+        console.error('Error while initializing VirtDB', err);
+    }
 });
-VirtDBLoader.start();

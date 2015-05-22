@@ -52,8 +52,13 @@ ConfigService = require "./config_service"
 util = require "util"
 VirtDBConnector = (require "virtdb-connector")
 
+Features =
+    Installer: false
+    Security: false
+
 class Configuration
 
+    @Features = Features
     @DB_CONFIG_SERVICE = "DatabaseConfigService/ComponentName"
     @CACHE_TTL = "Cache/TTL"
     @CACHE_PERIOD = "Cache/CheckPeriod"
@@ -61,6 +66,7 @@ class Configuration
     @DEFAULTS[@DB_CONFIG_SERVICE] = "greenplum-config"
     @DEFAULTS[@CACHE_TTL] = 600
     @DEFAULTS[@CACHE_PERIOD] = 60
+    @Installed = false
 
     @_configListeners = {}
     @_parameters = {}
@@ -74,6 +80,9 @@ class Configuration
     @init: () =>
         ConfigService.subscribeToConfigs @onConfigReceived
         ConfigService.getConfig @getCommandLineParameter("name"), @onConfigReceived
+
+    @isInstalled: ->
+        return @Installed
 
     @getCommandLineParameter: (parameter) =>
         if Object.keys(@_commandLine).length is 0

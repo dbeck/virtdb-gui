@@ -23,6 +23,8 @@ require('source-map-support').install()
 
 router.use require 'express-domain-middleware'
 
+router.use '/user', (require './user_router')
+
 # GET home page.
 router.get "/"
     , auth.ensureAuthenticated
@@ -35,12 +37,6 @@ router.get "/authmethods"
     , timeout(Config.getCommandLineParameter("timeout"))
 , (req, res, next) ->
     res.json Authentication.methods
-
-router.get "/user"
-    , timeout(Config.getCommandLineParameter("timeout"))
-, (req, res, next) ->
-    console.log "user", req.user
-    res.json req.user
 
 router.get "/endpoints"
     , auth.ensureAuthenticated

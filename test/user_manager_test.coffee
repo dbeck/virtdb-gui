@@ -1,9 +1,8 @@
-require("source-map-support").install()
 UserManager = require "../src/scripts/server/user_manager"
 Endpoints = require "../src/scripts/server/endpoints"
-SocketStub = require "./socket_stub"
 zmq     = require 'zmq'
 SecurityProto = (require "virtdb-proto").security
+VirtDBConnector = require 'virtdb-connector'
 
 chai = require "chai"
 should = chai.should()
@@ -13,17 +12,12 @@ chai.use sinonChai
 
 describe "UserManager", ->
     sandbox = null
-    socket = null
     connectStub = null
 
     beforeEach =>
         sandbox = sinon.sandbox.create()
         sandbox.stub Endpoints, "getUserManagerAddress", () =>
             return ["ADDR1", "ADDR2"]
-        socket = new SocketStub
-        connectStub = sandbox.stub zmq, "socket", (type) ->
-            type.should.equal 'req'
-            return socket
         sandbox.stub (require "virtdb-connector").log, "error"
 
     afterEach =>
@@ -47,9 +41,9 @@ describe "UserManager", ->
             SER_REQUEST = SecurityProto.serialize REQUEST, "virtdb.interface.pb.UserManagerRequest"
 
             callback = sinon.spy()
-            userManager = new UserManager
-            userManager.createUser USER, PASS, IS_ADMIN, TOKEN, callback
-            socket.send.should.have.been.calledWithExactly SER_REQUEST
+            sendRequest = sandbox.stub VirtDBConnector, 'sendRequest'
+            UserManager.createUser USER, PASS, IS_ADMIN, TOKEN, callback
+            sendRequest.should.have.calledWith "security-service", "USER_MGR", SER_REQUEST
 
         it "should receive UserManagerReply", ->
             REPLY =
@@ -58,9 +52,9 @@ describe "UserManager", ->
 
             callback = sinon.spy()
 
-            userManager = new UserManager
-            userManager.createUser "user", "pass", true, "token", callback
-            socket.receive SER_REPLY
+            sendRequest = sandbox.stub VirtDBConnector, 'sendRequest'
+            UserManager.createUser "user", "pass", true, "token", callback
+            sendRequest.callArgWith 3, null, SER_REPLY
 
             callback.should.be.calledWithExactly null, null
 
@@ -71,9 +65,9 @@ describe "UserManager", ->
                 Err:
                     Msg: ERROR_TEXT
             callback = sinon.spy()
-            userManager = new UserManager
-            userManager.createUser "user", "pass", true, "token", callback
-            socket.receive SecurityProto.serialize REPLY, "virtdb.interface.pb.UserManagerReply"
+            sendRequest = sandbox.stub VirtDBConnector, 'sendRequest'
+            UserManager.createUser "user", "pass", true, "token", callback
+            sendRequest.callArgWith 3, null, SecurityProto.serialize REPLY, "virtdb.interface.pb.UserManagerReply"
 
             callback.should.be.calledWithExactly sinon.match.has("message", ERROR_TEXT), null
 
@@ -82,9 +76,9 @@ describe "UserManager", ->
                 Type: "kiscica"
 
             callback = sinon.spy()
-            userManager = new UserManager
-            userManager.createUser "user", "pass", true, "token", callback
-            socket.receive REQUEST
+            sendRequest = sandbox.stub VirtDBConnector, 'sendRequest'
+            UserManager.createUser "user", "pass", true, "token", callback
+            sendRequest.callArgWith 3, null, REQUEST
 
             callback.should.be.calledWithExactly sinon.match.defined, null
 
@@ -102,9 +96,9 @@ describe "UserManager", ->
             SER_REQUEST = SecurityProto.serialize REQUEST, "virtdb.interface.pb.UserManagerRequest"
 
             callback = sinon.spy()
-            userManager = new UserManager
-            userManager.deleteUser USER, TOKEN, callback
-            socket.send.should.have.been.calledWithExactly SER_REQUEST
+            sendRequest = sandbox.stub VirtDBConnector, 'sendRequest'
+            UserManager.deleteUser USER, TOKEN, callback
+            sendRequest.should.have.calledWith "security-service", "USER_MGR", SER_REQUEST
 
         it "should receive UserManagerReply", ->
             REPLY =
@@ -113,9 +107,9 @@ describe "UserManager", ->
 
             callback = sinon.spy()
 
-            userManager = new UserManager
-            userManager.deleteUser "user", "token", callback
-            socket.receive SER_REPLY
+            sendRequest = sandbox.stub VirtDBConnector, 'sendRequest'
+            UserManager.deleteUser "user", "token", callback
+            sendRequest.callArgWith 3, null, SER_REPLY
 
             callback.should.be.calledWithExactly null, null
 
@@ -126,9 +120,9 @@ describe "UserManager", ->
                 Err:
                     Msg: ERROR_TEXT
             callback = sinon.spy()
-            userManager = new UserManager
-            userManager.deleteUser "user", "token", callback
-            socket.receive SecurityProto.serialize REPLY, "virtdb.interface.pb.UserManagerReply"
+            sendRequest = sandbox.stub VirtDBConnector, 'sendRequest'
+            UserManager.deleteUser "user", "token", callback
+            sendRequest.callArgWith 3, null, SecurityProto.serialize REPLY, "virtdb.interface.pb.UserManagerReply"
 
             callback.should.be.calledWithExactly sinon.match.has("message", ERROR_TEXT), null
 
@@ -137,9 +131,9 @@ describe "UserManager", ->
                 Type: "kiscica"
 
             callback = sinon.spy()
-            userManager = new UserManager
-            userManager.deleteUser "user", "token", callback
-            socket.receive REQUEST
+            sendRequest = sandbox.stub VirtDBConnector, 'sendRequest'
+            UserManager.deleteUser "user", "token", callback
+            sendRequest.callArgWith 3, null, REQUEST
 
             callback.should.be.calledWithExactly sinon.match.defined, null
 
@@ -161,9 +155,9 @@ describe "UserManager", ->
             SER_REQUEST = SecurityProto.serialize REQUEST, "virtdb.interface.pb.UserManagerRequest"
 
             callback = sinon.spy()
-            userManager = new UserManager
-            userManager.updateUser USER, PASS, IS_ADMIN, TOKEN, callback
-            socket.send.should.have.been.calledWithExactly SER_REQUEST
+            sendRequest = sandbox.stub VirtDBConnector, 'sendRequest'
+            UserManager.updateUser USER, PASS, IS_ADMIN, TOKEN, callback
+            sendRequest.should.have.calledWith "security-service", "USER_MGR", SER_REQUEST
 
         it "should receive UserManagerReply", ->
             REPLY =
@@ -172,9 +166,9 @@ describe "UserManager", ->
 
             callback = sinon.spy()
 
-            userManager = new UserManager
-            userManager.updateUser "user", "pass", true, "token", callback
-            socket.receive SER_REPLY
+            sendRequest = sandbox.stub VirtDBConnector, 'sendRequest'
+            UserManager.updateUser "user", "pass", true, "token", callback
+            sendRequest.callArgWith 3, null, SER_REPLY
 
             callback.should.be.calledWithExactly null, null
 
@@ -185,9 +179,9 @@ describe "UserManager", ->
                 Err:
                     Msg: ERROR_TEXT
             callback = sinon.spy()
-            userManager = new UserManager
-            userManager.updateUser "user", "pass", true, "token", callback
-            socket.receive SecurityProto.serialize REPLY, "virtdb.interface.pb.UserManagerReply"
+            sendRequest = sandbox.stub VirtDBConnector, 'sendRequest'
+            UserManager.updateUser "user", "pass", true, "token", callback
+            sendRequest.callArgWith 3, null, SecurityProto.serialize REPLY, "virtdb.interface.pb.UserManagerReply"
 
             callback.should.be.calledWithExactly sinon.match.has("message", ERROR_TEXT), null
 
@@ -196,9 +190,9 @@ describe "UserManager", ->
                 Type: "kiscica"
 
             callback = sinon.spy()
-            userManager = new UserManager
-            userManager.updateUser "user", "pass", true, "token", callback
-            socket.receive REQUEST
+            sendRequest = sandbox.stub VirtDBConnector, 'sendRequest'
+            UserManager.updateUser "user", "pass", true, "token", callback
+            sendRequest.callArgWith 3, null, REQUEST
 
             callback.should.be.calledWithExactly sinon.match.defined, null
 
@@ -220,9 +214,9 @@ describe "UserManager", ->
             SER_REQUEST = SecurityProto.serialize REQUEST, "virtdb.interface.pb.UserManagerRequest"
 
             callback = sinon.spy()
-            userManager = new UserManager
-            userManager.listUsers TOKEN, callback
-            socket.send.should.be.calledWithExactly SER_REQUEST
+            sendRequest = sandbox.stub VirtDBConnector, 'sendRequest'
+            UserManager.listUsers TOKEN, callback
+            sendRequest.should.have.calledWith "security-service", "USER_MGR", SER_REQUEST
 
         it "should receive UserManagerReply", ->
             USERS = [
@@ -251,9 +245,9 @@ describe "UserManager", ->
 
             callback = sinon.spy()
 
-            userManager = new UserManager
-            userManager.listUsers "token", callback
-            socket.receive SER_REPLY
+            sendRequest = sandbox.stub VirtDBConnector, 'sendRequest'
+            UserManager.listUsers "token", callback
+            sendRequest.callArgWith 3, null, SER_REPLY
 
             callback.should.be.calledWithExactly null, USERS
 
@@ -264,9 +258,9 @@ describe "UserManager", ->
                 Err:
                     Msg: ERROR_TEXT
             callback = sinon.spy()
-            userManager = new UserManager
-            userManager.listUsers "token", callback
-            socket.receive SecurityProto.serialize REPLY, "virtdb.interface.pb.UserManagerReply"
+            sendRequest = sandbox.stub VirtDBConnector, 'sendRequest'
+            UserManager.listUsers "token", callback
+            sendRequest.callArgWith 3, null, SecurityProto.serialize REPLY, "virtdb.interface.pb.UserManagerReply"
 
             callback.should.be.calledWithExactly sinon.match.has("message", ERROR_TEXT), null
 
@@ -275,8 +269,8 @@ describe "UserManager", ->
                 Type: "kiscica"
 
             callback = sinon.spy()
-            userManager = new UserManager
-            userManager.listUsers "token", callback
-            socket.receive REQUEST
+            sendRequest = sandbox.stub VirtDBConnector, 'sendRequest'
+            UserManager.listUsers "token", callback
+            sendRequest.callArgWith 3, null, REQUEST
 
             callback.should.be.calledWithExactly sinon.match.defined, null

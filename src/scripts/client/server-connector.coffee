@@ -6,6 +6,28 @@ module.exports = app.factory 'ServerConnector', ['$http', 'ErrorService', '$q', 
             @address = ""
             @pendingRequestIds = {}
 
+        getCertificates: (onSuccess) ->
+            $http.get @address + "/api/certificate"
+                .success(onSuccess)
+                .error (response, status) ->
+                    ErrorService.errorHappened status, "Couldn't get certificate list.", status
+
+        approveCertificate: (authCode, component, onSuccess) ->
+            data =
+                authCode: authCode
+            $http.put @address + "/api/certificate/#{encodeURIComponent(component.ComponentName)}", data
+                .success(onSuccess)
+                .error (response, status) ->
+                    ErrorService.errorHappened status, "Couldn't approve certificate: #{component.ComponentName}", status
+
+        removeCertificate: (component, onSuccess) ->
+            data =
+                publicKey: component.PublicKey
+            $http.delete(@address + "/api/certificate/#{encodeURIComponent(component.ComponentName)}")
+                .success(onSuccess)
+                .error (response, status) =>
+                        ErrorService.errorHappened status, "Couldn't remove certificate: #{component.ComponentName}", status
+
         getEndpoints: (onSuccess, onError) =>
             $http.get(@address + "/api/endpoints").success(onSuccess)
             .error(
@@ -32,6 +54,31 @@ module.exports = app.factory 'ServerConnector', ['$http', 'ErrorService', '$q', 
             .error( (response, status) =>
                 ErrorService.errorHappened status, "Couldn't get user info! " + JSON.stringify(data) + " response: " + response
                 onSuccess []
+            )
+
+        getUserList: (onSuccess) =>
+            $http.get(@address + "/api/user/list").success(onSuccess)
+            .error( (response, status) =>
+                ErrorService.errorHappened status, "Couldn't get user list! response: " + response
+                onSuccess []
+            )
+
+        deleteUser: (data, done) =>
+            $http.delete(@address + "/api/user/" + data).success(done)
+            .error( (response, status) =>
+                ErrorService.errorHappened status, "Couldn't delete user ! " + JSON.stringify(data) + " response: " + response
+            )
+
+        updateUser: (data, done) =>
+            $http.put(@address + "/api/user/" + data.name, data).success(done)
+            .error( (response, status) =>
+                ErrorService.errorHappened status, "Couldn't update user! " + JSON.stringify(data) + " response: " + response
+            )
+
+        createUser: (data, done) =>
+            $http.post(@address + "/api/user", data).success(done)
+            .error( (response, status) =>
+                ErrorService.errorHappened status, "Couldn't create user! " + JSON.stringify(data) + " response: " + response
             )
 
         getTableList: (data, onSuccess, onError) =>

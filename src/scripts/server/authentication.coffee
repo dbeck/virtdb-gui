@@ -1,6 +1,5 @@
 passport = require 'passport'
 express = require("express")
-router = express.Router()
 config = require("./config")
 fs = require 'fs'
 bodyparser = require 'body-parser'
@@ -18,7 +17,7 @@ passport.deserializeUser (user, done) ->
 class Authentication
 
     @ensureAuthenticated: (req, res, next) =>
-        if req.isAuthenticated()
+        if not config.Features.Security or req.isAuthenticated()
             return next()
         if req.baseUrl == '/api'
             res.status(401).send()
@@ -32,7 +31,7 @@ class Authentication
                 user.authenticate done
         catch ex
             return
-            
+
     @initialize: (app) =>
         @users = []
         @init()
@@ -40,19 +39,8 @@ class Authentication
         app.use bodyparser.json()
         app.use passport.initialize()
         app.use passport.session()
-        app.use router
 
     @authenticate: (req, res, next) =>
         return passport.authenticate('local', { successRedirect: '/', failureRedirect: '/login'})(req, res, next)
-
-router.get '/login', (req, res) ->
-    res.render 'login'
-
-router.get '/logout', (req, res) ->
-    req.logout()
-    res.redirect '/'
-
-router.post '/login', (req, res, next) ->
-    Authentication.authenticate(req ,res, next)
 
 module.exports = Authentication

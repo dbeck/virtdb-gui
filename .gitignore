@@ -33,7 +33,6 @@ server/*
 test_report.xml
 cobertura-coverage.xml
 
-
 # ide files
 .idea/
 tags
@@ -43,5 +42,4 @@ tags
 build-result/
 
 # settings
-github.json
-local.json
+*.json

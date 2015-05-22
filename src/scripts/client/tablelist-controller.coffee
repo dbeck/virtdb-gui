@@ -17,7 +17,8 @@ module.exports = app.controller 'TableListController',
 
         providerChanged: (event, provider) =>
             @resetProviderLevelView()
-            @requestTableList provider
+            if provider?
+                @requestTableList provider
 
         resetProviderLevelView: () =>
             @tableList = []

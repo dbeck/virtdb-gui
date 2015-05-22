@@ -19,15 +19,15 @@ gulp.task 'compile-stylus', ->
         .pipe gulp.dest './static/fonts'
 
 gulp.task 'compile-jade', ->
-    gulp.src ['./src/pages/*.jade', '!./src/pages/index.jade', '!./src/pages/login.jade']
+    gulp.src ['./src/pages/*.jade']
         .pipe jade
             pretty: true
         .pipe gulp.dest './static/pages'
 
-gulp.task 'copy-index-to-static', ->
-    gulp.src ['./src/pages/index.jade', './src/pages/login.jade']
-        .pipe gulp.dest './static/pages'
-
+#gulp.task 'copy-index-to-static', ->
+#    gulp.src ['./src/pages/index.jade', './src/pages/login.jade']
+#        .pipe gulp.dest './static/pages'
+#
 gulp.task 'copy-images', ->
     gulp.src ['./src/images/*.png', './src/images/*.jpg']
         .pipe gulp.dest './static/images'
@@ -68,14 +68,13 @@ gulp.task 'browserify', ['compile-client-coffee'], ->
 gulp.task 'client-watch', ->
     gulp.watch ['src/pages/**/*.jade'], ['compile-jade']
     gulp.watch ['src/styles/**/*.styl', 'src/styles/**/*.css'], ['compile-stylus']
-    gulp.watch ['src/scripts/client/**/*.coffee'], ['compile-client-coffee']
-    gulp.watch ['src/pages/index.jade'], ['copy-index-to-static']
+    gulp.watch ['src/scripts/client/**/*.coffee'], ['browserify']
     gulp.watch ['src/images/*.png', 'src/images/*.jpg'], ['copy-images']
 
 gulp.task 'client-build',
     [
         'collect-libs'
-        'copy-index-to-static'
+        #        'copy-index-to-static'
         'copy-images'
         'compile-client-coffee'
         'compile-jade'
