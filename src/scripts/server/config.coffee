@@ -53,8 +53,8 @@ util = require "util"
 VirtDBConnector = (require "virtdb-connector")
 
 Features =
-    Installer: true
-    Security: true
+    Installer: false
+    Security: false
 
 class Configuration
 

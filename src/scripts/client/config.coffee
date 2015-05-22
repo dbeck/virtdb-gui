@@ -1,5 +1,5 @@
 Features =
-    Security: true
+    Security: false
 
 window.Features = Features
 module.exports = Features

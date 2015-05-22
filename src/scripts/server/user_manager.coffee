@@ -1,4 +1,3 @@
-(require "source-map-support").install()
 VirtDB = require 'virtdb-connector'
 Const = VirtDB.Const
 log = VirtDB.log
