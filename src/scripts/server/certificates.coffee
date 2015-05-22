@@ -8,7 +8,6 @@ Const = Connector.Const
 
 certStoreMessage = (request) ->
     try
-        console.log 'Request to be sent to CERT_STORE', request
         type = 'virtdb.interface.pb.CertStoreRequest'
         return Proto.security.serialize request, type
     catch ex
@@ -17,16 +16,12 @@ certStoreMessage = (request) ->
 parseReply = (callback) ->
     return (err, reply) ->
         try
-            console.log err, reply
             if not err? and reply?
                 type = 'virtdb.interface.pb.CertStoreReply'
-                console.log "Parsing proto"
                 reply = Proto.security.parse reply, type
-                console.log "PRoto parsed"
                 if reply.Type is 'ERROR_MSG'
                     err = new Error reply.Err.Msg
         catch ex
-            console.log "Exception: ", ex
             err ?= ex
         finally
             callback? err, reply
@@ -82,7 +77,6 @@ router.put "/certificate/:component"
 , (req, res, next) ->
     CertificateClient.approveTempKey req.params.component, req.body.authCode, req.user.token, (err, results) ->
         if err?
-            console.log err
             res.status(500).send()
             return
         res.json ""
@@ -93,7 +87,6 @@ router.delete "/certificate/:component"
 , (req, res, next) ->
     CertificateClient.deleteKey req.params.component, req.body.publicKey, req.user.token, (err, results) ->
         if err?
-            console.log err
             res.status(500).send()
             return
         res.json ""
