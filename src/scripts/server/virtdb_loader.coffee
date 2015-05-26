@@ -27,7 +27,7 @@ class VirtDBLoader
             return
 
         VirtDBConnector.onAddress Const.ENDPOINT_TYPE.COLUMN, Const.SOCKET_TYPE.PUB_SUB, (name, addresses) =>
-            Endpoints.onEndpoint name, Const.ENDPOINT_TYPE.COLUMN, addresses
+            Endpoints.onEndpoint name, Const.ENDPOINT_TYPE.COLUMN, Const.SOCKET_TYPE.PUB_SUB, addresses
 
         VirtDBConnector.subscribe Const.ENDPOINT_TYPE.CONFIG, ConfigService.onPublishedConfig, name
 
