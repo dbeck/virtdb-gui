@@ -18,7 +18,7 @@ class VirtDBLoader
             Endpoints.onEndpoint name, svcType, connectionType, addresses
 
         VirtDBConnector.onAddress Const.ENDPOINT_TYPE.CONFIG, Const.SOCKET_TYPE.REQ_REP, (name, addresses) =>
-            Endpoints.onEndpoint name, Const.ENDPOINT_TYPE.CONFIG, addresses
+            Endpoints.onEndpoint name, Const.ENDPOINT_TYPE.CONFIG, Const.SOCKET_TYPE.REQ_REP, addresses
             Configuration.init()
             CacheHandler.init()
 
