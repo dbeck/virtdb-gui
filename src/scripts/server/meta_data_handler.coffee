@@ -52,6 +52,9 @@ class MetadataHandler
                 metadataConnection.getMetadata tableMetadataRequest, (metadata) =>
                     if metadata.Tables.length > 0
                         CacheHandler.set cacheKey, metadata
+                        for receivedTable in metadata.Tables
+                            if receivedTable.Fields.length is 0
+                                log.error "No fields in table metadata", V_(provider), V_(table), V_(metadata)
                     onReady metadata
             return
         catch ex
