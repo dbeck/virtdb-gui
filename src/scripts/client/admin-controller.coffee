@@ -5,7 +5,6 @@ ServerConnector = require './server-connector.js'
 adminController = app.controller 'AdminController',
     ($scope, $rootScope, ServerConnector) ->
         updateCertificates ServerConnector, $scope, $rootScope
-
         $scope.approve = approve.bind null, ServerConnector, $rootScope, $scope
         $scope.remove = remove.bind null, ServerConnector, $rootScope, $scope
 
