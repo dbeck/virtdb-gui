@@ -4,8 +4,6 @@ ServerConnector = require './server-connector.js'
 userController = app.controller 'UserController',
     class UserController
         constructor: ($scope, ServerConnector, $rootScope) ->
-            if not Features.Security
-                return
             @$scope = $scope
             @$rootScope = $rootScope
             @ServerConnector = ServerConnector
