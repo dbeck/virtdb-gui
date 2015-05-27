@@ -1,5 +1,3 @@
-Features = require './config.js'
-
 app = angular.module 'virtdb', ['ngRoute', 'react']
 
 app.config ($routeProvider) ->
@@ -19,6 +17,7 @@ app.config ($routeProvider) ->
         .when '/diag',
             templateUrl: '../pages/diag.html'
             controller: 'DiagnosticsController'
+            controllerAs: 'diag'
         .when '/status',
             templateUrl: '../pages/status.html'
             controller: 'StatusController'
@@ -30,5 +29,9 @@ app.config ($routeProvider) ->
             templateUrl: '../pages/users.html'
             controller: 'UserController'
     return
+
+app.controller 'FeatureController', ($scope, $rootScope, ServerConnector) ->
+    ServerConnector.getFeatures (data) ->
+        $rootScope.Features = data
 
 module.exports = app

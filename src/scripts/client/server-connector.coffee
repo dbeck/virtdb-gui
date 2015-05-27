@@ -6,6 +6,12 @@ module.exports = app.factory 'ServerConnector', ['$http', 'ErrorService', '$q', 
             @address = ""
             @pendingRequestIds = {}
 
+        getFeatures: (onSuccess) ->
+            $http.get @address + "/api/features"
+            .success(onSuccess)
+            .error (response, status) ->
+                ErrorService.errorHappened status, "Couldn't get feature list.", status
+
         getCertificates: (onSuccess) ->
             $http.get @address + "/api/certificate"
                 .success(onSuccess)

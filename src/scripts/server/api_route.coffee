@@ -33,6 +33,9 @@ router.get "/"
     res.json "{message: virtdb api}"
     return
 
+router.get "/features", (req, res) ->
+    res.json Config.Features
+
 router.get "/authmethods"
     , timeout(Config.getCommandLineParameter("timeout"))
 , (req, res, next) ->

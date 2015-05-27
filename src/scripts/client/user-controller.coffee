@@ -10,7 +10,7 @@ userController = app.controller 'UserController',
             @name = ""
             @isAdmin = false
 
-            @$scope.userName = "Config"
+            @$scope.userName = ""
             @$scope.isAdmin = false
             @$scope.userList = []
 
