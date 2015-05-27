@@ -19,6 +19,7 @@ app.config ($routeProvider) ->
         .when '/diag',
             templateUrl: '../pages/diag.html'
             controller: 'DiagnosticsController'
+            controllerAs: 'diag'
         .when '/status',
             templateUrl: '../pages/status.html'
             controller: 'StatusController'
