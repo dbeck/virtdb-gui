@@ -407,9 +407,19 @@ describe "MetadataHandler", ->
             FILTERLIST = []
             METADATA =
                 Tables: [
-                    "table1"
+                    Name: "table1"
+                    Fields: [
+                        Name: "field1"
+                    ,
+                        Name: "field2"
+                    ]
                 ,
-                    "table2"
+                    Name: "table2"
+                    Fields: [
+                        Name: "field3"
+                    ,
+                        Name: "field4"
+                    ]
                 ]
             KEY = "key"
             RESULT = "result"
