@@ -7,8 +7,6 @@ router.get "/"
     res.json req.user
 
 router.put "/:name", (req, res, err) =>
-    console.log req.body
-    console.log req.params
     UserManager.updateUser req.params.name, req.body.password, req.body.isAdmin, req.user.token, (err, data) =>
         if err?
             res.status(500).send()
