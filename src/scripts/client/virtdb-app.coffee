@@ -32,4 +32,7 @@ app.config ($routeProvider) ->
             controller: 'UserController'
     return
 
+app.controller 'FeatureController', ($scope, $rootScope) ->
+    $rootScope.Features = Features
+
 module.exports = app
