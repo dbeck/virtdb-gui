@@ -15,7 +15,7 @@ class Endpoints
         return @_findAddresses name, Const.ENDPOINT_TYPE.QUERY, Const.SOCKET_TYPE.PUSH_PULL
 
     @getDbConfigAddress: (name) =>
-        return @_findAddresses name, Const.ENDPOINT_TYPE.DB_CONFIG, Const.SOCKET_TYPE.PUSH_PULL
+        return @_findAddresses name, Const.ENDPOINT_TYPE.DB_CONFIG, Const.SOCKET_TYPE.REQ_REP
 
     @getDbConfigQueryAddress: (name) =>
         return @_findAddresses name, Const.ENDPOINT_TYPE.DB_CONFIG_QUERY, Const.SOCKET_TYPE.REQ_REP

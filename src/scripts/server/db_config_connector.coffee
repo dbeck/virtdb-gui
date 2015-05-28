@@ -59,12 +59,12 @@ class DBConfig
                 return
 
             tableMeta.Table = tableMeta.Tables[0]
-            
+
             connection = DBConfigConnection.getConnection(@_dbConfigService)
             if not connection?
                 log.error "unable to get db config connection"
-                return    
-            
+                return
+
             connection.sendServerConfig provider, tableMeta, action, (err) =>
                 if not err? or err isnt {}
                     log.info "table added to the db config", V_(tableMeta.Name), V_(provider)
@@ -94,7 +94,7 @@ class DBConfig
                 if not connection?
                     log.error "unable to get db config connection"
                     onReady []
-                    return    
+                    return
                 connection.getTables provider, (msg) =>
                         try
                             if msg?.Tables?.length > 0
@@ -135,27 +135,26 @@ class DBConfigConnection
             return null
         return new DBConfigConnection(serverConfigAddress, dbConfigQueryAddress)
 
-    _pushPullSocket: null
+    serverConfigSocket: null
     _reqRepSocket: null
 
     constructor: (@serverConfigAddress, @dbConfigQueryAddress) ->
 
     sendServerConfig: (provider, tableMeta, action, callback) =>
-
-        @_pushPullSocket = zmq.socket(Const.ZMQ_REQ)
-        @_pushPullSocket.on "message", (msg) =>
+        @serverConfigSocket = zmq.socket(Const.ZMQ_REQ)
+        @serverConfigSocket.on "message", (msg) =>
             reply = dbConfigProto.parse msg, "virtdb.interface.pb.ServerConfigReply"
             callback reply
 
         for addr in @serverConfigAddress
-            @_pushPullSocket.connect addr
+            @serverConfigSocket.connect addr
 
         tableMeta.Schema ?= ""
         serverConfigMessage =
             Name: provider
             Table: tableMeta.Table
             Action: action
-        @_pushPullSocket.send dbConfigProto.serialize serverConfigMessage, "virtdb.interface.pb.ServerConfig"
+        @serverConfigSocket.send dbConfigProto.serialize serverConfigMessage, "virtdb.interface.pb.ServerConfig"
 
     getTables: (provider, onReady) =>
         dbConfigQueryMessage = Name: provider
