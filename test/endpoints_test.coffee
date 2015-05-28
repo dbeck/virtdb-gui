@@ -106,7 +106,7 @@ describe "Endpoints", ->
 
     it "should return the dbconfig addresses", ->
         NAME = "NAME"
-        CONNTYPE = "PUSH_PULL"
+        CONNTYPE = "REQ_REP"
         SVCTYPE = "DB_CONFIG"
         ADDRESSES = ["address1", "address2"]
 
