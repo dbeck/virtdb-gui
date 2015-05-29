@@ -18,6 +18,13 @@ module.exports = app.factory 'ServerConnector', ['$http', 'ErrorService', '$q', 
                 .error (response, status) ->
                     ErrorService.errorHappened status, "Couldn't get certificate list.", status
 
+        getMonitoring: (onSuccess) ->
+            $http.get @address + "/api/monitoring"
+                .success(onSuccess)
+                .error (response, status) ->
+                    ErrorService.errorHappened status, "Couldn't get monitoring info", status
+
+
         approveCertificate: (authCode, component, onSuccess) ->
             data =
                 authCode: authCode

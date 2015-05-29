@@ -55,6 +55,7 @@ VirtDBConnector = (require "virtdb-connector")
 Features =
     Installer: false
     Security: false
+    Monitoring: true
 
 class Configuration
 

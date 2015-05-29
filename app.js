@@ -1,4 +1,4 @@
-var config = require("./server/config")
+var config = require("./server/config") 
 var VirtDBLoader = require("./server/virtdb_loader")
 var express = require('express');
 var path = require('path');
@@ -78,7 +78,9 @@ app.use('/', index);
 
 VirtDBLoader.start(function(err) {
     if (err == null) {
-        var server = app.listen(EXPRESS_PORT, function() {
+        var http = require('http').Server(app);
+
+        var server = http.listen(EXPRESS_PORT, function() {
             console.log('Listening on port %d', server.address().port);
         });
     }

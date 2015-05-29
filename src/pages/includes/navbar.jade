@@ -31,10 +31,12 @@ div.navbar.navbar-default(ng-controller="FeatureController")
                     ul.nav.nav-stacked.dropdown-menu
                         li
                             a(href='#component-config') Settings
+                        li(ng-if="Features.Monitoring")
+                            a(href='#monitoring') Monitor
                         li
-                            a(href='#status') Status
+                            a(href='#status') Queries
                         li
-                            a(href='#diag') Diag
+                            a(href='#diag') Log
                         li
                             a(href='/logout' ng-if="Features.Security && userName != ''") Logout
 
