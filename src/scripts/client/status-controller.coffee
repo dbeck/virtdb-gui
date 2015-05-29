@@ -1,7 +1,5 @@
 app = require './virtdb-app.js'
 
-DiagnosticsController = require './diagnostics-controller.js'
-
 module.exports = app.controller 'StatusController',
     class StatusController
 
@@ -33,7 +31,7 @@ module.exports = app.controller 'StatusController',
         startTimers: () =>
             @processPromise = @$interval @processIncomingMessages, 500
             @requestStatuses()
-            @requestPromise = @$interval @requestStatuses, DiagnosticsController.REQUEST_INTERVAL
+            @requestPromise = @$interval @requestStatuses, StatusController.REQUEST_INTERVAL
 
         cleanObsoleteDones: () =>
             copyStatusMessages = @statusMessages.slice 0

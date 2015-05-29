@@ -1,3 +1,4 @@
+require './monitoring'
 require './certificates'
 router = require './router'
 util = require "util"
@@ -260,9 +261,13 @@ router.post "/get_diag"
     , auth.ensureAuthenticated
     , timeout(Config.getCommandLineParameter("timeout"))
 , (req, res, next) =>
-    from = Number req.body.from
-    levels = req.body.levels
-    res.json DiagConnector.getRecords from, levels
+    try
+        from = Number req.body.from
+        levels = req.body.levels
+        res.json DiagConnector.getRecords from, levels
+    catch ex
+        log.error V_(ex)
+        throw ex
 
 router.use (err, req, res, next) =>
     log.error V_(req.url), V_(req.body), V_(err.message)

@@ -1,0 +1,24 @@
+div
+    h6.row
+        .col-xs-4 Component
+        .col-xs-2 Status
+        .col-xs-4 Last updated
+    .panel-group#accordion
+        .panel(ng-repeat="component in statuses | orderBy: 'UpdatedEpoch':true ")
+            .row.success.alert(style="margin-bottom: 0" data-toggle="collapse" data-parent="#accordion" data-target="#events{{$index}}"  ng-class="{ 'alert-success': component.OK, 'alert-danger': !component.OK }")
+                .col-xs-4 {{ component.Name }}
+                .col-xs-2 {{ component.OK | isOK }}
+                .col-xs-4 {{ component.UpdatedEpoch * 1000 | date:'medium' }}
+            .collapse(id="events{{$index}}")
+                table.table
+                    tr
+                        th Type
+                        th Reported by
+                        th Reported at
+                        th Message
+                    tr(ng-repeat="event in component.Events | orderBy: 'Epoch':true ")
+                        td {{ event.Request.Type }}
+                        td {{ event.Request.CompErr.ReportedBy }}
+                        td {{ event.Epoch * 1000 | date:'medium' }}
+                        td {{ event.Request.CompErr.Type }}
+

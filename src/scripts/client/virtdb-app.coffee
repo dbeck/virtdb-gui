@@ -22,6 +22,9 @@ app.config ($routeProvider) ->
             templateUrl: '../pages/status.html'
             controller: 'StatusController'
             controllerAs: 'statusController'
+        .when '/monitoring',
+            templateUrl: '../pages/monitoring.html'
+            controller: 'MonitoringController'
         .when '/admin',
             templateUrl: '../pages/admin.html'
             controller: 'AdminController'

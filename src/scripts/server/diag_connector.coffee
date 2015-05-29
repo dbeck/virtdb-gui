@@ -45,7 +45,7 @@ class DiagConnector
 
     @getRecords = (from, levels) =>
         records = []
-        if @_records.length > 0
+        if @_records?.length > 0
             for rec in @_records
                 if rec.time >= from and rec.level in levels
                     records.unshift rec
