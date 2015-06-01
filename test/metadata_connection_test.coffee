@@ -58,7 +58,10 @@ describe "MetadataConnection", ->
 
     it "should handle metadata message", ->
         MSG = "msg"
-        PARSED_MSG = "parsed_msg"
+        PARSED_MSG =
+            Tables: [
+                "parsed_msg"
+            ]
 
         metadataParseStub = sandbox.stub Proto.meta_data, "parse"
         metadataParseStub.returns PARSED_MSG
@@ -71,7 +74,7 @@ describe "MetadataConnection", ->
         metadataParseStub.should.have.been.calledOnce
         metadataParseStub.should.have.been.calledWithExactly MSG, "virtdb.interface.pb.MetaData"
         conn._onMetadata.should.have.been.calledOnce
-        conn._onMetadata.should.have.been.calledWith PARSED_MSG
+        conn._onMetadata.should.have.been.calledWith null, PARSED_MSG
 
     it "should send the right metadata request message", ->
 

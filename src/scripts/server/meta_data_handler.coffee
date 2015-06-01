@@ -28,13 +28,15 @@ class MetadataHandler
             if cachedResponse?
                 metadata = cachedResponse
                 result = @_processTableListResponse metadata, search, from, to, filterList
-                onReady result
+                onReady null, result
             else
                 metadataConnection = MetadataConnection.createInstance Endpoints.getMetadataAddress provider
-                metadataConnection.getMetadata tableListRequest, (metadata) =>
-                    @_putMetadataInCache cacheKey, metadata, true
-                    result = @_processTableListResponse metadata, search, from, to, filterList
-                    onReady result
+                metadataConnection.getMetadata tableListRequest, (err, metadata) =>
+                    result = null
+                    if not err?
+                        @_putMetadataInCache cacheKey, metadata, true
+                        result = @_processTableListResponse metadata, search, from, to, filterList
+                    onReady err, result
         catch ex
             log.error V_(ex)
             throw ex
@@ -46,16 +48,19 @@ class MetadataHandler
             cacheKey = @_generateCacheKey provider, tableMetadataRequest
             cachedResponse = CacheHandler.get cacheKey
             if cachedResponse?
-                onReady cachedResponse
+                onReady null, cachedResponse
             else
                 metadataConnection = MetadataConnection.createInstance Endpoints.getMetadataAddress provider
-                metadataConnection.getMetadata tableMetadataRequest, (metadata) =>
-                    if metadata.Tables.length > 0
+                metadataConnection.getMetadata tableMetadataRequest, (err, metadata) =>
+                    if not err? and metadata.Tables.length > 0
                         CacheHandler.set cacheKey, metadata
                         for receivedTable in metadata.Tables
                             if receivedTable.Fields.length is 0
+                                err = new Error("No fields in table metadata #{provider}, #{table}")
                                 log.error "No fields in table metadata", V_(provider), V_(table), V_(metadata)
-                    onReady metadata
+                                metadata = null
+                                break
+                    onReady err, metadata
             return
         catch ex
             log.error V_(ex)
@@ -70,8 +75,9 @@ class MetadataHandler
     _refillMetadataCache: (key) =>
         [provider, request] = @_parseCacheKey key
         metadataConnection = MetadataConnection.createInstance Endpoints.getMetadataAddress provider
-        metadataConnection.getMetadata request, (metadata) =>
-            @_putMetadataInCache key, metadata, true
+        metadataConnection.getMetadata request, (err, metadata) =>
+            if not err?
+                @_putMetadataInCache key, metadata, true
 
     _processTableListResponse: (metadata, search, from, to, filterList) =>
         tables = @_createTableList metadata

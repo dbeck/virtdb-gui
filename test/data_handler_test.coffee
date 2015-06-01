@@ -32,7 +32,7 @@ describe "DataHandler", ->
         sandbox.restore()
 
     # Not complete test, we should check that the final callback is called, also should test the column receiver class
-    it "should request data from connection an give it to the column receiver", ->
+    it "should request data from connection and give it to the column receiver", ->
 
         PROVIDER = "prov"
         TABLE = "table"
@@ -55,7 +55,7 @@ describe "DataHandler", ->
         metadataHandler = sinon.createStubInstance MetadataHandler
         metadataHandlerCreateInstanceStub = sandbox.stub MetadataHandler, "createInstance"
         metadataHandlerCreateInstanceStub.returns metadataHandler
-        metadataHandler.getTableMetadata.callsArgWith 2, METADATA
+        metadataHandler.getTableMetadata.callsArgWith 2, null, METADATA
 
         dataConnection = sinon.createStubInstance DataConnection
         dataConnectionCreateInstanceStub = sandbox.stub DataConnection, "createInstance"

@@ -66,7 +66,10 @@ router.post "/data_provider/meta_data/"
     provider = req.body.provider
     table = req.body.table
     id = if req.body.id? then Number req.body.id else 0
-    onMetadata = (metadataMessage) ->
+    onMetadata = (err, metadataMessage) ->
+        if err?
+            res.status(500).send()
+            return
         metaData = metadataMessage.Tables[0]
         if not res.headersSent
             for field in metaData.Fields
@@ -120,7 +123,10 @@ router.post "/data_provider/table_list"
 
     try
         metadataHandler = new MetadataHandler()
-        metadataHandler.getTableList provider, search, from, to, tablesToFilter, (result) ->
+        metadataHandler.getTableList provider, search, from, to, tablesToFilter, (err, result) ->
+            if err?
+                res.status(500).send()
+                return
             response =
                 data: result
                 id: id
@@ -213,7 +219,10 @@ router.post "/db_config/add"
 
     try
         metadataHandler = new MetadataHandler()
-        metadataHandler.getTableMetadata provider, table, (metaData) ->
+        metadataHandler.getTableMetadata provider, table, (err, metaData) ->
+            if err?
+                res.status(500).send()
+                return
             DBConfig.addTable provider, metaData, action, (err) ->
                 if not err?
                     res.status(200).send()
