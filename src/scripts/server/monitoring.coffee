@@ -28,26 +28,12 @@ parseReply = (callback) ->
 
 MonitoringClient =
     get: (cb) ->
-#        cb null, [
-#            Name: 'virtdb-gui'
-#            OK: false
-#            UpdatedEpoch: 123
-#        ,
-#            Name: 'db-config'
-#            OK: true
-#            UpdatedEpoch: 135
-#        ]
-#        return
-
         request = createRequest
             Type: 'GET_STATES'
 
         Connector.sendRequest Const.MONITORING_SERVICE, 'MONITORING', request, parseReply (err, reply) ->
-            reply = reply.States?.States
-            console.dir reply
-            for item in reply
-                for event in item.Events
-                    console.dir event
+            if not err?
+                reply = reply.States?.States
             cb err, reply
 
 router.get '/monitoring'
