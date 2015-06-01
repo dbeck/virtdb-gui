@@ -39,12 +39,14 @@ class MetadataConnection
 
     _onMetadataMessage: (message) =>
         try
+            err = null
             metadata = MetaDataProto.parse message, "virtdb.interface.pb.MetaData"
-            @_onMetadata metadata
+            if not metadata?.Tables?.length > 0
+                err = new Error('Empy metadata response.')
+            @_onMetadata err, metadata
             return
         catch ex
-            log.error V_(ex)
-            throw ex
+            @_onMetadata ex, null
 
     @createInstance: (addresses) =>
         return new MetadataConnection addresses

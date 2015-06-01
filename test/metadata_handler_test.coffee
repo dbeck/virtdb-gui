@@ -256,7 +256,7 @@ describe "MetadataHandler", ->
             _processTableListResponseStub.should.calledOnce
             _processTableListResponseStub.should.calledWithExactly VALUE, SEARCH, FROM, TO, FILTERLIST
             onReadySpy.should.have.been.calledOnce
-            onReadySpy.should.have.been.calledWithExactly RESULT
+            onReadySpy.should.have.been.calledWithExactly null, RESULT
 
         it "should request the table list from the provider if it is not in cache and save it if it contains tables", ->
 
@@ -290,7 +290,7 @@ describe "MetadataHandler", ->
             endpointsGetMetaDataAddressStub.returns ADDRESSES
             metadataConnectionCreateInstanceStub = sandbox.stub MetadataConnection, "createInstance"
             metadataConnectionCreateInstanceStub.returns conn
-            conn.getMetadata.callsArgWith 1, METADATA
+            conn.getMetadata.callsArgWith 1, null, METADATA
             cacheHandlerSetStub = sandbox.stub CacheHandler, "set"
             _processTableListResponseStub = sandbox.stub handler, "_processTableListResponse"
             _processTableListResponseStub.returns RESULT
@@ -313,7 +313,7 @@ describe "MetadataHandler", ->
             _processTableListResponseStub.should.calledOnce
             _processTableListResponseStub.should.calledWithExactly METADATA, SEARCH, FROM, TO, FILTERLIST
             onReadySpy.should.have.been.calledOnce
-            onReadySpy.should.have.been.calledWithExactly RESULT
+            onReadySpy.should.have.been.calledWithExactly null, RESULT
 
         it "should request the table list from the provider and don't save it if it not contains tables", ->
 
@@ -343,7 +343,7 @@ describe "MetadataHandler", ->
             endpointsGetMetaDataAddressStub.returns ADDRESSES
             metadataConnectionCreateInstanceStub = sandbox.stub MetadataConnection, "createInstance"
             metadataConnectionCreateInstanceStub.returns conn
-            conn.getMetadata.callsArgWith 1, METADATA
+            conn.getMetadata.callsArgWith 1, null, METADATA
             cacheHandlerSetStub = sandbox.stub CacheHandler, "set"
             _processTableListResponseStub = sandbox.stub handler, "_processTableListResponse"
             _processTableListResponseStub.returns RESULT
@@ -365,7 +365,7 @@ describe "MetadataHandler", ->
             _processTableListResponseStub.should.calledOnce
             _processTableListResponseStub.should.calledWithExactly METADATA, SEARCH, FROM, TO, FILTERLIST
             onReadySpy.should.have.been.calledOnce
-            onReadySpy.should.have.been.calledWithExactly RESULT
+            onReadySpy.should.have.been.calledWithExactly null, RESULT
 
     describe "getTableMetadata", ->
 
@@ -398,7 +398,7 @@ describe "MetadataHandler", ->
             cacheHandlerGetStub.should.have.been.calledOnce
             cacheHandlerGetStub.should.have.been.calledWithExactly KEY
             onReadySpy.should.have.been.calledOnce
-            onReadySpy.should.have.been.calledWithExactly VALUE
+            onReadySpy.should.have.been.calledWithExactly null, VALUE
 
         it "should request the table meta data from the provider and save it in cache", ->
 
@@ -440,7 +440,7 @@ describe "MetadataHandler", ->
             endpointsGetMetaDataAddressStub.returns ADDRESSES
             metadataConnectionCreateInstanceStub = sandbox.stub MetadataConnection, "createInstance"
             metadataConnectionCreateInstanceStub.returns conn
-            conn.getMetadata.callsArgWith 1, METADATA
+            conn.getMetadata.callsArgWith 1, null, METADATA
             cacheHandlerSetStub = sandbox.stub CacheHandler, "set"
 
             handler.getTableMetadata PROVIDER, TABLE, onReadySpy
@@ -459,7 +459,7 @@ describe "MetadataHandler", ->
             cacheHandlerSetStub.should.calledOnce
             cacheHandlerSetStub.should.calledWithExactly KEY, METADATA
             onReadySpy.should.have.been.calledOnce
-            onReadySpy.should.have.been.calledWithExactly METADATA
+            onReadySpy.should.have.been.calledWithExactly null, METADATA
 
         it "should request the table meta data from the provider and not save it in cache", ->
 
@@ -487,7 +487,7 @@ describe "MetadataHandler", ->
             endpointsGetMetaDataAddressStub.returns ADDRESSES
             metadataConnectionCreateInstanceStub = sandbox.stub MetadataConnection, "createInstance"
             metadataConnectionCreateInstanceStub.returns conn
-            conn.getMetadata.callsArgWith 1, METADATA
+            conn.getMetadata.callsArgWith 1, null, METADATA
             cacheHandlerSetStub = sandbox.stub CacheHandler, "set"
 
             handler.getTableMetadata PROVIDER, TABLE, onReadySpy
@@ -505,7 +505,7 @@ describe "MetadataHandler", ->
             conn.getMetadata.should.have.been.calledWith REQUEST
             cacheHandlerSetStub.should.not.called
             onReadySpy.should.have.been.calledOnce
-            onReadySpy.should.have.been.calledWithExactly METADATA
+            onReadySpy.should.have.been.calledWithExactly null, METADATA
 
     it "should drop all cache entry for given provider", ->
         PROVIDER = "prov1"

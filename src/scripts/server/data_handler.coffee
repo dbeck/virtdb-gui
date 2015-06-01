@@ -16,7 +16,10 @@ class DataHandler
     getData: (provider, tableName, count, onData) =>
         try
             metadataHandler = MetadataHandler.createInstance()
-            metadataHandler.getTableMetadata provider, tableName, (metadataMessage) =>
+            metadataHandler.getTableMetadata provider, tableName, (err, metadataMessage) =>
+                if err?
+                    onData []
+                    return
                 tableMeta = metadataMessage.Tables[0]
                 if not tableMeta?.Fields?.length > 0
                     log.error "Asking for data with no fields provieded"
