@@ -65,11 +65,14 @@ module.exports = app.controller 'StatusController',
                         log[part.name] = part.value
                     @incomingMessages.push log
 
+        isValid = (message) ->
+            return message.component? and message.table_name? and message.status? and message.row_count? and message.seconds?
+
         processIncomingMessages: () =>
             @cleanObsoleteDones()
             while @incomingMessages.length > 0
                 msg = @incomingMessages.shift()
-                if not @isStatusObsolete msg
+                if not @isStatusObsolete(msg) and isValid(msg)
                     @placeStatusMessage msg
 
         placeStatusMessage: (newStatus) =>
