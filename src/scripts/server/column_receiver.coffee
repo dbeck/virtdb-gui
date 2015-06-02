@@ -25,7 +25,6 @@ class ColumnReceiver
 
     add: (column) =>
         if @_columns[@_fieldIndices[column.Name]]?
-            log.error "Column with name already exist.", V_(column.Name)
             return
         @_add column.Name, FieldData.get column
         @_columnEndOfData[column.Name] = column.EndOfData
