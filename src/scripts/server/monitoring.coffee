@@ -34,6 +34,23 @@ MonitoringClient =
         Connector.sendRequest Const.MONITORING_SERVICE, 'MONITORING', request, parseReply (err, reply) ->
             if not err?
                 reply = reply.States?.States
+                for component in reply
+                    console.log component
+                    for event in component.Events
+                        console.log event
+                        switch event.Request.Type
+                            when 'COMPONENT_ERROR'
+                                event.SubType = event.Request.CompErr.Type
+                                event.ReportedBy = event.Request.CompErr.ReportedBy
+                                event.Message = event.Request.CompErr.Message
+                            when 'REQUEST_ERROR'
+                                event.SubType = event.Request.ReqErr.Type
+                                event.ReportedBy = event.Request.ReqErr.ReportedBy
+                                event.Message = event.Request.ReqErr.Message
+                            when 'SET_STATE'
+                                event.ReportedBy = component.Name
+                                event.SubType = event.Request.SetSt.Type
+                                event.Message = event.Request.SetSt.Msg
             cb err, reply
 
 router.get '/monitoring'

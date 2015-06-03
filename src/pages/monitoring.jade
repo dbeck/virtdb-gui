@@ -15,10 +15,12 @@ div
                         th Type
                         th Reported by
                         th Reported at
+                        th SubType
                         th Message
                     tr(ng-repeat="event in component.Events | orderBy: 'Epoch':true ")
                         td {{ event.Request.Type }}
-                        td {{ event.Request.CompErr.ReportedBy }}
+                        td {{ event.ReportedBy }}
                         td {{ event.Epoch * 1000 | date:'medium' }}
-                        td {{ event.Request.CompErr.Type }}
+                        td {{ event.SubType }}
+                        td {{ event.Message }} 
 
