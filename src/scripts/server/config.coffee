@@ -155,6 +155,7 @@ class Configuration
                 Required: true
                 Scope: 'Cache'
                 Default: @DEFAULTS[@CACHE_TTL]
+                Minimum: 60
             ]
 
     @_parseCommandLine: (argv) =>

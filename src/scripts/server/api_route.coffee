@@ -256,11 +256,13 @@ router.post "/set_config/:component"
         component = req.params.component
         config = req.body
 
-        ConfigService.sendConfig component, config
-        metadataHandler = new MetadataHandler
-        metadataHandler.emptyProviderCache component
-        if not res.headersSent
-            res.status(200).send()
+        if ConfigService.sendConfig component, config
+            metadataHandler = new MetadataHandler
+            metadataHandler.emptyProviderCache component
+            if not res.headersSent
+                res.status(200).send()
+        else
+            res.status(400).send("Invalid config.")
 
     catch ex
         log.error V_(ex)

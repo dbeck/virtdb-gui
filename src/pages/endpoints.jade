@@ -15,10 +15,15 @@ div.container
                 button.pull-right.btn.btn-success(ng-click="endpointController.sendConfig()") Save
             table.table
                 tr(ng-repeat="item in componentConfig")
-                    td {{ item.Data.Scope.Value[0] }} / {{ item.Name }}
+                    td 
+                        span.strong {{ item.Data.Scope.Value[0] }} / {{ item.Name }}
+                        span.strong(ng-if="isRequired(item)") *
+                        span.small(ng-if="isRange(item)") ( Range: {{getMinimum(item)}} - {{getMaximum(item)}} ) 
                     td
-                        input(type="text" ng-if="item.Name.toLowerCase() != 'password'" ng-model="item.Data.Value.Value[0]")
-                        input(type="password" ng-if="item.Name.toLowerCase() == 'password'" ng-model="item.Data.Value.Value[0]")
+                        input(type="number" ng-if="isNumber(item)" ng-model="item.Data.Value.Value[0]" ng-required="isRequired(item)")
+                        input(type="text" ng-if="!isNumber(item) && !isPassword(item)" ng-model="item.Data.Value.Value[0]" ng-required="isRequired(item)")
+
+                        input(type="password" ng-if="isPassword(item)" ng-model="item.Data.Value.Value[0]" ng-required="isRequired(item)")
 
         div.col-md-3
             h3 Endpoints
