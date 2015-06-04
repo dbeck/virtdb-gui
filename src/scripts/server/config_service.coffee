@@ -32,12 +32,32 @@ class ConfigService
                 callback processedConfig
                 delete @_configCallbacks[config.Name]
 
+    isValid = (config) ->
+        for item in config
+            if item?.Data?.Value?.Value?[0]?
+                value = item.Data.Value.Value[0]
+            if item?.Data?.Minimum?.Value?[0]?
+                minimum = item.Data.Minimum.Value[0]
+            if item?.Data?.Maximum?.Value?[0]?
+                maximum = item.Data.Maximum.Value[0]
+            required = item.Data.Required?.Value
+            if required and (not value? or value == '')
+                return false
+            if minimum? and ((not value? or value == '') or minimum > value)
+                return false
+            if maximum? and ((not value? or value == '') or maximum < value)
+                return false
+        return true
+
     @sendConfig: (component, config) =>
+        if not isValid config
+            return false
         connection = ConfigServiceConnector.createInstance Endpoints.getConfigServiceAddress()
         saved = ConfigService._savedConfigs?[component]
         if not saved? or (JSON.stringify(saved) isnt JSON.stringify(config))
             rawConfig = @_processSetConfigMessage component, config
             connection.sendConfig rawConfig
+        return true
 
     @sendConfigTemplate: (template) =>
         log.debug "sending config template to the config service:", V_(template)

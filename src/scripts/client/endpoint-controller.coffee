@@ -11,6 +11,26 @@ class EndpointController
         @endpoints = []
         @requestEndpoints()
         @setupWatches()
+        $scope.isNumber = (item) ->
+            type = item?.Data?.Value?.Type
+            return type in ['UINT32', 'UINT64', 'INT32', 'INT64']
+        $scope.isPassword = (item) ->
+            value = item?.Data?.Value?.Value?[0]
+            return value? and value.toString().toLowerCase() == 'password'
+        $scope.isRequired = (item) ->
+            return item?.Data?.Required?.Value?[0]
+        $scope.isRange = (item) ->
+            minimum = item?.Data?.Minimum?.Value?[0]?
+            maximum = item?.Data?.Maximum?.Value?[0]?
+            return minimum or maximum
+        $scope.getMinimum = (item) ->
+            minimum = item?.Data?.Minimum?.Value?[0]
+            minimum ?= ""
+            return minimum
+        $scope.getMaximum = (item) ->
+            maximum = item?.Data?.Maximum?.Value?[0]
+            maximum ?= ""
+            return maximum
 
     setupWatches: () =>
         @$scope.$watch "selectedComponent", () =>
