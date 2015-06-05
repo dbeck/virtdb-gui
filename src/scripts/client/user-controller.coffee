@@ -21,8 +21,8 @@ userController = app.controller 'UserController',
                     @$scope.userName = @name
                     @$scope.isAdmin = @isAdmin
 
-            @ServerConnector.getUserList (users) =>
-                @$scope.userList = users
+            if $rootScope.Features?.Security
+                @getUserList()
 
         getUserList: () =>
             @ServerConnector.getUserList (users) =>
