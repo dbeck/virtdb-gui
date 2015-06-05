@@ -33,14 +33,15 @@ class ConfigService
                 delete @_configCallbacks[config.Name]
 
     isValid = (config) ->
-        for item in config
-            if item?.Data?.Value?.Value?[0]?
-                value = item.Data.Value.Value[0]
-            if item?.Data?.Minimum?.Value?[0]?
-                minimum = item.Data.Minimum.Value[0]
-            if item?.Data?.Maximum?.Value?[0]?
-                maximum = item.Data.Maximum.Value[0]
-            required = item.Data.Required?.Value
+        for item in config when item?.Data?
+            data = item.Data
+            if data.Value?.Value?[0]?
+                value = data.Value.Value[0]
+            if data.Minimum?.Value?[0]?
+                minimum = data.Minimum.Value[0]
+            if data.Maximum?.Value?[0]?
+                maximum = data.Maximum.Value[0]
+            required = data.Required?.Value
             if required and (not value? or value == '')
                 return false
             if minimum? and ((not value? or value == '') or minimum > value)
