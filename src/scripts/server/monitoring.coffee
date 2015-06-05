@@ -35,9 +35,7 @@ MonitoringClient =
             if not err?
                 reply = reply.States?.States
                 for component in reply
-                    console.log component
                     for event in component.Events
-                        console.log event
                         switch event.Request.Type
                             when 'COMPONENT_ERROR'
                                 event.SubType = event.Request.CompErr.Type
