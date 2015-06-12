@@ -1,10 +1,10 @@
 CacheHandler = require "./cache_handler"
-MetadataConnection = require "./metadata_connection"
 Endpoints = require "./endpoints"
-VirtDBConnector = require "virtdb-connector"
-Const = VirtDBConnector.Const
-log = VirtDBConnector.log
+VirtDB = require "virtdb-connector"
+Const = VirtDB.Const
+log = VirtDB.log
 V_ = log.Variable
+MetaDataProto = (require "virtdb-proto").meta_data
 
 class MetadataHandler
 
@@ -14,28 +14,27 @@ class MetadataHandler
 
     emptyProviderCache: (provider) =>
         for key in CacheHandler.listKeys()
-            [cachedProvider, request] = @_parseCacheKey key
+            [cachedProvider, request] = parseCacheKey key
             if cachedProvider is provider
                 CacheHandler.delete key
 
     getTableList: (provider, search, from, to, filterList, onReady) =>
         try
-            tableListRequest = @_createTableListMessage()
+            tableListRequest = createTableListMessage()
 
-            cacheKey = @_generateCacheKey provider, tableListRequest
+            cacheKey = generateCacheKey provider, tableListRequest
             cachedResponse = CacheHandler.get cacheKey
 
             if cachedResponse?
                 metadata = cachedResponse
-                result = @_processTableListResponse metadata, search, from, to, filterList
+                result = processTableListResponse metadata, search, from, to, filterList
                 onReady null, result
             else
-                metadataConnection = MetadataConnection.createInstance Endpoints.getMetadataAddress provider
-                metadataConnection.getMetadata tableListRequest, (err, metadata) =>
+                sendMetaDataRequest provider, tableListRequest, (err, metadata) =>
                     result = null
                     if not err?
-                        @_putMetadataInCache cacheKey, metadata, true
-                        result = @_processTableListResponse metadata, search, from, to, filterList
+                        putMetadataInCache cacheKey, metadata, true
+                        result = processTableListResponse metadata, search, from, to, filterList
                     onReady err, result
         catch ex
             log.error V_(ex)
@@ -43,15 +42,14 @@ class MetadataHandler
 
     getTableMetadata: (provider, table, onReady) =>
         try
-            tableMetadataRequest = @_createTableMetadataMessage(table)
+            tableMetadataRequest = createTableMetadataMessage(table)
 
-            cacheKey = @_generateCacheKey provider, tableMetadataRequest
+            cacheKey = generateCacheKey provider, tableMetadataRequest
             cachedResponse = CacheHandler.get cacheKey
             if cachedResponse?
                 onReady null, cachedResponse
             else
-                metadataConnection = MetadataConnection.createInstance Endpoints.getMetadataAddress provider
-                metadataConnection.getMetadata tableMetadataRequest, (err, metadata) =>
+                sendMetaDataRequest provider, tableMetadataRequest, (err, metadata) =>
                     if not err? and metadata.Tables.length > 0
                         CacheHandler.set cacheKey, metadata
                         for receivedTable in metadata.Tables
@@ -66,41 +64,40 @@ class MetadataHandler
             log.error V_(ex)
             throw ex
 
-    _putMetadataInCache: (cacheKey, metadata, isPermanent) =>
+    putMetadataInCache = (cacheKey, metadata, isPermanent) ->
         if metadata.Tables.length > 0
             CacheHandler.set cacheKey, metadata
             if isPermanent
-                CacheHandler.addKeyExpirationListener cacheKey, @_refillMetadataCache
+                CacheHandler.addKeyExpirationListener cacheKey, refillMetadataCache
 
-    _refillMetadataCache: (key) =>
-        [provider, request] = @_parseCacheKey key
-        metadataConnection = MetadataConnection.createInstance Endpoints.getMetadataAddress provider
-        metadataConnection.getMetadata request, (err, metadata) =>
+    refillMetadataCache = (key) ->
+        [provider, request] = parseCacheKey key
+        sendMetaDataRequest provider, request, (err, metadata) ->
             if not err?
-                @_putMetadataInCache key, metadata, true
+                putMetadataInCache key, metadata, true
 
-    _processTableListResponse: (metadata, search, from, to, filterList) =>
-        tables = @_createTableList metadata
-        tables = @_filterTableList tables, search, filterList
-        result = @_createTableListResult tables, from, to
+    processTableListResponse = (metadata, search, from, to, filterList) ->
+        tables = createTableList metadata
+        tables = filterTableList tables, search, filterList
+        result = createTableListResult tables, from, to
         return result
 
-    _createTableListMessage: =>
+    createTableListMessage = ->
         return metadataRequest =
             Name: ".*"
             Schema: ".*"
             WithFields: false
 
-    _createTableMetadataMessage: (table) =>
-        tableObj = @_convertTableToObject table
+    createTableMetadataMessage = (table) ->
+        tableObj = convertTableToObject table
         return metadataRequest =
             Schema: tableObj.Schema,
             Name: tableObj.Name,
             WithFields: true
 
-    _convertTableToObject: (table) =>
+    convertTableToObject = (table) ->
         tableObj = {}
-        tableElements = table.split(MetadataHandler.TABLE_NAME_SEPARATOR)
+        tableElements = table.split MetadataHandler.TABLE_NAME_SEPARATOR
         #if no schema
         if tableElements.length is 1
             tableObj.Name ?= tableElements[0]
@@ -112,7 +109,7 @@ class MetadataHandler
             return null
         return tableObj
 
-    _createTableList: (metadata) =>
+    createTableList = (metadata) ->
         tableList = []
         for table in metadata.Tables
             if table.Schema?
@@ -121,7 +118,7 @@ class MetadataHandler
                 tableList.push table.Name
         return tableList
 
-    _filterTableList: (tables, search, filterList) =>
+    filterTableList = (tables, search, filterList) ->
         results = []
         if filterList?.length > 0
             for tableToFind in filterList
@@ -136,7 +133,7 @@ class MetadataHandler
                     results.push table
         return results
 
-    _createTableListResult: (tables, from, to) =>
+    createTableListResult = (tables, from, to) ->
         realFrom = Math.max(0, from - 1)
         realTo = Math.min(to - 1, Math.max(tables.length - 1, 0))
         return result =
@@ -145,12 +142,26 @@ class MetadataHandler
             count: tables.length
             results: tables[realFrom..realTo]
 
-    _generateCacheKey: (provider, request) =>
+    generateCacheKey = (provider, request) ->
         return provider + "_" + JSON.stringify request
 
-    _parseCacheKey: (key) =>
+    parseCacheKey = (key) ->
         parts = key.split "_"
         return [parts[0], (JSON.parse parts[1])]
+        
+    sendMetaDataRequest = (name, request, cb) ->
+        message = MetaDataProto.serialize request, "virtdb.interface.pb.MetaDataRequest"
+        VirtDB.sendRequest name, Const.ENDPOINT_TYPE.META_DATA, message, (parseReply cb)
+
+    parseReply = (callback) ->
+        return (err, message) ->
+            try
+                if err?
+                    throw err
+                reply = MetaDataProto.parse message, "virtdb.interface.pb.MetaData"
+                callback null, reply
+            catch ex
+                callback ex, null
 
     @createInstance: =>
         return new MetadataHandler
