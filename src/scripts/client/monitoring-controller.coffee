@@ -9,7 +9,7 @@ app.filter 'isOK', ->
         else
             message = 'DOWN'
             for event in component.Events
-                if event.Request.Type is 'SET_STATE' and event.SubType is 'NOT_INITIALIZED'
+                if event.Type is 'SET_STATE' and event.SubType is 'NOT_INITIALIZED'
                     message = 'NOT INITIALIZED'
             return message
 
@@ -21,7 +21,7 @@ app.filter 'subType', ->
 
 app.filter 'eventType', ->
     return (event) ->
-        switch event.Request.type
+        switch event.Type
             when 'COMPONENT_ERROR'
                 if event.SubType is 'CLEAR' then 'STATUS' else 'COMPONENT ERROR'
             when 'REQUEST_ERROR' then 'REQUEST ERROR'
