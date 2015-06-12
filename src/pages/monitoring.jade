@@ -1,5 +1,5 @@
 div
-    h6.row
+    h5.row
         .col-xs-4 Component
         .col-xs-2 Status
         .col-xs-4 Last updated
@@ -10,17 +10,27 @@ div
                 .col-xs-2 {{ component | isOK }}
                 .col-xs-4 {{ component.UpdatedEpoch * 1000 | date:'medium' }}
             .collapse(id="events{{$index}}")
-                table.table
-                    tr
-                        th Type
-                        th Reported by
-                        th Reported at
-                        th SubType
-                        th Message
-                    tr(ng-repeat="event in component.Events | orderBy: 'Epoch':true ")
-                        td {{ event | eventType }}
-                        td {{ event.ReportedBy }}
-                        td {{ event.Epoch * 1000 | date:'medium' }}
-                        td {{ event.SubType | subType }}
-                        td {{ event.Message }} 
-
+                .h4 Events
+                .h5
+                    table.table
+                        tr
+                            th Type
+                            th Reported by
+                            th Reported at
+                            th SubType
+                            th Message
+                        tr(ng-repeat="event in component.Events | orderBy: 'Epoch':true ")
+                            td {{ event | eventType }}
+                            td {{ event.ReportedBy }}
+                            td {{ event.Epoch * 1000 | date:'medium' }}
+                            td {{ event.SubType | subType }}
+                            td {{ event.Message }} 
+                .h4(ng-if="component.Stats.length > 0") Stats
+                .h5(ng-if="component.Stats.length > 0")
+                    table.table
+                        tr
+                            th Name
+                            th Value
+                        tr(ng-repeat="stat in component.Stats")
+                            td {{ stat.Name }}
+                            td {{ stat.Stat }}

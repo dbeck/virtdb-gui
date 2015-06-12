@@ -34,22 +34,46 @@ MonitoringClient =
         Connector.sendRequest Const.MONITORING_SERVICE, 'MONITORING', request, parseReply (err, reply) ->
             if not err?
                 reply = reply.States?.States
-                for component in reply
-                    for event in component.Events
-                        switch event.Request.Type
-                            when 'COMPONENT_ERROR'
-                                event.SubType = event.Request.CompErr.Type
-                                event.ReportedBy = event.Request.CompErr.ReportedBy
-                                event.Message = event.Request.CompErr.Message
-                            when 'REQUEST_ERROR'
-                                event.SubType = event.Request.ReqErr.Type
-                                event.ReportedBy = event.Request.ReqErr.ReportedBy
-                                event.Message = event.Request.ReqErr.Message
-                            when 'SET_STATE'
-                                event.ReportedBy = component.Name
-                                event.SubType = event.Request.SetSt.Type
-                                event.Message = event.Request.SetSt.Msg
-            cb err, reply
+                items = reply.map (item) ->
+                    ret = {}
+                    ret.Name = item.Name
+                    ret.OK = item.OK
+                    ret.UpdatedEpoch = item.UpdatedEpoch
+                    ret.Events = item.Events
+                        .filter (event) ->
+                            return event.Request.Type isnt 'REPORT_STATS'
+                        .map (event) ->
+                            flatEvent = {}
+                            flatEvent.Epoch = event.Epoch
+                            flatEvent.Type = event.Request.Type
+                            switch event.Request.Type
+                                when 'COMPONENT_ERROR'
+                                    flatEvent.SubType = event.Request.CompErr.Type
+                                    flatEvent.ReportedBy = event.Request.CompErr.ReportedBy
+                                    flatEvent.Message = event.Request.CompErr.Message
+                                when 'REQUEST_ERROR'
+                                    flatEvent.SubType = event.Request.ReqErr.Type
+                                    flatEvent.ReportedBy = event.Request.ReqErr.ReportedBy
+                                    flatEvent.Message = event.Request.ReqErr.Message
+                                when 'SET_STATE'
+                                    flatEvent.ReportedBy = item.Name
+                                    flatEvent.SubType = event.Request.SetSt.Type
+                                    flatEvent.Message = event.Request.SetSt.Msg
+                            return flatEvent
+                    ret.Stats = []
+                    stats = item.Events
+                        .filter (event) ->
+                            return event.Request.Type is 'REPORT_STATS'
+                        .map (event) ->
+                            return event.Request.RepStats.Stats
+                        .sort (a, b) ->
+                            return a.Epoch - b.Epoch
+                    if stats.length > 0
+                        ret.Stats = stats[stats.length - 1]
+                    return ret
+                cb null, items
+            else
+                cb err, null
 
 router.get '/monitoring'
     , auth.ensureAuthenticated
