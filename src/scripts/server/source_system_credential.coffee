@@ -1,8 +1,9 @@
-(require "source-map-support").install()
-SourceSystemCredentialConnection = require './source_system_credential_connection'
-log = (require "virtdb-connector").log
-V_ = log.Variable
 ReportError = require "./report-error"
+SecurityProto = (require "virtdb-proto").security
+VirtDB = require "virtdb-connector"
+Const = VirtDB.Const
+log = VirtDB.log
+V_ = log.Variable
 
 class SourceSystemCredential
 
@@ -15,10 +16,8 @@ class SourceSystemCredential
                 SourceSysName: sourceSystemName
                 SourceSysToken: sourceSystemToken
                 Creds: credentialValues
-        connection = new SourceSystemCredentialConnection
-        connection.send request, (reply) =>
-            if not (ReportError reply, callback)
-                callback null, null
+        sendRequest request, (err, reply) =>
+            callback err, null
 
     getCredential: (sourceSystemName, sourceSystemToken, callback) =>
         request =
@@ -26,9 +25,10 @@ class SourceSystemCredential
             GetCred:
                 SourceSysName: sourceSystemName
                 SourceSysToken: sourceSystemToken
-        connection = new SourceSystemCredentialConnection
-        connection.send request, (reply) =>
-            if not (ReportError reply, callback)
+        sendRequest request, (err, reply) =>
+            if err?
+                callback err, null
+            else
                 callback null, reply.GetCred.Creds
 
     deleteCredential: (sourceSystemName, sourceSystemToken, callback) =>
@@ -37,10 +37,8 @@ class SourceSystemCredential
             DelCred:
                 SourceSysName: sourceSystemName
                 SourceSysToken: sourceSystemToken
-        connection = new SourceSystemCredentialConnection
-        connection.send request, (reply) =>
-            if not (ReportError reply, callback)
-                callback null, null
+        sendRequest request, (err, reply) =>
+            callback err, null
 
     setTemplate: (sourceSystemName, templates, callback) =>
         request =
@@ -48,19 +46,38 @@ class SourceSystemCredential
             SetTmpl:
                 SourceSysName: sourceSystemName
                 Templates: templates
-        connection = new SourceSystemCredentialConnection
-        connection.send request, (reply) =>
-            if not (ReportError reply, callback)
-                callback null, null
+        sendRequest request, (err, reply) =>
+            callback err, null
 
     getTemplate: (sourceSystemName, callback) =>
         request =
             Type: "GET_TEMPLATE"
             GetTmpl:
                 SourceSysName: sourceSystemName
-        connection = new SourceSystemCredentialConnection
-        connection.send request, (reply) =>
-            if not (ReportError reply, callback)
+        sendRequest request, (err, reply) =>
+            if err?
+                callback err, null
+            else
                 callback null, reply.GetTmpl.Templates
+
+    sendRequest = (request, cb) ->
+        message = SecurityProto.serialize request, "virtdb.interface.pb.SourceSystemCredentialRequest"
+        VirtDB.sendRequest Const.SECURITY_SERVICE, Const.ENDPOINT_TYPE.SRCSYS_CRED_MGR, message, (parseReply cb)
+
+    parseReply = (callback) ->
+        return (err, reply) ->
+            try
+                if not err? and reply?
+                    try
+                        reply = SecurityProto.parse reply, 'virtdb.interface.pb.SourceSystemCredentialReply'
+                    catch ex
+                        VirtDB.MonitoringService.requestError Const.SECURITY_SERVICE, Const.REQUEST_ERROR.INVALID_REQUEST, ex.toString()
+                        throw ex
+                    if reply.Type is 'ERROR_MSG'
+                        err = new Error reply.Err.Msg
+            catch ex
+                err ?= ex
+            finally
+                callback? err, reply
 
 module.exports = SourceSystemCredential

@@ -1,8 +1,6 @@
-require("source-map-support").install()
 SourceSystemCredential = require "../src/scripts/server/source_system_credential"
-Endpoints = require "../src/scripts/server/endpoints"
-SocketStub = require "./socket_stub"
-zmq     = require 'zmq'
+VirtDB = require "virtdb-connector"
+Const = VirtDB.Const
 SecurityProto = (require "virtdb-proto").security
 
 chai = require "chai"
@@ -32,17 +30,12 @@ TEMPLATES = [
 describe "SourceSystemCredential", ->
     sandbox = null
     socket = null
-    connectStub = null
+    sendRequestStub = null
 
     beforeEach =>
         sandbox = sinon.sandbox.create()
-        sandbox.stub Endpoints, "getSourceSystemCredentialAddress", () =>
-            return ["ADDR1", "ADDR2"]
-        socket = new SocketStub
-        connectStub = sandbox.stub zmq, "socket", (type) ->
-            type.should.equal 'req'
-            return socket
-        sandbox.stub (require "virtdb-connector").log, "error"
+        sendRequestStub = sandbox.stub VirtDB, "sendRequest"
+        sandbox.stub VirtDB.log, "error"
 
     afterEach =>
         sandbox.restore()
@@ -61,17 +54,15 @@ describe "SourceSystemCredential", ->
             callback = sinon.spy()
             sourceSystemCredential = new SourceSystemCredential
             sourceSystemCredential.setCredential SYS_NAME, SYS_TOKEN, CREDENTIALS, callback
-            socket.send.should.calledWithExactly SER_REQUEST
-#            socket.send.should.have.callCount 2
+            sendRequestStub.should.have.been.calledWith Const.SECURITY_SERVICE, Const.ENDPOINT_TYPE.SRCSYS_CRED_MGR, SER_REQUEST, sinon.match.func
 
         it "should receive SourceSystemCredentialReply", ->
             REPLY =
                 Type: "SET_CREDENTIAL"
-            SER_REPLY = SecurityProto.serialize REPLY, "virtdb.interface.pb.SourceSystemCredentialReply"
             callback = sinon.spy()
             sourceSystemCredential = new SourceSystemCredential
             sourceSystemCredential.setCredential SYS_NAME, SYS_TOKEN, CREDENTIALS, callback
-            socket.receive SER_REPLY
+            sendRequestStub.callArgWith 3, null, (SecurityProto.serialize REPLY, "virtdb.interface.pb.SourceSystemCredentialReply")
             callback.should.be.calledWithExactly null, null
 #
         it "should receive error when security service replied with error", ->
@@ -80,13 +71,11 @@ describe "SourceSystemCredential", ->
                 Type: "ERROR_MSG"
                 Err:
                     Msg: ERROR_TEXT
-            SER_REPLY = SecurityProto.serialize REPLY, "virtdb.interface.pb.SourceSystemCredentialReply"
 
             callback = sinon.spy()
             sourceSystemCredential = new SourceSystemCredential
             sourceSystemCredential.setCredential SYS_NAME, SYS_TOKEN, CREDENTIALS, callback
-            socket.receive SER_REPLY
-
+            sendRequestStub.callArgWith 3, null, (SecurityProto.serialize REPLY, "virtdb.interface.pb.SourceSystemCredentialReply")
             callback.should.be.calledWithExactly sinon.match.has("message", ERROR_TEXT), null
 
         it "should receive error when couldn't communicate with security service", ->
@@ -96,8 +85,7 @@ describe "SourceSystemCredential", ->
             callback = sinon.spy()
             sourceSystemCredential = new SourceSystemCredential
             sourceSystemCredential.setCredential SYS_NAME, SYS_TOKEN, CREDENTIALS, callback
-            socket.receive REQUEST
-
+            sendRequestStub.callArgWith 3, null, (SecurityProto.serialize REQUEST, "virtdb.interface.pb.SourceSystemCredentialReply")
             callback.should.be.calledWithExactly sinon.match.defined, null
 
     describe "getCredential", ->
@@ -109,25 +97,20 @@ describe "SourceSystemCredential", ->
                     SourceSysName: SYS_NAME
                     SourceSysToken: SYS_TOKEN
             SER_REQUEST = SecurityProto.serialize REQUEST, "virtdb.interface.pb.SourceSystemCredentialRequest"
-
             callback = sinon.spy()
             sourceSystemCredential = new SourceSystemCredential
             sourceSystemCredential.getCredential SYS_NAME, SYS_TOKEN, callback
-            socket.send.should.be.calledWithExactly SER_REQUEST
+            sendRequestStub.should.have.been.calledWith Const.SECURITY_SERVICE, Const.ENDPOINT_TYPE.SRCSYS_CRED_MGR, SER_REQUEST, sinon.match.func
 
         it "should receive SourceSystemCredentialReply", ->
             REPLY =
                 Type: "GET_CREDENTIAL"
                 GetCred:
                     Creds: CREDENTIALS
-            SER_REPLY = SecurityProto.serialize REPLY, "virtdb.interface.pb.SourceSystemCredentialReply"
-
             callback = sinon.spy()
-
             sourceSystemCredential = new SourceSystemCredential
             sourceSystemCredential.getCredential "sysname", "systok", callback
-            socket.receive SER_REPLY
-
+            sendRequestStub.callArgWith 3, null, (SecurityProto.serialize REPLY, "virtdb.interface.pb.SourceSystemCredentialReply")
             callback.should.be.calledWithExactly null, REPLY.GetCred.Creds
 
         it "should receive error when security service replied with error", ->
@@ -136,24 +119,19 @@ describe "SourceSystemCredential", ->
                 Type: "ERROR_MSG"
                 Err:
                     Msg: ERROR_TEXT
-            SER_REPLY = SecurityProto.serialize REPLY, "virtdb.interface.pb.SourceSystemCredentialReply"
-
             callback = sinon.spy()
             sourceSystemCredential = new SourceSystemCredential
             sourceSystemCredential.getCredential "sysname", "systok", callback
-            socket.receive SER_REPLY
-
+            sendRequestStub.callArgWith 3, null, (SecurityProto.serialize REPLY, "virtdb.interface.pb.SourceSystemCredentialReply")
             callback.should.be.calledWithExactly sinon.match.has("message", ERROR_TEXT), null
 
         it "should receive error when couldn't communicate with security service", ->
             REQUEST =
                 Type: "kiscica"
-
             callback = sinon.spy()
             sourceSystemCredential = new SourceSystemCredential
             sourceSystemCredential.getCredential "sysname", "systok", callback
-            socket.receive REQUEST
-
+            sendRequestStub.callArgWith 3, null, (SecurityProto.serialize REQUEST, "virtdb.interface.pb.SourceSystemCredentialReply")
             callback.should.be.calledWithExactly sinon.match.defined, null
 
     describe "deleteCredential", ->
@@ -168,19 +146,15 @@ describe "SourceSystemCredential", ->
             callback = sinon.spy()
             sourceSystemCredential = new SourceSystemCredential
             sourceSystemCredential.deleteCredential SYS_NAME, SYS_TOKEN, callback
-            socket.send.should.be.calledWithExactly SER_REQUEST
+            sendRequestStub.should.have.been.calledWith Const.SECURITY_SERVICE, Const.ENDPOINT_TYPE.SRCSYS_CRED_MGR, SER_REQUEST, sinon.match.func
 
         it "should receive SourceSystemCredentialReply", ->
             REPLY =
                 Type: "DELETE_CREDENTIAL"
-            SER_REPLY = SecurityProto.serialize REPLY, "virtdb.interface.pb.SourceSystemCredentialReply"
-
             callback = sinon.spy()
-
             sourceSystemCredential = new SourceSystemCredential
             sourceSystemCredential.deleteCredential "sysname", "systok", callback
-            socket.receive SER_REPLY
-
+            sendRequestStub.callArgWith 3, null, (SecurityProto.serialize REPLY, "virtdb.interface.pb.SourceSystemCredentialReply")
             callback.should.be.calledWithExactly null, null
 
         it "should receive error when security service replied with error", ->
@@ -189,24 +163,19 @@ describe "SourceSystemCredential", ->
                 Type: "ERROR_MSG"
                 Err:
                     Msg: ERROR_TEXT
-            SER_REPLY = SecurityProto.serialize REPLY, "virtdb.interface.pb.SourceSystemCredentialReply"
-
             callback = sinon.spy()
             sourceSystemCredential = new SourceSystemCredential
             sourceSystemCredential.deleteCredential "sysname", "systok", callback
-            socket.receive SER_REPLY
-
+            sendRequestStub.callArgWith 3, null, (SecurityProto.serialize REPLY, "virtdb.interface.pb.SourceSystemCredentialReply")
             callback.should.be.calledWithExactly sinon.match.has("message", ERROR_TEXT), null
 
         it "should receive error when couldn't communicate with security service", ->
             REQUEST =
                 Type: "kiscica"
-
             callback = sinon.spy()
             sourceSystemCredential = new SourceSystemCredential
             sourceSystemCredential.deleteCredential "sysname", "systok", callback
-            socket.receive REQUEST
-
+            sendRequestStub.callArgWith 3, null, (SecurityProto.serialize REQUEST, "virtdb.interface.pb.SourceSystemCredentialReply")
             callback.should.be.calledWithExactly sinon.match.defined, null
 
     describe "getTemplate", ->
@@ -217,25 +186,20 @@ describe "SourceSystemCredential", ->
                 GetTmpl:
                     SourceSysName: SYS_NAME
             SER_REQUEST = SecurityProto.serialize REQUEST, "virtdb.interface.pb.SourceSystemCredentialRequest"
-
             callback = sinon.spy()
             sourceSystemCredential = new SourceSystemCredential
             sourceSystemCredential.getTemplate SYS_NAME, callback
-            socket.send.should.be.calledWithExactly SER_REQUEST
+            sendRequestStub.should.have.been.calledWith Const.SECURITY_SERVICE, Const.ENDPOINT_TYPE.SRCSYS_CRED_MGR, SER_REQUEST, sinon.match.func
 
         it "should receive SourceSystemCredentialReply", ->
             REPLY =
                 Type: "GET_TEMPLATE"
                 GetTmpl:
                     Templates: TEMPLATES
-            SER_REPLY = SecurityProto.serialize REPLY, "virtdb.interface.pb.SourceSystemCredentialReply"
-
             callback = sinon.spy()
-
             sourceSystemCredential = new SourceSystemCredential
             sourceSystemCredential.getTemplate SYS_NAME, callback
-            socket.receive SER_REPLY
-
+            sendRequestStub.callArgWith 3, null, (SecurityProto.serialize REPLY, "virtdb.interface.pb.SourceSystemCredentialReply")
             callback.should.be.calledWithExactly null, REPLY.GetTmpl.Templates
 
         it "should receive error when security service replied with error", ->
@@ -244,24 +208,19 @@ describe "SourceSystemCredential", ->
                 Type: "ERROR_MSG"
                 Err:
                     Msg: ERROR_TEXT
-            SER_REPLY = SecurityProto.serialize REPLY, "virtdb.interface.pb.SourceSystemCredentialReply"
-
             callback = sinon.spy()
             sourceSystemCredential = new SourceSystemCredential
             sourceSystemCredential.getTemplate SYS_NAME, callback
-            socket.receive SER_REPLY
-
+            sendRequestStub.callArgWith 3, null, (SecurityProto.serialize REPLY, "virtdb.interface.pb.SourceSystemCredentialReply")
             callback.should.be.calledWithExactly sinon.match.has("message", ERROR_TEXT), null
 
         it "should receive error when couldn't communicate with security service", ->
             REQUEST =
                 Type: "kiscica"
-
             callback = sinon.spy()
             sourceSystemCredential = new SourceSystemCredential
             sourceSystemCredential.getTemplate SYS_NAME, callback
-            socket.receive REQUEST
-
+            sendRequestStub.callArgWith 3, null, (SecurityProto.serialize REQUEST, "virtdb.interface.pb.SourceSystemCredentialReply")
             callback.should.be.calledWithExactly sinon.match.defined, null
 
     describe "setTemplate", ->
@@ -273,23 +232,18 @@ describe "SourceSystemCredential", ->
                     SourceSysName: SYS_NAME
                     Templates: TEMPLATES
             SER_REQUEST = SecurityProto.serialize REQUEST, "virtdb.interface.pb.SourceSystemCredentialRequest"
-
             callback = sinon.spy()
             sourceSystemCredential = new SourceSystemCredential
             sourceSystemCredential.setTemplate SYS_NAME, TEMPLATES, callback
-            socket.send.should.be.calledWithExactly SER_REQUEST
+            sendRequestStub.should.have.been.calledWith Const.SECURITY_SERVICE, Const.ENDPOINT_TYPE.SRCSYS_CRED_MGR, SER_REQUEST, sinon.match.func
 
         it "should receive SourceSystemCredentialReply", ->
             REPLY =
                 Type: "SET_TEMPLATE"
-            SER_REPLY = SecurityProto.serialize REPLY, "virtdb.interface.pb.SourceSystemCredentialReply"
-
             callback = sinon.spy()
-
             sourceSystemCredential = new SourceSystemCredential
             sourceSystemCredential.setTemplate SYS_NAME, TEMPLATES, callback
-            socket.receive SER_REPLY
-
+            sendRequestStub.callArgWith 3, null, (SecurityProto.serialize REPLY, "virtdb.interface.pb.SourceSystemCredentialReply")
             callback.should.be.calledWithExactly null, null
 
         it "should receive error when security service replied with error", ->
@@ -298,22 +252,17 @@ describe "SourceSystemCredential", ->
                 Type: "ERROR_MSG"
                 Err:
                     Msg: ERROR_TEXT
-            SER_REPLY = SecurityProto.serialize REPLY, "virtdb.interface.pb.SourceSystemCredentialReply"
-
             callback = sinon.spy()
             sourceSystemCredential = new SourceSystemCredential
             sourceSystemCredential.setTemplate SYS_NAME, TEMPLATES, callback
-            socket.receive SER_REPLY
-
+            sendRequestStub.callArgWith 3, null, (SecurityProto.serialize REPLY, "virtdb.interface.pb.SourceSystemCredentialReply")
             callback.should.be.calledWithExactly sinon.match.has("message", ERROR_TEXT), null
 
         it "should receive error when couldn't communicate with security service", ->
             REQUEST =
                 Type: "kiscica"
-
             callback = sinon.spy()
             sourceSystemCredential = new SourceSystemCredential
             sourceSystemCredential.setTemplate SYS_NAME, TEMPLATES, callback
-            socket.receive REQUEST
-
+            sendRequestStub.callArgWith 3, null, (SecurityProto.serialize REQUEST, "virtdb.interface.pb.SourceSystemCredentialReply")
             callback.should.be.calledWithExactly sinon.match.defined, null
