@@ -90,6 +90,20 @@ TABLE_META_RESPONSE =
         Properties: []
         Comments: []
     ]
+
+TABLE_LIST_REQUEST =
+    Name: ".*"
+    Schema: ".*"
+    WithFields: false
+
+TABLE = "tab"
+SCHEMA = "sch"
+TABLENAME = "sch.tab"
+TABLE_META_REQUEST =
+    Name: TABLE
+    Schema: SCHEMA
+    WithFields: true
+
 describe "MetadataHandler", ->
 
     sandbox = null
@@ -106,6 +120,21 @@ describe "MetadataHandler", ->
         sandbox.restore()
 
     describe "getTableList", ->
+
+        it "should send the right request if cache is empty", ->
+            PROVIDER = "prov"
+            SEARCH = ""
+            FROM = 0
+            TO = 10
+            FILTERLIST = []
+
+            requestStub = sandbox.stub VirtDB, "sendRequest"
+            cacheHandlerGetStub = sandbox.stub CacheHandler, "get"
+            cacheHandlerGetStub.returns null
+            handler = new MetadataHandler
+            onReadySpy = sandbox.spy()
+            handler.getTableList PROVIDER, SEARCH, FROM, TO, FILTERLIST, onReadySpy
+            requestStub.should.have.been.calledWith PROVIDER, Const.ENDPOINT_TYPE.META_DATA, (MetaDataProto.serialize TABLE_LIST_REQUEST, "virtdb.interface.pb.MetaDataRequest"), sinon.match.func
 
         it "should save the received metadata in cache if it wasn't there", ->
             PROVIDER = "prov"
@@ -317,6 +346,15 @@ describe "MetadataHandler", ->
             onReadySpy.should.have.been.calledWithExactly null, TABLE_LIST_RESPONSE_RESULT_PART_FILTERING
 
     describe "getTableMetadata", ->
+
+        it "should send the right request if cache is empty", ->
+            PROVIDER = "prov"
+            (sandbox.stub CacheHandler, "get").returns null
+            onReadySpy = sandbox.spy()
+            requestStub = sandbox.stub VirtDB, "sendRequest"
+            handler = new MetadataHandler
+            handler.getTableMetadata PROVIDER, TABLENAME, onReadySpy
+            requestStub.should.have.been.calledWith PROVIDER, Const.ENDPOINT_TYPE.META_DATA, (MetaDataProto.serialize TABLE_META_REQUEST, "virtdb.interface.pb.MetaDataRequest"), sinon.match.func
 
         it "should not request meta data if it is in cache", ->
 

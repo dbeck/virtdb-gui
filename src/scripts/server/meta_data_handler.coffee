@@ -151,14 +151,18 @@ class MetadataHandler
         
     sendMetaDataRequest = (name, request, cb) ->
         message = MetaDataProto.serialize request, "virtdb.interface.pb.MetaDataRequest"
-        VirtDB.sendRequest name, Const.ENDPOINT_TYPE.META_DATA, message, (parseReply cb)
+        VirtDB.sendRequest name, Const.ENDPOINT_TYPE.META_DATA, message, (parseReply name, cb)
 
-    parseReply = (callback) ->
+    parseReply = (name, callback) ->
         return (err, message) ->
             try
                 if err?
                     throw err
-                reply = MetaDataProto.parse message, "virtdb.interface.pb.MetaData"
+                try
+                    reply = MetaDataProto.parse message, "virtdb.interface.pb.MetaData"
+                catch ex
+                    VirtDB.MonitoringService.requestError name, Const.REQUEST_ERROR.INVALID_REQUEST, ex.toString()
+                    throw ex
                 callback null, reply
             catch ex
                 callback ex, null
