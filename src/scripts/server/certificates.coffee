@@ -3,13 +3,12 @@ auth = require './authentication'
 Config = require "./config"
 timeout = require "connect-timeout"
 Proto = require "virtdb-proto"
-Connector = require 'virtdb-connector'
-Const = Connector.Const
+VirtDB = require 'virtdb-connector'
+Const = VirtDB.Const
 
 certStoreMessage = (request) ->
     try
-        type = 'virtdb.interface.pb.CertStoreRequest'
-        return Proto.security.serialize request, type
+        return Proto.security.serialize request, 'virtdb.interface.pb.CertStoreRequest'
     catch ex
         console.error ex
 
@@ -18,7 +17,11 @@ parseReply = (callback) ->
         try
             if not err? and reply?
                 type = 'virtdb.interface.pb.CertStoreReply'
-                reply = Proto.security.parse reply, type
+                try
+                    reply = Proto.security.parse reply, type
+                catch ex
+                    VirtDB.MonitoringService.requestError Const.SECURITY_SERVICE, Const.REQUEST_ERROR.INVALID_REQUEST, ex.toString()
+                    throw ex
                 if reply.Type is 'ERROR_MSG'
                     err = new Error reply.Err.Msg
         catch ex
@@ -34,7 +37,7 @@ CertificateClient =
                 TempKeys: true
                 ApprovedKeys: true
 
-        Connector.sendRequest Const.SECURITY_SERVICE, "CERT_STORE", request, parseReply (err, reply) ->
+        VirtDB.sendRequest Const.SECURITY_SERVICE, "CERT_STORE", request, parseReply (err, reply) ->
             reply = reply.List.Certs
             cb err, reply
 
@@ -46,7 +49,7 @@ CertificateClient =
                 LoginToken: loginToken
                 ComponentName: component
 
-        Connector.sendRequest Const.SECURITY_SERVICE, "CERT_STORE", request, parseReply cb
+        VirtDB.sendRequest Const.SECURITY_SERVICE, "CERT_STORE", request, parseReply cb
 
     deleteKey: (componentName, publicKey, loginToken, cb) ->
         request = certStoreMessage
@@ -59,7 +62,7 @@ CertificateClient =
                 LoginToken: loginToken
         type = "virtdb.interface.pb.CertStoreRequest"
         requestParsed = Proto.security.parse request, type
-        Connector.sendRequest Const.SECURITY_SERVICE, 'CERT_STORE', request, parseReply cb
+        VirtDB.sendRequest Const.SECURITY_SERVICE, 'CERT_STORE', request, parseReply cb
 
 router.get "/certificate"
     , auth.ensureAuthenticated

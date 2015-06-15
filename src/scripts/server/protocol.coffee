@@ -7,7 +7,11 @@ parseUserMessage = (callback) ->
         try
             if err?
                 throw err
-            reply = SecurityProto.parse message, 'virtdb.interface.pb.UserManagerReply'
+            try
+                reply = SecurityProto.parse message, 'virtdb.interface.pb.UserManagerReply'
+            catch ex
+                VirtDBConnector.MonitoringService.requestError Const.SECURITY_SERVICE, Const.REQUEST_ERROR.INVALID_REQUEST, ex.toString()
+                throw ex
             if not reply?
                 throw new Error "Problem with socket communication."
             if reply.Type is "ERROR_MSG"

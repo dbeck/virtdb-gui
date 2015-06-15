@@ -22,11 +22,11 @@ class DataHandler
                     return
                 tableMeta = metadataMessage.Tables[0]
                 if not tableMeta?.Fields?.length > 0
-                    log.error "Asking for data with no fields provieded"
+                    log.error "Asking for data with no fields provided"
                     console.trace "Asking for data with no fields."
                     return
                 @_columnReceiver = ColumnReceiver.createInstance onData, tableMeta.Fields
-                connection = DataConnection.createInstance((Endpoints.getQueryAddress provider), (Endpoints.getColumnAddress provider))
+                connection = DataConnection.createInstance (Endpoints.getQueryAddress provider), (Endpoints.getColumnAddress provider), provider
                 connection.getData tableMeta.Schema, tableMeta.Name, tableMeta.Fields, count, (column) =>
                     @_columnReceiver.add column
         catch ex

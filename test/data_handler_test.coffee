@@ -88,6 +88,6 @@ describe "DataHandler", ->
         columnReceiver.add.should.called
         columnReceiver.add.should.calledWithExactly COLUMN
         dataConnectionCreateInstanceStub.should.calledOnce
-        dataConnectionCreateInstanceStub.should.calledWithExactly ADDRESSES.QUERY, ADDRESSES.COLUMN
+        dataConnectionCreateInstanceStub.should.calledWith ADDRESSES.QUERY, ADDRESSES.COLUMN
 
     #should test provider addresses

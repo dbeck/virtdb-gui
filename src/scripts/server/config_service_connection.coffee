@@ -43,7 +43,11 @@ class ConfigServiceConnector
 
     _onMessage: (message) =>
         try
-            configMessage = serviceConfigProto.parse message, "virtdb.interface.pb.Config"
+            try
+                configMessage = serviceConfigProto.parse message, "virtdb.interface.pb.Config"
+            catch ex
+                VirtDBConnector.MonitoringService.requestError Const.CONFIG_SERVICE, Const.REQUEST_ERROR.INVALID_REQUEST, ex.toString()
+                throw ex
             log.debug "got config message: ", V_(configMessage)
             if @_onConfig?
                 @_onConfig configMessage

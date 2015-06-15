@@ -53,7 +53,12 @@ class DiagConnector
 
     @_onRecord: (channel, data) =>
         try
-            record = DiagProto.parse data, "virtdb.interface.pb.LogRecord"
+            try
+                record = DiagProto.parse data, "virtdb.interface.pb.LogRecord"
+            catch ex
+                VirtDBConnector.MonitoringService.requestError Const.DIAG_SERVICE, Const.REQUEST_ERROR.INVALID_REQUEST, ex.toString()
+                throw ex
+            VirtDBConnector.bumpStatistic "Diag message received"
             processedRecord = @_processLogRecord record
             if not processedRecord?
                 return
