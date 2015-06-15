@@ -86,7 +86,7 @@ describe "DataHandler", ->
         endpointsGetColumnAddressStub.should.calledWithExactly PROVIDER
         dataConnection.getData.should.calledWith SCHEMA, TABLE, FIELDS, COUNT
         columnReceiver.add.should.called
-        columnReceiver.add.should.calledWithExactly COLUMN
+        columnReceiver.add.should.calledWith COLUMN
         dataConnectionCreateInstanceStub.should.calledOnce
         dataConnectionCreateInstanceStub.should.calledWith ADDRESSES.QUERY, ADDRESSES.COLUMN
 

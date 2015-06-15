@@ -35,9 +35,16 @@ class DataConnection
         try
             log.trace "sending Query message", V_(@queryId), V_(table)
             @_querySocket.send DataProto.serialize queryMessage, "virtdb.interface.pb.Query"
+            @_closeQuerySocket()
         catch ex
             log.error V_(ex)
             throw ex
+
+    _closeQuerySocket: =>
+        for addr in @_queryAddresses
+            @_querySocket.disconnect addr
+        @_querySocket.close()
+        @_querySocket = null
 
     _initQuerySocket: =>
         try
@@ -60,6 +67,12 @@ class DataConnection
             log.error V_(ex)
             throw ex
 
+    _closeColumnSocket: =>
+        for addr in @_columnAddresses
+            @_columnSocket.disconnect addr
+        @_columnSocket.close()
+        @_columnSocket = null
+
     _onColumnMessage: (channel, message) =>
         try
             try
@@ -72,7 +85,7 @@ class DataConnection
                 size = lz4.decodeBlock(column.CompressedData, uncompressedData)
                 uncompressedData = uncompressedData.slice(0, size)
                 column.Data = CommonProto.parse uncompressedData, "virtdb.interface.pb.ValueType"
-            @_onColumn column
+            @_onColumn column, @_closeColumnSocket
             return
         catch ex
             log.error "Error happened when column message received:", V_(ex)

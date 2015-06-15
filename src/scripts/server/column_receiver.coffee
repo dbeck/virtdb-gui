@@ -23,13 +23,14 @@ class ColumnReceiver
             @_columns[i] = null
             ++i
 
-    add: (column) =>
+    add: (column, onFinished) =>
         if @_columns[@_fieldIndices[column.Name]]?
             return
         @_add column.Name, FieldData.get column
         @_columnEndOfData[column.Name] = column.EndOfData
         @_receivedColumnCount++
         if @_isAllColumnReceived()
+            onFinished?()
             @_readyCallback @_columns
         return
 

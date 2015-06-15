@@ -22,6 +22,12 @@ class ConfigServiceConnector
         @_reqRepSocket.on "message", @_onMessage
         @_connect()
 
+    close: =>
+        for address in @_addresses
+            @_reqRepSocket.disconnect address
+        @_reqRepSocket.close()
+        @_reqRepSocket = null
+
     getConfig: (component, readyCallback) =>
         try
             @_onConfig = readyCallback

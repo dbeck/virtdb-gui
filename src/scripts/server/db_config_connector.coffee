@@ -7,10 +7,10 @@ ms = require "ms"
 util = require "util"
 Endpoints = require "./endpoints"
 
-VirtDBConnector = require "virtdb-connector"
+VirtDB = require "virtdb-connector"
 Config = require "./config"
-Const = VirtDBConnector.Const
-log = VirtDBConnector.log
+Const = VirtDB.Const
+log = VirtDB.log
 V_ = log.Variable
 
 dbConfigProto = Proto.db_config
@@ -124,59 +124,34 @@ module.exports = DBConfig
 class DBConfigConnection
 
     @getConnection: (service) ->
-        serverConfigAddress = Endpoints.getDbConfigAddress service
-        dbConfigQueryAddress = Endpoints.getDbConfigQueryAddress service
+        return new DBConfigConnection(service)
 
-        if not serverConfigAddress? or serverConfigAddress?.length is 0
-            log.error "cannot find db_config server config addresses"
-            return null
-        if not dbConfigQueryAddress? or dbConfigQueryAddress?.length is 0
-            log.error "cannot find db_config query addresses"
-            return null
-        return new DBConfigConnection(serverConfigAddress, dbConfigQueryAddress, service)
-
-    serverConfigSocket: null
-    _reqRepSocket: null
-
-    constructor: (@serverConfigAddress, @dbConfigQueryAddress, @service) ->
+    constructor: (@service) ->
 
     sendServerConfig: (provider, tableMeta, action, callback) =>
-        @serverConfigSocket = zmq.socket(Const.ZMQ_REQ)
-        @serverConfigSocket.on "message", (msg) =>
-            try
-                reply = dbConfigProto.parse msg, "virtdb.interface.pb.ServerConfigReply"
-            catch ex
-                VirtDBConnector.MonitoringService.requestError @service, Const.REQUEST_ERROR.INVALID_REQUEST, ex.toString()
-                throw ex
-            callback reply
-
-        for addr in @serverConfigAddress
-            @serverConfigSocket.connect addr
-
         tableMeta.Schema ?= ""
         serverConfigMessage =
             Name: provider
             Table: tableMeta.Table
             Action: action
-        @serverConfigSocket.send dbConfigProto.serialize serverConfigMessage, "virtdb.interface.pb.ServerConfig"
+
+        serializedMessage = dbConfigProto.serialize serverConfigMessage
+        VirtDB.sendRequest @service, Const.ENDPOINT_TYPE.DB_CONFIG, serializedMessage, (err, message) =>
+            try
+                reply = dbConfigProto.parse message, "virtdb.interface.pb.ServerConfigReply"
+            catch ex
+                VirtDB.MonitoringService.requestError @service, Const.REQUEST_ERROR.INVALID_REQUEST, ex.toString()
+            callback reply
 
     getTables: (provider, onReady) =>
         dbConfigQueryMessage = Name: provider
-        @_reqRepSocket = zmq.socket(Const.ZMQ_REQ)
-        for addr in @dbConfigQueryAddress
-            @_reqRepSocket.connect addr
-        @_reqRepSocket.on "message", (msg) =>
+        serializedQuery = dbConfigProto.serialize dbConfigQueryMessage, "virtdb.interface.pb.DbConfigQuery"
+        VirtDB.sendRequest @service, Const.ENDPOINT_TYPE.DB_CONFIG_QUERY, serializedQuery, (err, message) =>
             try
-                try
-                    confMsg = dbConfigProto.parse msg, "virtdb.interface.pb.DbConfigReply"
-                catch ex
-                    VirtDBConnector.MonitoringService.requestError @service, Const.REQUEST_ERROR.INVALID_REQUEST, ex.toString()
-                    throw ex
-                onReady confMsg
+                confMsg = dbConfigProto.parse message, "virtdb.interface.pb.DbConfigReply"
             catch ex
-                log.error V_(ex)
-                throw ex
-        @_reqRepSocket.send dbConfigProto.serialize dbConfigQueryMessage, "virtdb.interface.pb.DbConfigQuery"
+                VirtDB.MonitoringService.requestError @service, Const.REQUEST_ERROR.INVALID_REQUEST, ex.toString()
+            onReady confMsg
 
 Config.addConfigListener Config.CACHE_PERIOD, DBConfig._onNewCacheCheckPeriod
 Config.addConfigListener Config.CACHE_TTL, DBConfig._onNewCacheTTL
