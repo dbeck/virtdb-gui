@@ -26,6 +26,7 @@ class ConfigService
         connection = ConfigServiceConnector.createInstance Endpoints.getConfigServiceAddress()
         @_configCallbacks[component] = onConfig
         connection.getConfig component, (config) =>
+            connection.close()
             processedConfig = @_processGetConfigMessage config
             callback =  @_configCallbacks?[config.Name]
             if callback?
@@ -59,12 +60,14 @@ class ConfigService
         if not saved? or (JSON.stringify(saved) isnt JSON.stringify(config))
             rawConfig = @_processSetConfigMessage component, config
             connection.sendConfig rawConfig
+        connection.close()
         return true
 
     @sendConfigTemplate: (template) =>
         log.debug "sending config template to the config service:", V_(template)
         connection = ConfigServiceConnector.createInstance Endpoints.getConfigServiceAddress()
         connection.sendConfig VirtDB.Convert.TemplateToOld template
+        connection.close()
 
     @onPublishedConfig: (channelId, message) =>
         try

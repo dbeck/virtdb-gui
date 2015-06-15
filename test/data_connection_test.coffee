@@ -101,7 +101,7 @@ describe "DataConnection", ->
         dataSerializeStub = sandbox.stub Proto.data, "serialize"
         dataSerializeStub.returns SERIALIZED_MSG
         sendStub = sandbox.stub()
-        conn._querySocket = {send: sendStub}
+        conn._querySocket = {send: sendStub, close: sandbox.spy(), disconnect: sandbox.spy()}
 
         conn.getData SCHEMA, TABLE, FIELDS, COUNT, ON_DATA
 
@@ -137,7 +137,7 @@ describe "DataConnection", ->
         dataSerializeStub = sandbox.stub Proto.data, "serialize"
         dataSerializeStub.returns SERIALIZED_MSG
         sendStub = sandbox.stub()
-        conn._querySocket = {send: sendStub}
+        conn._querySocket = {send: sendStub, close: sandbox.spy(), disconnect: sandbox.spy()}
 
         conn.getData SCHEMA, TABLE, FIELDS, COUNT, ON_DATA
 
@@ -166,7 +166,7 @@ describe "DataConnection", ->
         dataParseStub.should.have.been.calledOnce
         dataParseStub.should.have.been.calledWithExactly MSG, "virtdb.interface.pb.Column"
         onColumnStub.should.have.been.calledOnce
-        onColumnStub.should.have.been.calledWithExactly PARSED_MSG
+        onColumnStub.should.have.been.calledWith PARSED_MSG
 
     it "should handle column message when it is compressed", ->
 
@@ -211,4 +211,4 @@ describe "DataConnection", ->
         )
         commonParseStub.should.have.been.calledWith(matcher, "virtdb.interface.pb.ValueType")
         onColumnStub.should.have.been.calledOnce
-        onColumnStub.should.have.been.calledWithExactly PARSED_MSG_WITH_DATA
+        onColumnStub.should.have.been.calledWith PARSED_MSG_WITH_DATA
