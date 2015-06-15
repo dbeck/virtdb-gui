@@ -1,11 +1,10 @@
 zmq = require "zmq"
 fs = require "fs"
-Const = (require "virtdb-connector").Const
-log = (require "virtdb-connector").log
+VirtDB = require "virtdb-connector"
+Const = VirtDB.Const
+log = VirtDB.log
 V_ = log.Variable
 lz4 = require "lz4"
-
-require("source-map-support").install()
 
 DataProto = (require "virtdb-proto").data
 CommonProto = (require "virtdb-proto").common
@@ -19,7 +18,7 @@ class DataConnection
     _onColumn: null
     _queryId: null
 
-    constructor: (@_queryAddresses, @_columnAddresses) ->
+    constructor: (@_queryAddresses, @_columnAddresses, @_name) ->
 
     getData: (schema, table, fields, count, onData) =>
         @_onColumn = onData
@@ -63,7 +62,11 @@ class DataConnection
 
     _onColumnMessage: (channel, message) =>
         try
-            column = DataProto.parse message, "virtdb.interface.pb.Column"
+            try
+                column = DataProto.parse message, "virtdb.interface.pb.Column"
+            catch ex
+                VirtDB.MonitoringService.requestError @_name, Const.REQUEST_ERROR.INVALID_REQUEST, ex.toString()
+                throw ex
             if column.CompType is "LZ4_COMPRESSION"
                 uncompressedData = new Buffer(column.UncompressedSize)
                 size = lz4.decodeBlock(column.CompressedData, uncompressedData)
@@ -75,7 +78,7 @@ class DataConnection
             log.error "Error happened when column message received:", V_(ex)
             throw ex
 
-    @createInstance: (queryAddresses, columnAddresses) =>
-        return new DataConnection queryAddresses, columnAddresses
+    @createInstance: (queryAddresses, columnAddresses, name) =>
+        return new DataConnection queryAddresses, columnAddresses, name
 
 module.exports = DataConnection

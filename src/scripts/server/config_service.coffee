@@ -1,8 +1,9 @@
 require("source-map-support").install()
-VirtDBConnector = (require "virtdb-connector")
+VirtDB = (require "virtdb-connector")
 ConfigServiceConnector = require "./config_service_connection"
 KeyValue = require "./key_value"
-log = VirtDBConnector.log
+log = VirtDB.log
+Const = VirtDB.Const
 V_ = log.Variable
 Proto = require "virtdb-proto"
 serviceConfigProto = Proto.service_config
@@ -63,10 +64,14 @@ class ConfigService
     @sendConfigTemplate: (template) =>
         log.debug "sending config template to the config service:", V_(template)
         connection = ConfigServiceConnector.createInstance Endpoints.getConfigServiceAddress()
-        connection.sendConfig VirtDBConnector.Convert.TemplateToOld template
+        connection.sendConfig VirtDB.Convert.TemplateToOld template
 
     @onPublishedConfig: (channelId, message) =>
-        config = serviceConfigProto.parse message, "virtdb.interface.pb.Config"
+        try
+            config = serviceConfigProto.parse message, "virtdb.interface.pb.Config"
+        catch ex
+            VirtDB.MonitoringService.requestError Const.CONFIG_SERVICE, Const.REQUEST_ERROR.INVALID_REQUEST, ex.toString()
+            throw ex
         procMsg = @_processGetConfigMessage config
         for callback in @_subscriptionListeners
             callback procMsg
@@ -75,7 +80,7 @@ class ConfigService
         @_subscriptionListeners.push listener
 
     @_processGetConfigMessage: (config) =>
-        newObject = VirtDBConnector.Convert.ToObject VirtDBConnector.Convert.ToNew config
+        newObject = VirtDB.Convert.ToObject VirtDB.Convert.ToNew config
         for scope in config.ConfigData
             if scope.Key is ""
                 resultArray = []

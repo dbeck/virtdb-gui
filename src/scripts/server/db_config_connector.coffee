@@ -133,17 +133,21 @@ class DBConfigConnection
         if not dbConfigQueryAddress? or dbConfigQueryAddress?.length is 0
             log.error "cannot find db_config query addresses"
             return null
-        return new DBConfigConnection(serverConfigAddress, dbConfigQueryAddress)
+        return new DBConfigConnection(serverConfigAddress, dbConfigQueryAddress, service)
 
     serverConfigSocket: null
     _reqRepSocket: null
 
-    constructor: (@serverConfigAddress, @dbConfigQueryAddress) ->
+    constructor: (@serverConfigAddress, @dbConfigQueryAddress, @service) ->
 
     sendServerConfig: (provider, tableMeta, action, callback) =>
         @serverConfigSocket = zmq.socket(Const.ZMQ_REQ)
         @serverConfigSocket.on "message", (msg) =>
-            reply = dbConfigProto.parse msg, "virtdb.interface.pb.ServerConfigReply"
+            try
+                reply = dbConfigProto.parse msg, "virtdb.interface.pb.ServerConfigReply"
+            catch ex
+                VirtDBConnector.MonitoringService.requestError @service, Const.REQUEST_ERROR.INVALID_REQUEST, ex.toString()
+                throw ex
             callback reply
 
         for addr in @serverConfigAddress
@@ -163,7 +167,11 @@ class DBConfigConnection
             @_reqRepSocket.connect addr
         @_reqRepSocket.on "message", (msg) =>
             try
-                confMsg = dbConfigProto.parse msg, "virtdb.interface.pb.DbConfigReply"
+                try
+                    confMsg = dbConfigProto.parse msg, "virtdb.interface.pb.DbConfigReply"
+                catch ex
+                    VirtDBConnector.MonitoringService.requestError @service, Const.REQUEST_ERROR.INVALID_REQUEST, ex.toString()
+                    throw ex
                 onReady confMsg
             catch ex
                 log.error V_(ex)
