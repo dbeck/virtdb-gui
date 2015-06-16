@@ -135,7 +135,7 @@ class DBConfigConnection
             Table: tableMeta.Table
             Action: action
 
-        serializedMessage = dbConfigProto.serialize serverConfigMessage
+        serializedMessage = dbConfigProto.serialize serverConfigMessage, "virtdb.interface.pb.ServerConfig"
         VirtDB.sendRequest @service, Const.ENDPOINT_TYPE.DB_CONFIG, serializedMessage, (err, message) =>
             try
                 reply = dbConfigProto.parse message, "virtdb.interface.pb.ServerConfigReply"
