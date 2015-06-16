@@ -10,6 +10,7 @@ V_ = log.Variable
 class DataHandler
 
     _columnReceiver: null
+    connection: null
 
     constructor: ->
 
@@ -23,15 +24,19 @@ class DataHandler
                 tableMeta = metadataMessage.Tables[0]
                 if not tableMeta?.Fields?.length > 0
                     log.error "Asking for data with no fields provided"
-                    console.trace "Asking for data with no fields."
                     return
                 @_columnReceiver = ColumnReceiver.createInstance onData, tableMeta.Fields
-                connection = DataConnection.createInstance (Endpoints.getQueryAddress provider), (Endpoints.getColumnAddress provider), provider
-                connection.getData tableMeta.Schema, tableMeta.Name, tableMeta.Fields, count, (column, onFinished) =>
+                @connection = DataConnection.createInstance (Endpoints.getQueryAddress provider), (Endpoints.getColumnAddress provider), provider
+                @connection.getData tableMeta.Schema, tableMeta.Name, tableMeta.Fields, count, (column, onFinished) =>
                     @_columnReceiver.add column, onFinished
         catch ex
             log.error V_(ex)
             throw ex
+
+    cleanup: =>
+        @connection?.close()
+        @connection = null
+        @_collumnReceiver = null
 
     @createInstance: =>
         return new DataHandler

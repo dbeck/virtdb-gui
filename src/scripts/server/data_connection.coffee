@@ -23,8 +23,8 @@ class DataConnection
     getData: (schema, table, fields, count, onData) =>
         @_onColumn = onData
         @_queryId = Math.floor((Math.random() * 100000) + 1) + ""
-        @_initQuerySocket()
         @_initColumnSocket(@_queryId)
+        @_initQuerySocket()
         schema ?= ""
         queryMessage =
             QueryId: @_queryId
@@ -40,10 +40,16 @@ class DataConnection
             log.error V_(ex)
             throw ex
 
+    close: =>
+        @_closeQuerySocket()
+        @_closeColumnSocket()
+
     _closeQuerySocket: =>
-        for addr in @_queryAddresses
-            @_querySocket.disconnect addr
-        @_querySocket.close()
+        if @_queryAddresses?
+            for addr in @_queryAddresses
+                @_querySocket?.disconnect addr
+        @_queryAddresses = null
+        @_querySocket?.close()
         @_querySocket = null
 
     _initQuerySocket: =>
@@ -68,9 +74,11 @@ class DataConnection
             throw ex
 
     _closeColumnSocket: =>
-        for addr in @_columnAddresses
-            @_columnSocket.disconnect addr
-        @_columnSocket.close()
+        if @_columnAddresses?
+            for addr in @_columnAddresses
+                @_columnSocket.disconnect addr
+        @_columnAddresses = null
+        @_columnSocket?.close()
         @_columnSocket = null
 
     _onColumnMessage: (channel, message) =>
