@@ -1,6 +1,6 @@
 {
   "name": "virtdb-gui",
-  "version": "2.0.64",
+  "version": "2.0.65",
   "description": "User interface for VirtDB",
   "main": "app.js",
   "private": true,
