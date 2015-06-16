@@ -153,6 +153,9 @@ router.post "/data_provider/data"
     , timeout(Config.getCommandLineParameter("timeout"))
 , (req, res, next) ->
     try
+        dataHandler = null
+        req.on 'timeout', ->
+            dataHandler?.cleanup()
         provider = req.body.provider
         table = req.body.table
         count = req.body.count
