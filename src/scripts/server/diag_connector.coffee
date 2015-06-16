@@ -2,7 +2,8 @@ Config = require "./config"
 zmq = require "zmq"
 fs = require "fs"
 Proto = require "virtdb-proto"
-Const = (require "virtdb-connector").Const
+VirtDB = require 'virtdb-connector'
+Const = VirtDB.Const
 util = require "util"
 moment = require "moment"
 log = (require "virtdb-connector").log
@@ -56,16 +57,15 @@ class DiagConnector
             try
                 record = DiagProto.parse data, "virtdb.interface.pb.LogRecord"
             catch ex
-                VirtDBConnector.MonitoringService.requestError Const.DIAG_SERVICE, Const.REQUEST_ERROR.INVALID_REQUEST, ex.toString()
+                VirtDB.MonitoringService.requestError Const.DIAG_SERVICE, Const.REQUEST_ERROR.INVALID_REQUEST, ex.toString()
                 throw ex
-            VirtDBConnector.bumpStatistic "Diag message received"
+            VirtDB.MonitoringService.bumpStatistic "Diag message received"
             processedRecord = @_processLogRecord record
             if not processedRecord?
                 return
             @_records.unshift processedRecord
             if @_records.length > DiagConnector.MAX_STORED_MESSAGE_COUNT
                 @_records.splice -1, 1
-
         catch ex
             log.debug "Couldn't process diag message", V_(ex), V_(record)
 
