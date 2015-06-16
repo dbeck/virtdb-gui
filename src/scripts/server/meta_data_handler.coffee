@@ -50,14 +50,21 @@ class MetadataHandler
                 onReady null, cachedResponse
             else
                 sendMetaDataRequest provider, tableMetadataRequest, (err, metadata) =>
-                    if not err? and metadata.Tables.length > 0
+                    if err?
+                        onReady err, null
+                        return
+                    if metadata.Tables.length is 0
+                        err = new Error("No tables in table metadata #{provider}, #{table}")
+                        log.error "No tables in table metadata", V_(provider), V_(table), V_(metadata)
+                        metadata = null
+                    else
+                        receivedTable = metadata.Tables[0]
+                        if receivedTable.Fields.length is 0
+                            err = new Error("No fields in table metadata #{provider}, #{table}")
+                            log.error "No fields in table metadata", V_(provider), V_(table), V_(metadata)
+                            metadata = null
+                    if metadata?
                         CacheHandler.set cacheKey, metadata
-                        for receivedTable in metadata.Tables
-                            if receivedTable.Fields.length is 0
-                                err = new Error("No fields in table metadata #{provider}, #{table}")
-                                log.error "No fields in table metadata", V_(provider), V_(table), V_(metadata)
-                                metadata = null
-                                break
                     onReady err, metadata
             return
         catch ex

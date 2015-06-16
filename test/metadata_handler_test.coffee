@@ -103,6 +103,7 @@ TABLE_META_REQUEST =
     Name: TABLE
     Schema: SCHEMA
     WithFields: true
+PROVIDER = "prov"
 
 describe "MetadataHandler", ->
 
@@ -122,7 +123,6 @@ describe "MetadataHandler", ->
     describe "getTableList", ->
 
         it "should send the right request if cache is empty", ->
-            PROVIDER = "prov"
             SEARCH = ""
             FROM = 0
             TO = 10
@@ -137,7 +137,6 @@ describe "MetadataHandler", ->
             requestStub.should.have.been.calledWith PROVIDER, Const.ENDPOINT_TYPE.META_DATA, (MetaDataProto.serialize TABLE_LIST_REQUEST, "virtdb.interface.pb.MetaDataRequest"), sinon.match.func
 
         it "should save the received metadata in cache if it wasn't there", ->
-            PROVIDER = "prov"
             SEARCH = ""
             FROM = 0
             TO = 10
@@ -154,7 +153,6 @@ describe "MetadataHandler", ->
             cacheHandlerSetStub.should.have.been.calledWith sinon.match.string, TABLE_LIST_RESPONSE
 
         it "should request metadata if it was not in the cache", ->
-            PROVIDER = "prov"
             SEARCH = ""
             FROM = 0
             TO = 10
@@ -169,8 +167,6 @@ describe "MetadataHandler", ->
             requestStub.should.have.been.called
 
         it "should not request metadata if it was in the cache", ->
-
-            PROVIDER = "prov"
             SEARCH = ""
             FROM = 0
             TO = 10
@@ -185,8 +181,6 @@ describe "MetadataHandler", ->
             requestStub.should.not.have.been.called
 
         it "should return the requested metadata: full table list, no filtering, no search", ->
-
-            PROVIDER = "prov"
             SEARCH = ""
             FROM = 0
             TO = 10
@@ -203,8 +197,6 @@ describe "MetadataHandler", ->
             onReadySpy.should.have.been.calledWithExactly null, TABLE_LIST_RESPONSE_RESULT_FULL
 
         it "should return the cached metadata: full table list, no filtering, no search", ->
-
-            PROVIDER = "prov"
             SEARCH = ""
             FROM = 0
             TO = 10
@@ -218,8 +210,6 @@ describe "MetadataHandler", ->
             onReadySpy.should.have.been.calledWithExactly null, TABLE_LIST_RESPONSE_RESULT_FULL
 
         it "should return the requested metadata: reduced table list, no filtering, no search", ->
-
-            PROVIDER = "prov"
             SEARCH = ""
             FROM = 2
             TO = 4
@@ -236,8 +226,6 @@ describe "MetadataHandler", ->
             onReadySpy.should.have.been.calledWithExactly null, TABLE_LIST_RESPONSE_RESULT_PART_24
 
         it "should give back the cached version if it exists: reduced table list, no filtering, no search", ->
-
-            PROVIDER = "prov"
             SEARCH = ""
             FROM = 2
             TO = 4
@@ -251,8 +239,6 @@ describe "MetadataHandler", ->
             onReadySpy.should.have.been.calledWithExactly null, TABLE_LIST_RESPONSE_RESULT_PART_24
 
         it "should return the requested metadata: full table list, no filtering, with search", ->
-
-            PROVIDER = "prov"
             SEARCH = "table"
             FROM = 0
             TO = 10
@@ -269,8 +255,6 @@ describe "MetadataHandler", ->
             onReadySpy.should.have.been.calledWithExactly null, TABLE_LIST_RESPONSE_RESULT_PART_TABLE
 
         it "should give back the cached version if it exists: full table list, no filtering, with search", ->
-
-            PROVIDER = "prov"
             SEARCH = "table"
             FROM = 0
             TO = 10
@@ -284,8 +268,6 @@ describe "MetadataHandler", ->
             onReadySpy.should.have.been.calledWithExactly null, TABLE_LIST_RESPONSE_RESULT_PART_TABLE
 
         it "should return the requested metadata: reduced table list, no filtering, with search", ->
-
-            PROVIDER = "prov"
             SEARCH = "data.A"
             FROM = 2
             TO = 3
@@ -301,8 +283,6 @@ describe "MetadataHandler", ->
             onReadySpy.should.have.been.calledWithExactly null, TABLE_LIST_RESPONSE_RESULT_PART_DATAA_23
 
         it "should return the cached metadata: reduced table list, no filtering, with search", ->
-
-            PROVIDER = "prov"
             SEARCH = "data.A"
             FROM = 2
             TO = 3
@@ -316,7 +296,6 @@ describe "MetadataHandler", ->
             onReadySpy.should.have.been.calledWithExactly null, TABLE_LIST_RESPONSE_RESULT_PART_DATAA_23
 
         it "should return the requested metadata: full table list, filtering, no search", ->
-            PROVIDER = "prov"
             SEARCH = ""
             FROM = 0
             TO = 10
@@ -332,7 +311,6 @@ describe "MetadataHandler", ->
             onReadySpy.should.have.been.calledWithExactly null, TABLE_LIST_RESPONSE_RESULT_PART_FILTERING
 
         it "should return the cached metadata: full table list, filtering, no search", ->
-            PROVIDER = "prov"
             SEARCH = ""
             FROM = 0
             TO = 10
@@ -348,7 +326,6 @@ describe "MetadataHandler", ->
     describe "getTableMetadata", ->
 
         it "should send the right request if cache is empty", ->
-            PROVIDER = "prov"
             (sandbox.stub CacheHandler, "get").returns null
             onReadySpy = sandbox.spy()
             requestStub = sandbox.stub VirtDB, "sendRequest"
@@ -357,8 +334,6 @@ describe "MetadataHandler", ->
             requestStub.should.have.been.calledWith PROVIDER, Const.ENDPOINT_TYPE.META_DATA, (MetaDataProto.serialize TABLE_META_REQUEST, "virtdb.interface.pb.MetaDataRequest"), sinon.match.func
 
         it "should not request meta data if it is in cache", ->
-
-            PROVIDER = "prov"
             TABLE = "table"
             (sandbox.stub CacheHandler, "get").returns TABLE_META_RESPONSE
             onReadySpy = sandbox.spy()
@@ -368,8 +343,6 @@ describe "MetadataHandler", ->
             requestStub.should.not.have.been.called
 
         it "should request meta data if it is not in cache", ->
-
-            PROVIDER = "prov"
             TABLE = "table"
             (sandbox.stub CacheHandler, "get").returns null
             onReadySpy = sandbox.spy()
@@ -379,8 +352,6 @@ describe "MetadataHandler", ->
             requestStub.should.have.been.calledOnce
 
         it "should return the meta data if it was in cache", ->
-
-            PROVIDER = "prov"
             TABLE = "table"
             (sandbox.stub CacheHandler, "get").returns TABLE_META_RESPONSE
             onReadySpy = sandbox.spy()
@@ -389,8 +360,6 @@ describe "MetadataHandler", ->
             onReadySpy.should.have.been.calledWith null, TABLE_META_RESPONSE
 
         it "should return the requested meta data", ->
-
-            PROVIDER = "prov"
             TABLE = "table"
             (sandbox.stub CacheHandler, "get").returns null
             onReadySpy = sandbox.spy()
@@ -401,8 +370,6 @@ describe "MetadataHandler", ->
             onReadySpy.should.have.been.calledWith null, TABLE_META_RESPONSE
 
         it "should save meta data to cache when it wasn't there", ->
-
-            PROVIDER = "prov"
             TABLE = "table"
             cacheHandlerGetStub = sandbox.stub CacheHandler, "get"
             cacheHandlerGetStub.returns null
@@ -413,3 +380,36 @@ describe "MetadataHandler", ->
             handler.getTableMetadata PROVIDER, TABLE, onReadySpy
             requestStub.callArgWith 3, null, (MetaDataProto.serialize TABLE_META_RESPONSE, "virtdb.interface.pb.MetaData")
             cacheHandlerSetStub.should.have.been.calledWith sinon.match.string, TABLE_META_RESPONSE
+
+        it "should not save meta data to cache when it doesn't contain any tables", ->
+            NO_TABLE_RESPONSE =
+                Tables: []
+            cacheHandlerGetStub = sandbox.stub CacheHandler, "get"
+            cacheHandlerGetStub.returns null
+            cacheHandlerSetStub = sandbox.stub CacheHandler, "set"
+            onReadySpy = sandbox.spy()
+            requestStub = sandbox.stub VirtDB, "sendRequest"
+            handler = new MetadataHandler
+            handler.getTableMetadata PROVIDER, TABLE, onReadySpy
+            requestStub.callArgWith 3, null, (MetaDataProto.serialize NO_TABLE_RESPONSE, "virtdb.interface.pb.MetaData")
+            cacheHandlerSetStub.should.not.have.been.called
+
+        it "should not save meta data to cache when the table does not contain any fields", ->
+            TABLE = "table"
+            NO_FIELDS_RESPONSE =
+                Tables: [
+                    Name: 'AllstarFull'
+                    Schema: 'data'
+                    Fields: []
+                    Properties: []
+                    Comments: []
+                ]
+            cacheHandlerGetStub = sandbox.stub CacheHandler, "get"
+            cacheHandlerGetStub.returns null
+            cacheHandlerSetStub = sandbox.stub CacheHandler, "set"
+            onReadySpy = sandbox.spy()
+            requestStub = sandbox.stub VirtDB, "sendRequest"
+            handler = new MetadataHandler
+            handler.getTableMetadata PROVIDER, TABLE, onReadySpy
+            requestStub.callArgWith 3, null, (MetaDataProto.serialize NO_FIELDS_RESPONSE, "virtdb.interface.pb.MetaData")
+            cacheHandlerSetStub.should.not.have.been.called
