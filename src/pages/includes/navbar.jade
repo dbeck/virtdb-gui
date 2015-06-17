@@ -1,5 +1,8 @@
 div.navbar.navbar-default(ng-controller="FeatureController")
     div.container-fluid
+        #errorBar.alert.alert-danger.hide
+            span#errorText Error
+            span.glyphicon.glyphicon-remove.pull-right(onClick='errorBar.className="alert alert-danger hide"')
         .navbar-header
             button.navbar-toggle.collapsed(type='button', data-toggle='collapse', data-target='#navbar-content')
                 span.sr-only Toggle navigation

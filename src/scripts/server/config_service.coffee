@@ -37,6 +37,8 @@ class ConfigService
     isValid = (config) ->
         for item in config when item?.Data?
             data = item.Data
+            minimum = null
+            maximum = null
             if data.Value?.Value?[0]?
                 value = data.Value.Value[0]
             if data.Minimum?.Value?[0]?
