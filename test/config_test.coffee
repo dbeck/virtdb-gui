@@ -149,20 +149,20 @@ describe "Config", ->
     it "getConfigServiceParameter should give back the right config service parameter when calling", ->
         key = "KEY"
         value = "VALUE"
-        Config._parameters[key] = value
+        Config.Settings[key] = value
         Config.getConfigServiceParameter(key).should.deep.equal(value)
 
     it "getConfigServiceParameter should give back null when calling with not existing key", ->
         key = "KEY"
         value = "VALUE"
-        Config._parameters[key] = value
+        Config.Settings[key] = value
         expect(Config.getConfigServiceParameter("kiscica")).to.be.null
 
     it "addConfigListener should call the callback with the parameter when it exists", ->
         key = "KEY"
         value = "VALUE"
         listener = sinon.spy()
-        Config._parameters[key] = value
+        Config.Settings[key] = value
 
         Config.addConfigListener key, listener
 
@@ -187,7 +187,7 @@ describe "Config", ->
         value = "VALUE"
         kiscica = "kiscica"
         listener = sandbox.spy()
-        Config._parameters[key] = value
+        Config.Settings[key] = value
 
         Config.addConfigListener kiscica, listener
 
@@ -220,8 +220,8 @@ describe "Config", ->
         notifyListenersStub = sandbox.stub Config, "_notifyListeners"
         Config._handleConfig CONFIG_MESSAGE_ONE_SCOPE
 
-        Config._parameters.should.have.been.deep.property expectedKey
-        Config._parameters[expectedKey].should.be.deep.equal expectedValue
+        Config.Settings.should.have.been.deep.property expectedKey
+        Config.Settings[expectedKey].should.be.deep.equal expectedValue
         notifyListenersStub.should.have.been.calledOnce
 
     it "_handleConfig should handle simple config message with two scope, one value", ->
@@ -232,8 +232,8 @@ describe "Config", ->
         notifyListenersStub = sandbox.stub Config, "_notifyListeners"
         Config._handleConfig CONFIG_MESSAGE_TWO_SCOPE
 
-        Config._parameters.should.have.been.deep.property scope1key1, value1
-        Config._parameters.should.have.been.deep.property scope2key1, value2
+        Config.Settings.should.have.been.deep.property scope1key1, value1
+        Config.Settings.should.have.been.deep.property scope2key1, value2
         notifyListenersStub.should.have.been.calledOnce
 
     it "_handleConfig should handle simple config message with one scope, two value", ->
@@ -244,8 +244,8 @@ describe "Config", ->
         notifyListenersStub = sandbox.stub Config, "_notifyListeners"
         Config._handleConfig CONFIG_MESSAGE_ONE_SCOPE_TWO_VALUE
 
-        Config._parameters.should.have.been.deep.property scope1key1, value1
-        Config._parameters.should.have.been.deep.property scope1key2, value2
+        Config.Settings.should.have.been.deep.property scope1key1, value1
+        Config.Settings.should.have.been.deep.property scope1key2, value2
         notifyListenersStub.should.have.been.calledOnce
 
     it "_notifyListeners should call all callback which is registrated for an existing parameter", ->
@@ -257,8 +257,8 @@ describe "Config", ->
         listener2 = sandbox.spy()
         listener3 = sandbox.spy()
 
-        Config._parameters[key1] = val1
-        Config._parameters[key2] = val2
+        Config.Settings[key1] = val1
+        Config.Settings[key2] = val2
         Config._configListeners[key1] = [listener1]
         Config._configListeners[key2] = [listener2, listener3]
 
@@ -275,7 +275,7 @@ describe "Config", ->
         listener1 = sandbox.spy()
         listener2 = sandbox.spy()
 
-        Config._parameters[key1] = val1
+        Config.Settings[key1] = val1
         Config._configListeners[key1] = [listener1]
         Config._configListeners[key2] = [listener2]
 

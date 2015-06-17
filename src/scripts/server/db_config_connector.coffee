@@ -80,7 +80,7 @@ class DBConfig
 
     @getTables: (provider, onReady) =>
         try
-            tableList = @_configuredTablesCache.get(provider)[provider]
+            tableList = @_configuredTablesCache?.get(provider)[provider]
             if tableList? and util.isArray tableList
                 log.trace "getting list of already added tables from cache.", V_(provider)
                 onReady tableList
@@ -153,6 +153,5 @@ class DBConfigConnection
                 VirtDB.MonitoringService.requestError @service, Const.REQUEST_ERROR.INVALID_REQUEST, ex.toString()
             onReady confMsg
 
-Config.addConfigListener Config.CACHE_PERIOD, DBConfig._onNewCacheCheckPeriod
 Config.addConfigListener Config.CACHE_TTL, DBConfig._onNewCacheTTL
 Config.addConfigListener Config.DB_CONFIG_SERVICE, DBConfig._onNewDbConfService
