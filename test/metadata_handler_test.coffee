@@ -96,6 +96,7 @@ TABLE_LIST_REQUEST =
     Schema: ".*"
     WithFields: false
 
+PROVIDER = "prov"
 TABLE = "tab"
 SCHEMA = "sch"
 TABLENAME = "sch.tab"
@@ -103,7 +104,6 @@ TABLE_META_REQUEST =
     Name: TABLE
     Schema: SCHEMA
     WithFields: true
-PROVIDER = "prov"
 
 describe "MetadataHandler", ->
 
@@ -117,7 +117,6 @@ describe "MetadataHandler", ->
         sandbox.stub VirtDB.log, "error"
 
     afterEach =>
-        CacheHandler._reset()
         sandbox.restore()
 
     describe "getTableList", ->
@@ -226,6 +225,8 @@ describe "MetadataHandler", ->
             onReadySpy.should.have.been.calledWithExactly null, TABLE_LIST_RESPONSE_RESULT_PART_24
 
         it "should give back the cached version if it exists: reduced table list, no filtering, no search", ->
+
+            PROVIDER = "prov"
             SEARCH = ""
             FROM = 2
             TO = 4
@@ -380,7 +381,6 @@ describe "MetadataHandler", ->
             handler.getTableMetadata PROVIDER, TABLE, onReadySpy
             requestStub.callArgWith 3, null, (MetaDataProto.serialize TABLE_META_RESPONSE, "virtdb.interface.pb.MetaData")
             cacheHandlerSetStub.should.have.been.calledWith sinon.match.string, TABLE_META_RESPONSE
-
         it "should not save meta data to cache when it doesn't contain any tables", ->
             NO_TABLE_RESPONSE =
                 Tables: []
@@ -413,3 +413,32 @@ describe "MetadataHandler", ->
             handler.getTableMetadata PROVIDER, TABLE, onReadySpy
             requestStub.callArgWith 3, null, (MetaDataProto.serialize NO_FIELDS_RESPONSE, "virtdb.interface.pb.MetaData")
             cacheHandlerSetStub.should.not.have.been.called
+    
+    it "should refill cache after expiration", ->
+        SEARCH = ""
+        FROM = 0
+        TO = 10
+        FILTERLIST = []
+
+        clock = sinon.useFakeTimers()
+        CacheHandler.reset()
+        CacheHandler._onNewCacheTTL 10
+        cacheHandlerSetSpy = sandbox.spy CacheHandler, "set"
+        requestStub = sandbox.stub VirtDB, "sendRequest"
+        requestStub.yields null, (MetaDataProto.serialize TABLE_LIST_RESPONSE, "virtdb.interface.pb.MetaData")
+
+        handler = new MetadataHandler
+        handler.getTableList PROVIDER, SEARCH, FROM, TO, FILTERLIST, sandbox.spy()
+
+        requestStub.should.have.been.calledOnce
+        cacheHandlerSetSpy.should.have.been.calledWithExactly sinon.match.string, TABLE_LIST_RESPONSE
+
+        for i in [0..10]
+            requestStub.reset()
+            cacheHandlerSetSpy.reset()
+            clock.tick 11000
+            requestStub.should.be.calledOnce
+            cacheHandlerSetSpy.should.be.calledOnce
+
+        clock.restore()
+        CacheHandler.reset()
