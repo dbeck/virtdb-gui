@@ -37,6 +37,9 @@ router.get "/"
 router.get "/features", (req, res) ->
     res.json Config.Features
 
+router.get "/settings", (req, res) ->
+    res.json Config.Settings
+
 router.get "/authmethods"
     , timeout(Config.getCommandLineParameter("timeout"))
 , (req, res, next) ->

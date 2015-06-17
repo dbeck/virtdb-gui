@@ -3,9 +3,8 @@ module.exports = app.controller 'EndpointController',
 class EndpointController
     endpoints: null
 
-    constructor: (ServerConnector, $http, $scope, $rootScope) ->
+    constructor: (ServerConnector, $scope, $rootScope) ->
         @ServerConnector = ServerConnector
-        @$http = $http
         @$scope = $scope
         @$rootScope = $rootScope
         @endpoints = []
@@ -39,8 +38,7 @@ class EndpointController
 
     requestComponentConfig: () =>
         if @$scope.selectedComponent?
-            url = "/api/get_config/" + @$scope.selectedComponent
-            @$http.get(url).success (data) =>
+            @ServerConnector.getConfig { selectedComponent: @$scope.selectedComponent}, (data) =>
                 @$scope.componentConfig = data
         return
 
@@ -87,4 +85,11 @@ class EndpointController
                 item.Data.Value.Value[0] = false
             if item.Data.Value.Type == 'BOOL' and item.Data.Value.Value[0]?.toLowerCase?() == 'true'
                 item.Data.Value.Value[0] = true
-        @$http.post("/api/set_config/" + @$scope.selectedComponent, @$scope.componentConfig)
+        @ServerConnector.setConfig
+            selectedComponent: @$scope.selectedComponent
+            componentConfig: @$scope.componentConfig
+        , =>
+            @ServerConnector.getSettings (data) =>
+                @$rootScope.Settings = data
+            @requestComponentConfig()
+        , @requestComponentConfig

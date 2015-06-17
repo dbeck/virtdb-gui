@@ -57,25 +57,30 @@ Features =
     Security: false
     Monitoring: true
 
+DB_CONFIG_SERVICE = "DatabaseConfigService/ComponentName"
+CACHE_TTL = "Cache/TTL"
+DESKTOP_NOTIFICATION = 'Client/EnableDesktopNotification'
+ERRORBAR_NOTIFICATION = 'Client/EnableErrorBarNotification'
+NOTIFICATION_TIMEOUT = 'Client/NotificationCloseTimeout'
+
 class Configuration
 
     @Features = Features
-    @DB_CONFIG_SERVICE = "DatabaseConfigService/ComponentName"
-    @CACHE_TTL = "Cache/TTL"
-    @CACHE_PERIOD = "Cache/CheckPeriod"
-    @DEFAULTS = {}
-    @DEFAULTS[@DB_CONFIG_SERVICE] = "greenplum-config"
-    @DEFAULTS[@CACHE_TTL] = 600
-    @DEFAULTS[@CACHE_PERIOD] = 60
+    @Settings = {}
+    @DEFAULTS =
+        DB_CONFIG_SERVICE: "greenplum-config"
+        CACHE_TTL: 600
+        DESKTOP_NOTIFICATION: true
+        ERRORBAR_NOTIFICATION: false
+        NOTIFICATION_TIMEOUT: 2000
     @Installed = false
 
     @_configListeners = {}
-    @_parameters = {}
     @_commandLine = {}
 
     @reset: =>
         @_configListeners = {}
-        @_parameters = {}
+        @Settings = {}
         @_commandLine = {}
 
     @init: () =>
@@ -93,8 +98,8 @@ class Configuration
         return null
 
     @getConfigServiceParameter: (parameterPath) =>
-        if @_parameters[parameterPath]?
-            return @_parameters[parameterPath]
+        if @Settings[parameterPath]?
+            return @Settings[parameterPath]
         return null
 
     @projectRoot: ->
@@ -106,7 +111,7 @@ class Configuration
         if not @_configListeners[parameterPath]?
             @_configListeners[parameterPath] = []
         @_configListeners[parameterPath].push listener
-        value = @_parameters[parameterPath]
+        value = @Settings[parameterPath]
         if value?
             listener value
         else
@@ -130,11 +135,11 @@ class Configuration
                 key = cfgEntry.Name
             cfg[key] = cfgEntry.Data.Value.Value[0]
 
-        @_parameters = cfg
+        @Settings = cfg
         @_notifyListeners()
 
     @_notifyListeners: =>
-        for parameterPath, value of @_parameters
+        for parameterPath, value of @Settings
             listeners = @_configListeners[parameterPath]
             if listeners?
                 for listener in listeners
@@ -148,14 +153,32 @@ class Configuration
                 Type: 'STRING'
                 Scope: "DatabaseConfigService"
                 Required: true
-                Default: @DEFAULTS[@DB_CONFIG_SERVICE]
+                Default: @DEFAULTS[DB_CONFIG_SERVICE]
             ,
                 VariableName: 'TTL'
                 Type: 'UINT32'
                 Required: true
                 Scope: 'Cache'
-                Default: @DEFAULTS[@CACHE_TTL]
+                Default: @DEFAULTS[CACHE_TTL]
                 Minimum: 60
+            ,
+                VariableName: 'EnableDesktopNotification'
+                Type: 'BOOL'
+                Scope: 'Client'
+                Required: true
+                Default: @DEFAULTS[DESKTOP_NOTIFICATION]
+            ,
+                VariableName: 'EnableErrorBarNotification'
+                Type: 'BOOL'
+                Scope: 'Client'
+                Required: true
+                Default: @DEFAULTS[ERRORBAR_NOTIFICATION]
+            ,
+                VariableName: 'NotificationCloseTimeout'
+                Type: 'UINT32'
+                Required: true
+                Scope: 'Client'
+                Default: @DEFAULTS[NOTIFICATION_TIMEOUT]
             ]
 
     @_parseCommandLine: (argv) =>

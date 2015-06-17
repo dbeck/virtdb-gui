@@ -36,5 +36,7 @@ app.config ($routeProvider) ->
 app.controller 'FeatureController', ($scope, $rootScope, ServerConnector) ->
     ServerConnector.getFeatures (data) ->
         $rootScope.Features = data
+    ServerConnector.getSettings (data) ->
+        $rootScope.Settings = data
 
 module.exports = app
