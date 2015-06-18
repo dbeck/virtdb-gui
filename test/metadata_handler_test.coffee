@@ -191,6 +191,7 @@ describe "MetadataHandler", ->
             requestStub = sandbox.stub VirtDB, "sendRequest"
             handler = new MetadataHandler
             handler.getTableList PROVIDER, SEARCH, FROM, TO, FILTERLIST, onReadySpy
+            cacheHandlerSetStub = sandbox.stub CacheHandler, 'set'
 
             requestStub.callArgWith 3, null, (MetaDataProto.serialize TABLE_LIST_RESPONSE, "virtdb.interface.pb.MetaData")
             onReadySpy.should.have.been.calledWithExactly null, TABLE_LIST_RESPONSE_RESULT_FULL
@@ -220,6 +221,7 @@ describe "MetadataHandler", ->
             requestStub = sandbox.stub VirtDB, "sendRequest"
             handler = new MetadataHandler
             handler.getTableList PROVIDER, SEARCH, FROM, TO, FILTERLIST, onReadySpy
+            cacheHandlerSetStub = sandbox.stub CacheHandler, 'set'
 
             requestStub.callArgWith 3, null, (MetaDataProto.serialize TABLE_LIST_RESPONSE, "virtdb.interface.pb.MetaData")
             onReadySpy.should.have.been.calledWithExactly null, TABLE_LIST_RESPONSE_RESULT_PART_24
@@ -247,6 +249,7 @@ describe "MetadataHandler", ->
 
             cacheHandlerGetStub = sandbox.stub CacheHandler, "get"
             cacheHandlerGetStub.returns null
+            cacheHandlerSetStub = sandbox.stub CacheHandler, 'set'
             onReadySpy = sandbox.spy()
             requestStub = sandbox.stub VirtDB, "sendRequest"
             handler = new MetadataHandler
@@ -276,6 +279,7 @@ describe "MetadataHandler", ->
 
             cacheHandlerGetStub = sandbox.stub CacheHandler, "get"
             cacheHandlerGetStub.returns null
+            cacheHandlerSetStub = sandbox.stub CacheHandler, 'set'
             onReadySpy = sandbox.spy()
             requestStub = sandbox.stub VirtDB, "sendRequest"
             handler = new MetadataHandler
@@ -304,6 +308,7 @@ describe "MetadataHandler", ->
 
             cacheHandlerGetStub = sandbox.stub CacheHandler, "get"
             cacheHandlerGetStub.returns null
+            cacheHandlerSetStub = sandbox.stub CacheHandler, 'set'
             onReadySpy = sandbox.spy()
             requestStub = sandbox.stub VirtDB, "sendRequest"
             handler = new MetadataHandler
@@ -364,6 +369,7 @@ describe "MetadataHandler", ->
             TABLE = "table"
             (sandbox.stub CacheHandler, "get").returns null
             onReadySpy = sandbox.spy()
+            cacheHandlerSetStub = sandbox.stub CacheHandler, 'set'
             requestStub = sandbox.stub VirtDB, "sendRequest"
             handler = new MetadataHandler
             handler.getTableMetadata PROVIDER, TABLE, onReadySpy
@@ -413,7 +419,7 @@ describe "MetadataHandler", ->
             handler.getTableMetadata PROVIDER, TABLE, onReadySpy
             requestStub.callArgWith 3, null, (MetaDataProto.serialize NO_FIELDS_RESPONSE, "virtdb.interface.pb.MetaData")
             cacheHandlerSetStub.should.not.have.been.called
-    
+
     it "should refill cache after expiration", ->
         SEARCH = ""
         FROM = 0
