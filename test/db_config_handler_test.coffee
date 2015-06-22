@@ -3,6 +3,7 @@ Const = VirtDB.Const
 CacheHandler = require "../src/scripts/server/cache_handler"
 DBConfig = require "../src/scripts/server/db_config_connector"
 DBConfigProto = (require "virtdb-proto").db_config
+Cache = require "../src/scripts/server/cache_handler"
 
 chai = require "chai"
 should = chai.should()
@@ -84,6 +85,7 @@ describe "DBConfig", ->
     cacheSetStub = null
     cacheGetStub = null
     cacheDelStub = null
+    cacheListKeyStub = null
     requestStub = null
 
     beforeEach =>
@@ -93,10 +95,11 @@ describe "DBConfig", ->
         sandbox.stub VirtDB.log, "trace"
         sandbox.stub VirtDB.log, "error"
         cb = sandbox.spy()
-        DBConfig._onNewDbConfService DB_CONFIG
-        cacheSetStub = sandbox.stub DBConfig._configuredTablesCache, "set"
-        cacheGetStub = sandbox.stub DBConfig._configuredTablesCache, "get"
-        cacheDelStub = sandbox.stub DBConfig._configuredTablesCache, "del"
+        DBConfig.setDBConfig DB_CONFIG
+        cacheSetStub = sandbox.stub Cache, "set"
+        cacheGetStub = sandbox.stub Cache, "get"
+        cacheDelStub = sandbox.stub Cache, "delete"
+        cacheListKeyStub = sandbox.stub Cache, "listKeys"
         requestStub = sandbox.stub VirtDB, "sendRequest"
 
     afterEach =>
@@ -117,9 +120,7 @@ describe "DBConfig", ->
 
         it "should return the cached data if it is available", ->
             result = ["#{TABLE_SCHEMA1}.#{TABLE_NAME1}"]
-            cachedData = {}
-            cachedData[PROVIDER] ?= result
-            cacheGetStub.returns cachedData
+            cacheGetStub.returns result
             DBConfig.getTables PROVIDER, cb
             requestStub.should.not.have.been.called
             cb.should.have.been.calledWithExactly result
@@ -153,4 +154,17 @@ describe "DBConfig", ->
             DBConfig.addTable PROVIDER, METADATA, ACTION, cb
             cb.should.have.been.calledWith DB_CONFIG_REPLY_ERROR
 
-#       it "should empty table cache", ->
+        it "should empty cache when db config changed", ->
+            keyToDelete = "db_config_tables_" + PROVIDER
+            requestStub.yields null, (DBConfigProto.serialize DB_CONFIG_REPLY_NO_ERROR, "virtdb.interface.pb.ServerConfigReply")
+            cacheListKeyStub.returns [keyToDelete, "db_config_tables_prov2", "db_es_prov3"]
+            DBConfig.addTable PROVIDER, METADATA, ACTION, cb
+            cacheDelStub.should.have.been.calledWithExactly keyToDelete
+
+    it "should empty cache when db config changed", ->
+        cacheListKeyStub.returns ["db_config_tables_prov1", "db_config_tables_prov2", "db_es_prov3"]
+        DBConfig.setDBConfig "valami_mas"
+        cacheDelStub.should.have.been.calledTwice
+        cacheDelStub.should.have.been.calledWith "db_config_tables_prov1"
+        cacheDelStub.should.have.been.calledWith "db_config_tables_prov2"
+
