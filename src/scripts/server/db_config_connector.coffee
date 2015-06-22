@@ -65,7 +65,7 @@ class DBConfig
                 return
 
             connection.sendServerConfig provider, tableMeta, action, (err) =>
-                if not err? or err isnt {}
+                if not err.Error?
                     log.info "table added to the db config", V_(tableMeta.Name), V_(provider)
                     err = null
                 else
@@ -79,7 +79,7 @@ class DBConfig
 
     @getTables: (provider, onReady) =>
         try
-            tableList = @_configuredTablesCache?.get(provider)[provider]
+            tableList = @_configuredTablesCache?.get(provider)?[provider]
             if tableList? and util.isArray tableList
                 log.trace "getting list of already added tables from cache.", V_(provider)
                 onReady tableList
@@ -133,7 +133,6 @@ class DBConfigConnection
             Name: provider
             Table: tableMeta.Table
             Action: action
-
         serializedMessage = dbConfigProto.serialize serverConfigMessage, "virtdb.interface.pb.ServerConfig"
         VirtDB.sendRequest @service, Const.ENDPOINT_TYPE.DB_CONFIG, serializedMessage, (err, message) =>
             try
