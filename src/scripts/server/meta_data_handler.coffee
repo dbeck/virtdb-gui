@@ -159,6 +159,7 @@ class MetadataHandler
     sendMetaDataRequest = (name, request, cb) ->
         message = MetaDataProto.serialize request, "virtdb.interface.pb.MetaDataRequest"
         VirtDB.sendRequest name, Const.ENDPOINT_TYPE.META_DATA, message, (parseReply name, cb)
+        VirtDB.MonitoringService.bumpStatistic "METADATA_REQUEST_SENT"
 
     parseReply = (name, callback) ->
         return (err, message) ->

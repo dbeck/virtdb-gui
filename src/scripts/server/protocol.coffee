@@ -24,6 +24,7 @@ sendSecurityMessage = (endpointType, message, callback) ->
     try
         request = SecurityProto.serialize message, 'virtdb.interface.pb.UserManagerRequest'
         VirtDB.sendRequest Const.SECURITY_SERVICE, endpointType, request, parseUserMessage callback
+        VirtDB.MonitoringService.bumpStatistic "USER_MANAGER_REQUEST_SENT"
     catch ex
         callback ex, null
 

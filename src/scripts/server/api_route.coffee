@@ -24,6 +24,10 @@ require('source-map-support').install()
 
 router.use require 'express-domain-middleware'
 
+router.get /.*/, (req, res, next) =>
+    VirtDBConnector.MonitoringService.bumpStatistic "HTTP_REQUEST_ARRIVED"
+    next()
+
 router.use '/user', (require './user_router')
 
 # GET home page.
@@ -288,6 +292,7 @@ router.post "/get_diag"
 
 router.use (err, req, res, next) =>
     log.error V_(req.url), V_(req.body), V_(err.message)
+    VirtDBConnector.MonitoringService.bumpStatistic "HTTP_ERROR"
     res.status(if err.status? then err.status else 500).send(err.message)
 
 module.exports = router

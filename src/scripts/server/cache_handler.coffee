@@ -1,7 +1,7 @@
 NodeCache = require "node-cache"
 Config = require "./config"
-VirtDBConnector = require "virtdb-connector"
-log = VirtDBConnector.log
+VirtDB = require "virtdb-connector"
+log = VirtDB.log
 V_ = log.Variable
 
 class CacheHandler
@@ -21,6 +21,7 @@ class CacheHandler
         if not cache?
             createCache ttl
         cache.set key, JSON.stringify value
+        VirtDB.MonitoringService.bumpStatistic "CACHE_SET"
         return
 
     @get: (key) =>
@@ -29,12 +30,14 @@ class CacheHandler
         ret = (cache.get key)?[key]
         if ret?
             ret = JSON.parse ret
+        VirtDB.MonitoringService.bumpStatistic "CACHE_GET"
         return ret
 
     @delete: (key) =>
         if not cache?
             return
         cache.del key
+        VirtDB.MonitoringService.bumpStatistic "CACHE_DELETE"
         return
 
     @listKeys: =>
@@ -61,6 +64,7 @@ class CacheHandler
 
     onKeyExpired = (key, value) ->
         log.debug key + " expired", V_(key)
+        VirtDB.MonitoringService.bumpStatistic "CACHE_KEY_EXPIRED"
         if keyExpirationListeners[key]?
             listeners = keyExpirationListeners[key]
             delete keyExpirationListeners[key]
