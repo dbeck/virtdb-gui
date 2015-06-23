@@ -63,6 +63,7 @@ class SourceSystemCredential
     sendRequest = (request, cb) ->
         message = SecurityProto.serialize request, "virtdb.interface.pb.SourceSystemCredentialRequest"
         VirtDB.sendRequest Const.SECURITY_SERVICE, Const.ENDPOINT_TYPE.SRCSYS_CRED_MGR, message, (parseReply cb)
+        VirtDB.MonitoringService.bumpStatistic "SOURCE_SYSTEM_CREDENTIAL_REQUEST_SENT"
 
     parseReply = (callback) ->
         return (err, reply) ->

@@ -44,7 +44,6 @@ class DBConfig
         @_configuredTablesCache.on "expired", (key, value) =>
             log.debug "db config cache expired", V_(key)
 
-
     @addTable: (provider, tableMeta, action, callback) =>
         try
             if not tableMeta?
@@ -142,6 +141,7 @@ class DBConfigConnection
             catch ex
                 VirtDB.MonitoringService.requestError @service, Const.REQUEST_ERROR.INVALID_REQUEST, ex.toString()
             callback reply
+        VirtDB.MonitoringService.bumpStatistic "DBCONFIG_REQUEST_SENT"
 
     getTables: (provider, onReady) =>
         dbConfigQueryMessage = Name: provider
@@ -152,6 +152,7 @@ class DBConfigConnection
             catch ex
                 VirtDB.MonitoringService.requestError @service, Const.REQUEST_ERROR.INVALID_REQUEST, ex.toString()
             onReady confMsg
+        VirtDB.MonitoringService.bumpStatistic "DBCONFIG_REQUEST_SENT"
 
 Config.addConfigListener Config.CACHE_TTL, DBConfig._onNewCacheTTL
 Config.addConfigListener Config.DB_CONFIG_SERVICE, DBConfig._onNewDbConfService
