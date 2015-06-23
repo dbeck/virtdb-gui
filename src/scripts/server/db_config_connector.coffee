@@ -125,6 +125,7 @@ class DBConfigConnection
             catch ex
                 VirtDB.MonitoringService.requestError @service, Const.REQUEST_ERROR.INVALID_REQUEST, ex.toString()
             callback reply
+        VirtDB.MonitoringService.bumpStatistic "DBCONFIG_REQUEST_SENT"
 
     getTables: (provider, onReady) =>
         dbConfigQueryMessage = Name: provider
@@ -135,5 +136,6 @@ class DBConfigConnection
             catch ex
                 VirtDB.MonitoringService.requestError @service, Const.REQUEST_ERROR.INVALID_REQUEST, ex.toString()
             onReady confMsg
+        VirtDB.MonitoringService.bumpStatistic "DBCONFIG_REQUEST_SENT"
 
 Config.addConfigListener Config.DB_CONFIG_SERVICE, DBConfig.setDBConfig
