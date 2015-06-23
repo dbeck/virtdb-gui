@@ -1,11 +1,9 @@
-require("source-map-support").install()
 zmq = require "zmq"
-fs = require "fs"
 Proto = require "virtdb-proto"
-NodeCache = require "node-cache"
 ms = require "ms"
 util = require "util"
 Endpoints = require "./endpoints"
+Cache = require "./cache_handler"
 
 VirtDB = require "virtdb-connector"
 Config = require "./config"
@@ -17,32 +15,18 @@ dbConfigProto = Proto.db_config
 
 class DBConfig
 
-    @_dbConfigService = null
-    @_cacheTTL = null
-    @_cacheCheckPeriod = null
-    @_configuredTablesCache = null
+    dbConfig = null
+    DB_CONFIG_CACHE_PREFIX = "db_config_tables"
 
-    @_onNewDbConfService: (name) =>
-        @_dbConfigService = name
-        @_initCache()
+    @setDBConfig: (name) =>
+        dbConfig = name
+        emptyDBConfigCache()
 
-    @_onNewCacheTTL: (ttl) =>
-        @_cacheTTL = ttl
-        @_initCache()
-
-    @_onNewCacheCheckPeriod: (checkPeriod) =>
-        @_cacheCheckPeriod = checkPeriod
-        @_initCache()
-
-    @_initCache: =>
-        options = {}
-        if @_cacheCheckPeriod?
-            options["checkperiod"] = @_cacheCheckPeriod
-        if @_cacheTTL?
-            options["stdTTL"] = @_cacheTTL
-        @_configuredTablesCache = new NodeCache(options)
-        @_configuredTablesCache.on "expired", (key, value) =>
-            log.debug "db config cache expired", V_(key)
+    emptyDBConfigCache = () =>
+        keys = Cache.listKeys()
+        for key in keys
+            if key.indexOf(DB_CONFIG_CACHE_PREFIX) is 0
+                Cache.delete key
 
     @addTable: (provider, tableMeta, action, callback) =>
         try
@@ -53,24 +37,24 @@ class DBConfig
             if tableMeta.Tables.length is not 1
                 log.error "exactly one table should be in metadata", V_(tableMeta)
 
-            if not @_dbConfigService?
+            if not dbConfig?
                 log.error "missing db config service"
                 return
 
             tableMeta.Table = tableMeta.Tables[0]
 
-            connection = DBConfigConnection.getConnection(@_dbConfigService)
+            connection = DBConfigConnection.getConnection dbConfig
             if not connection?
                 log.error "unable to get db config connection"
                 return
 
             connection.sendServerConfig provider, tableMeta, action, (err) =>
-                if not err? or err isnt {}
+                if not err.Error?
                     log.info "table added to the db config", V_(tableMeta.Name), V_(provider)
                     err = null
                 else
                     log.error "table could not be added to db config", V_(err), V_(tableMeta.Name), V_(provider)
-                @_configuredTablesCache.del(provider)
+                Cache.delete cacheKey provider
                 log.debug "db config cache were emptied", V_(tableMeta.Name), V_(provider)
                 callback err
         catch ex
@@ -79,17 +63,17 @@ class DBConfig
 
     @getTables: (provider, onReady) =>
         try
-            tableList = @_configuredTablesCache?.get(provider)[provider]
+            tableList = Cache.get cacheKey provider
             if tableList? and util.isArray tableList
                 log.trace "getting list of already added tables from cache.", V_(provider)
                 onReady tableList
             else
-                if not @_dbConfigService?
+                if not dbConfig?
                     log.error "missing db config service"
                     onReady []
                     return
                 log.debug "getting list of already added tables from db config.", V_(provider)
-                connection = DBConfigConnection.getConnection(@_dbConfigService)
+                connection = DBConfigConnection.getConnection dbConfig
                 if not connection?
                     log.error "unable to get db config connection"
                     onReady []
@@ -104,9 +88,7 @@ class DBConfig
                                     else
                                         tableList.push table.Schema + "." + table.Name
                                 if tableList.length > 0
-                                    if not @_configuredTablesCache?
-                                        @_initCache()
-                                    @_configuredTablesCache.set(provider, tableList)
+                                    Cache.set (cacheKey provider), tableList
                                 onReady tableList
                             else
                                 onReady []
@@ -117,6 +99,9 @@ class DBConfig
         catch ex
             log.error V_(ex)
             throw ex
+
+    cacheKey = (provider) ->
+        return DB_CONFIG_CACHE_PREFIX + "_" + provider
 
 module.exports = DBConfig
 
@@ -133,7 +118,6 @@ class DBConfigConnection
             Name: provider
             Table: tableMeta.Table
             Action: action
-
         serializedMessage = dbConfigProto.serialize serverConfigMessage, "virtdb.interface.pb.ServerConfig"
         VirtDB.sendRequest @service, Const.ENDPOINT_TYPE.DB_CONFIG, serializedMessage, (err, message) =>
             try
@@ -154,5 +138,4 @@ class DBConfigConnection
             onReady confMsg
         VirtDB.MonitoringService.bumpStatistic "DBCONFIG_REQUEST_SENT"
 
-Config.addConfigListener Config.CACHE_TTL, DBConfig._onNewCacheTTL
-Config.addConfigListener Config.DB_CONFIG_SERVICE, DBConfig._onNewDbConfService
+Config.addConfigListener Config.DB_CONFIG_SERVICE, DBConfig.setDBConfig
