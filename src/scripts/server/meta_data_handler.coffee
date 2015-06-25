@@ -64,7 +64,7 @@ class MetadataHandler
                             log.error "No fields in table metadata", V_(provider), V_(table), V_(metadata)
                             metadata = null
                     if metadata?
-                        CacheHandler.set cacheKey, metadata
+                        putMetadataInCache cacheKey, metadata, false
                     onReady err, metadata
             return
         catch ex

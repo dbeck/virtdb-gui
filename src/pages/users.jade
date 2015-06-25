@@ -1,4 +1,5 @@
 div(ng-controller="UserController as users")
+    include includes/change-password
     div.modal.fade(id="create-user-modal" tabindex="-1" role="dialog" aria-labelledby="create-user-modal-label"
     aria-hidden="true")
         div.modal-dialog
@@ -6,7 +7,7 @@ div(ng-controller="UserController as users")
                 div.modal-header
                     h4.modal-title(id="create-user-modal-label") Create user
                 div.modal-body
-                    div.alert.alert-danger(ng-show="error") {{error.message}}
+                    div.alert.alert-danger(ng-show="error") {{error}}
                     form
                         div.form-group
                             label(for="username") Username
@@ -73,10 +74,10 @@ div(ng-controller="UserController as users")
         tbody
             tr(ng-repeat="(id, user) in userList")
                 td {{user.Name}}
-                td
+                td(ng-if="user.Name !== userName")
                     div.switch
                         input.cmn-toggle.cmn-toggle-round-flat(ng-model="user.IsAdmin" id="change-admin-status-{{id}}" type="checkbox" ng-change="users.changeAdminStatus(id)")
                         label(for="change-admin-status-{{id}}")
-                td
+                td(ng-if="user.Name !== userName")
                     button.btn.btn-default.btn-sm(data-toggle="modal" data-target="#change-password-modal" ng-click="users.initChangePassword(id)") Change password
                     button.btn.btn-default.btn-sm(data-toggle="modal" data-target="#delete-confirm-modal" ng-click="users.initDeleteUser(id)") Delete
