@@ -1,9 +1,12 @@
 app = require './virtdb-app.js'
 ServerConnector = require './server-connector.js'
+CurrentUser = require './current-user'
+Validator = require './validator'
 
 userController = app.controller 'UserController',
     class UserController
-        constructor: ($scope, ServerConnector, $rootScope) ->
+        constructor: ($scope, ServerConnector, $rootScope, CurrentUser, Validator) ->
+            @Validator = Validator
             @$scope = $scope
             @$rootScope = $rootScope
             @ServerConnector = ServerConnector
@@ -14,7 +17,7 @@ userController = app.controller 'UserController',
             @$scope.isAdmin = false
             @$scope.userList = []
 
-            @ServerConnector.getCurrentUser (user) =>
+            CurrentUser.get  (user) =>
                 if user? and user isnt ""
                     @name = user.name
                     @isAdmin = user.isAdmin
@@ -28,26 +31,14 @@ userController = app.controller 'UserController',
             @ServerConnector.getUserList (users) =>
                 @$scope.userList = users
 
-        validateUsername: () =>
-            if @$scope.editUserName?.length is 0
-                @$scope.error =
-                    message: "Username is empty"
-                return false
-            return true
-
-        validatePassword: () =>
-            if @$scope.editUserPass1 isnt @$scope.editUserPass2
-                @$scope.error =
-                    message: "Password is not matching with its confirmation"
-                return false
-            if @$scope.editUserPass1?.length is 0
-                @$scope.error =
-                    message: "Password is empty"
-                return false
-            return true
-
         createUser: () =>
-            if not @validateUsername() or not @validatePassword()
+            nameErr = @Validator.validateName @$scope.editUserName
+            if nameErr?
+                @$scope.error = nameErr.message
+                return
+            passErr = @Validator.validatePassword @$scope.editUserPass1, @$scope.editUserPass2
+            if passErr?
+                @$scope.error = passErr.message
                 return
             data =
                 name: @$scope.editUserName
@@ -59,17 +50,6 @@ userController = app.controller 'UserController',
 
         deleteUser: () =>
             @ServerConnector.deleteUser @$scope.editUserName, () =>
-                @getUserList()
-
-        changePassword: () =>
-            if not @validatePassword()
-                return
-            data =
-                name: @$scope.editUserName
-                isAdmin: @$scope.editUserIsAdmin
-                password: @$scope.editUserPass1
-            @ServerConnector.updateUser data, () =>
-                $('#change-password-modal').modal("hide")
                 @getUserList()
 
         changeAdminStatus: (id) =>
@@ -94,10 +74,6 @@ userController = app.controller 'UserController',
             @$scope.editUserIsAdmin = false
 
         initChangePassword: (id) =>
-            @$scope.error = null
-            @$scope.editUserPass1 = ""
-            @$scope.editUserPass2 = ""
-            @$scope.editUserName = @$scope.userList[id].Name
-            @$scope.editUserIsAdmin = @$scope.userList[id].IsAdmin
+            @$rootScope.editUser = @$scope.userList[id]
 
 module.exports = userController

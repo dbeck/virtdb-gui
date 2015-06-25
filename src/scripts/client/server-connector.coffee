@@ -30,7 +30,6 @@ module.exports = app.factory 'ServerConnector', ['$http', 'ErrorService', '$q', 
                 .error (response, status) ->
                     ErrorService.errorHappened status, "Failed to get monitoring information. (#{response})"
 
-
         approveCertificate: (authCode, component, onSuccess) ->
             data =
                 authCode: authCode
@@ -72,7 +71,7 @@ module.exports = app.factory 'ServerConnector', ['$http', 'ErrorService', '$q', 
             $http.get(@address + "/api/user").success(onSuccess)
             .error( (response, status) =>
                 ErrorService.errorHappened status, "Failed to get user information. (#{response})"
-                onSuccess []
+                onSuccess null
             )
 
         getUserList: (onSuccess) =>
