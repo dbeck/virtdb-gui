@@ -36,7 +36,7 @@ try {
     var authData = JSON.parse(fs.readFileSync("auth.json").toString());
     app.use(httpAuth);
 } catch(e) {
-    console.log("Missing auth data, going without authentication")
+    console.log("Missing local auth data");
 }
 
 var allowCrossDomain = function(req, res, next) {

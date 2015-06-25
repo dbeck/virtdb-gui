@@ -4,6 +4,7 @@ Endpoints = require "./endpoints"
 DiagConnector = require "./diag_connector"
 CacheHandler = require "./cache_handler"
 VirtDBConnector = require "virtdb-connector"
+Installer = require './installer'
 Const = VirtDBConnector.Const
 
 class VirtDBLoader
@@ -36,8 +37,11 @@ class VirtDBLoader
         VirtDBConnector.log.enableConsoleLog isConsoleLogEnabled is true
         console.log "Connecting to VirtDB: ", address
         VirtDBConnector.connect name, address, (err) ->
-            console.log "Connected with name: #{VirtDBConnector.componentName} and key: #{VirtDBConnector.publicKey}"
-            callback(err)
+            Installer.checkStatus ->
+                console.log "Connected with name: #{VirtDBConnector.Const.COMPONENT_NAME} and key: #{VirtDBConnector.publicKey}"
+                console.log "AuthCode: #{VirtDBConnector.authCode}"
+
+                callback(err)
 
 
 module.exports = VirtDBLoader
