@@ -25,10 +25,8 @@ module.exports = app.controller 'ChangeUserPassword',
             if not @$rootScope.editUser?
                 @CurrentUser.get (user) =>
                     @$scope.name = user.name
-                    @$scope.isAdmin = user.isAdmin
             else
                 @$scope.name = @$rootScope.editUser.Name
-                @$scope.isAdmin = @$rootScope.editUser.IsAdmin
 
         changePassword: =>
             err = @Validator.validatePassword @$scope.editUserPass1, @$scope.editUserPass2
@@ -41,7 +39,6 @@ module.exports = app.controller 'ChangeUserPassword',
         sendUpdateUserMessage: =>
             data =
                 name: @$scope.name
-                isAdmin: @$scope.isAdmin
                 password: @$scope.editUserPass1
             @ServerConnector.updateUser data, @finishUpdate
 
