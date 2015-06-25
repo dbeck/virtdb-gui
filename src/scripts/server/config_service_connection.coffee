@@ -35,7 +35,7 @@ class ConfigServiceConnector
                 Name: component
             log.debug "sending config request message:", V_(configReq)
             @_reqRepSocket.send serviceConfigProto.serialize configReq, "virtdb.interface.pb.Config"
-            VirtDBConnector.MonitoringService.bumpStatistic "CONFIG_REQUEST_SENT"
+            VirtDBConnector.MonitoringService.bumpStatistic "Config request sent"
         catch ex
             log.error V_(ex)
             throw ex
@@ -44,7 +44,7 @@ class ConfigServiceConnector
         try
             log.debug "sending config to the config service:", V_(config)
             @_reqRepSocket.send serviceConfigProto.serialize config, "virtdb.interface.pb.Config"
-            VirtDBConnector.MonitoringService.bumpStatistic "CONFIG_REQUEST_SENT"
+            VirtDBConnector.MonitoringService.bumpStatistic "Config request sent"
         catch ex
             log.error V_(ex)
             throw ex

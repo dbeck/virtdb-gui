@@ -35,7 +35,7 @@ class DataConnection
         try
             log.trace "sending Query message", V_(@queryId), V_(table)
             @_querySocket.send DataProto.serialize queryMessage, "virtdb.interface.pb.Query"
-            VirtDB.MonitoringService.bumpStatistic "DATA_REQUEST_SENT"
+            VirtDB.MonitoringService.bumpStatistic "Data request sent"
             @_closeQuerySocket()
         catch ex
             log.error V_(ex)
