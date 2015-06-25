@@ -16,8 +16,8 @@ div.navbar.navbar-default(ng-controller="FeatureController")
             ul.nav.navbar-nav
                 li
                     a(href='#data-providers') Data
-            ul.nav.navbar-nav.navbar-right
-                li.dropdown(ng-controller="AdminController" ng-if="Features.Security")
+            ul.nav.navbar-nav.navbar-right(ng-controller="AdminController")
+                li.dropdown(ng-if="Features.Security && user.isAdmin")
                     a.dropdown-toggle(data-toggle="dropdown") Security
                         span.badge(ng-if="waitingCertCount > 0") {{ waitingCertCount }}
                         strong.caret
@@ -27,10 +27,10 @@ div.navbar.navbar-default(ng-controller="FeatureController")
                                 span.badge(ng-if="waitingCertCount > 0") {{ waitingCertCount }}
                         li
                             a(href='#users') Users
-                li.dropdown(ng-controller="UserController")
+                li.dropdown
                     a.dropdown-toggle(data-toggle="dropdown" ng-if="!Features.Security") Configuration
                         strong.caret
-                    a.dropdown-toggle(data-toggle="dropdown" ng-if="Features.Security") {{ userName }}
+                    a.dropdown-toggle(data-toggle="dropdown" ng-if="Features.Security") {{ user.name }}
                         strong.caret
                     ul.nav.nav-stacked.dropdown-menu
                         li
@@ -42,8 +42,8 @@ div.navbar.navbar-default(ng-controller="FeatureController")
                         li
                             a(href='#diag') Log
                         li
-                            a(ng-if="Features.Security && userName != ''" data-toggle="modal" data-target="#change-password-modal") Change password
+                            a(ng-if="Features.Security && user.name != ''" data-toggle="modal" data-target="#change-password-modal") Change password
                         li
-                            a(href='/logout' ng-if="Features.Security && userName != ''") Logout
+                            a(href='/logout' ng-if="Features.Security && user.name != ''") Logout
 
 
