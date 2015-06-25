@@ -6,14 +6,9 @@ module.exports = app.factory 'CurrentUser', ['ServerConnector', (ServerConnector
         constructor: () ->
 
         get: (cb) =>
-            if @user
-                cb @user
-            else
-                ServerConnector.getCurrentUser (user) =>
-                    if user? and user isnt ""
-                        @user = user
-                        cb @user
-                    else
-                        cb null
-            return
+            ServerConnector.getCurrentUser (user) =>
+                if user? and user isnt ""
+                    cb user
+                else
+                    cb null
 ]
