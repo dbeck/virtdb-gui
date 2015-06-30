@@ -3,7 +3,7 @@ Const = VirtDB.Const
 log = VirtDB.log
 V_ = log.Variable
 
-sendSecurityMessage = (require './protocol').sendSecurityMessage
+sendSecurityMessage = (require './protocol').sendUserManagerRequest
 
 class UserManager
 
