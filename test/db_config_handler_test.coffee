@@ -15,7 +15,7 @@ sinonChai = require("sinon-chai");
 chai.use sinonChai
 
 PROVIDER = "prov"
-ACTION = "CREATE"
+ACTION = 'CREATE'
 
 TABLE_NAME1 = 'AllstarFull1'
 TABLE_NAME2 = 'AllstarFull2'
@@ -59,22 +59,32 @@ METADATA =
     Comments: []
 
 DB_CONFIG_ADD_REQUEST =
-    Name: PROVIDER
-    Action: ACTION
-    Table: TABLE_METADATA1
+    Type: 'ADD_TABLE'
+    AddTable:
+        Provider: PROVIDER
+        Table: TABLE_METADATA1
 
-DB_CONFIG_QUERY_REQUEST =
-    Name: PROVIDER
+DB_CONFIG_REQUEST =
+    Type: 'QUERY_TABLES'
+    QueryTables:
+        Provider: PROVIDER
 
-DB_CONFIG_QUERY_REPLY1 =
-    Tables: [TABLE_METADATA1]
-DB_CONFIG_QUERY_REPLY2 =
-    Tables: [TABLE_METADATA1, TABLE_METADATA2, TABLE_METADATA3]
+DB_CONFIG_REPLY1 =
+    Type: 'QUERY_TABLES'
+    QueryTables:
+        Tables: [TABLE_METADATA1]
+DB_CONFIG_REPLY2 =
+    Type: 'QUERY_TABLES'
+    QueryTables:
+        Tables: [TABLE_METADATA1, TABLE_METADATA2, TABLE_METADATA3]
 
-DB_CONFIG_REPLY_NO_ERROR = {}
+DB_CONFIG_ADD_REPLY_NO_ERROR =
+    Type: 'ADD_TABLE'
 ERROR_TEXT = "Some very bad thing happened!"
-DB_CONFIG_REPLY_ERROR =
-    Error: ERROR_TEXT
+DB_CONFIG_ADD_REPLY_ERROR =
+    Type: 'ADD_TABLE'
+    Err:
+        Msg: ERROR_TEXT
 
 DB_CONFIG = "db-config"
 
@@ -110,11 +120,11 @@ describe "DBConfig", ->
         it "should send good request", ->
             cacheGetStub.returns null
             DBConfig.getTables PROVIDER, cb
-            requestStub.should.have.been.calledWithExactly DB_CONFIG, Const.ENDPOINT_TYPE.DB_CONFIG_QUERY, (DBConfigProto.serialize DB_CONFIG_QUERY_REQUEST, "virtdb.interface.pb.DbConfigQuery"), sinon.match.func
+            requestStub.should.have.been.calledWithExactly DB_CONFIG, Const.ENDPOINT_TYPE.DB_CONFIG, (DBConfigProto.serialize DB_CONFIG_REQUEST, "virtdb.interface.pb.DBConfigRequest"), sinon.match.func
 
         it "should cache the received data", ->
              cacheGetStub.returns null
-             requestStub.yields null, (DBConfigProto.serialize DB_CONFIG_QUERY_REPLY1, "virtdb.interface.pb.DbConfigReply")
+             requestStub.yields null, (DBConfigProto.serialize DB_CONFIG_REPLY1, "virtdb.interface.pb.DBConfigReply")
              DBConfig.getTables PROVIDER, cb
              cacheSetStub.should.have.been.calledWithExactly sinon.match.string, ["#{TABLE_SCHEMA1}.#{TABLE_NAME1}"]
 
@@ -127,14 +137,14 @@ describe "DBConfig", ->
 
         it "should return the received data if it is not available from cache: 1 table", ->
             cacheGetStub.returns null
-            requestStub.yields null, (DBConfigProto.serialize DB_CONFIG_QUERY_REPLY1, "virtdb.interface.pb.DbConfigReply")
+            requestStub.yields null, (DBConfigProto.serialize DB_CONFIG_REPLY1, "virtdb.interface.pb.DBConfigReply")
             DBConfig.getTables PROVIDER, cb
             requestStub.should.have.been.calledOnce
             cb.should.have.been.calledWithExactly ["#{TABLE_SCHEMA1}.#{TABLE_NAME1}"]
 
         it "should return the received data if it is not available from cache: one table: 3 table", ->
             cacheGetStub.returns null
-            requestStub.yields null, (DBConfigProto.serialize DB_CONFIG_QUERY_REPLY2, "virtdb.interface.pb.DbConfigReply")
+            requestStub.yields null, (DBConfigProto.serialize DB_CONFIG_REPLY2, "virtdb.interface.pb.DBConfigReply")
             DBConfig.getTables PROVIDER, cb
             cb.should.have.been.calledWithExactly ["#{TABLE_SCHEMA1}.#{TABLE_NAME1}","#{TABLE_SCHEMA2}.#{TABLE_NAME2}","#{TABLE_SCHEMA3}.#{TABLE_NAME3}",]
 
@@ -142,21 +152,21 @@ describe "DBConfig", ->
 
         it "should send good request", ->
             DBConfig.addTable PROVIDER, METADATA, ACTION, cb
-            requestStub.should.have.been.calledWithExactly DB_CONFIG, Const.ENDPOINT_TYPE.DB_CONFIG, (DBConfigProto.serialize DB_CONFIG_ADD_REQUEST, "virtdb.interface.pb.ServerConfig"), sinon.match.func
+            requestStub.should.have.been.calledWithExactly DB_CONFIG, Const.ENDPOINT_TYPE.DB_CONFIG, (DBConfigProto.serialize DB_CONFIG_ADD_REQUEST, "virtdb.interface.pb.DBConfigRequest"), sinon.match.func
 
         it "should response null when no error", ->
-            requestStub.yields null, (DBConfigProto.serialize DB_CONFIG_REPLY_NO_ERROR, "virtdb.interface.pb.ServerConfigReply")
+            requestStub.yields null, (DBConfigProto.serialize DB_CONFIG_ADD_REPLY_NO_ERROR, "virtdb.interface.pb.DBConfigReply")
             DBConfig.addTable PROVIDER, METADATA, ACTION, cb
             cb.should.have.been.calledWithExactly null
 
         it "should response the error when it occurs", ->
-            requestStub.yields null, (DBConfigProto.serialize DB_CONFIG_REPLY_ERROR, "virtdb.interface.pb.ServerConfigReply")
+            requestStub.yields null, (DBConfigProto.serialize DB_CONFIG_ADD_REPLY_ERROR, "virtdb.interface.pb.DBConfigReply")
             DBConfig.addTable PROVIDER, METADATA, ACTION, cb
-            cb.should.have.been.calledWith DB_CONFIG_REPLY_ERROR
+            cb.should.have.been.calledWith DB_CONFIG_ADD_REPLY_ERROR
 
         it "should empty cache when db config changed", ->
             keyToDelete = "db_config_tables_" + PROVIDER
-            requestStub.yields null, (DBConfigProto.serialize DB_CONFIG_REPLY_NO_ERROR, "virtdb.interface.pb.ServerConfigReply")
+            requestStub.yields null, (DBConfigProto.serialize DB_CONFIG_ADD_REPLY_NO_ERROR, "virtdb.interface.pb.DBConfigReply")
             cacheListKeyStub.returns [keyToDelete, "db_config_tables_prov2", "db_es_prov3"]
             DBConfig.addTable PROVIDER, METADATA, ACTION, cb
             cacheDelStub.should.have.been.calledWithExactly keyToDelete
