@@ -29,12 +29,14 @@ class DBConfig
                 return
 
             message =
-                Name: provider
+                Type: 'QUERY_TABLES'
+                QueryTables:
+                    Provider: provider
 
-            Protocol.sendDBConfigQuery dbConfig, message, (msg) ->
+            Protocol.sendDBConfig dbConfig, message, (msg) ->
                 try
-                    if msg?.Tables?.length > 0
-                        makeTableListResponse provider, msg.Tables, onReady
+                    if msg?.QueryTables?.Tables?.length > 0
+                        makeTableListResponse provider, msg.QueryTables.Tables, onReady
                     else
                         onReady []
                 catch ex
@@ -53,19 +55,29 @@ class DBConfig
         if not (checkMetadata tableMeta)
             return
 
-        serverConfigMessage =
-            Name: provider
-            Table: tableMeta.Tables[0]
-            Action: action
+        serverConfigMessage = {}
+        switch action
+            when 'CREATE'
+                serverConfigMessage =
+                    Type: 'ADD_TABLE'
+                    AddTable:
+                        Provider: provider
+                        Table: tableMeta.Tables[0]
+            when 'DELETE'
+                serverConfigMessage =
+                    Type: 'DELETE_TABLE'
+                    DeleteTable:
+                        Provider: provider
+                        Table: tableMeta.Tables[0]
 
-        Protocol.sendServerConfig dbConfig, serverConfigMessage, (err) ->
-            if not err.Error?
-                log.info "table added to the db config", V_(tableMeta.Name), V_(provider)
+        Protocol.sendDBConfig dbConfig, serverConfigMessage, (err) ->
+            if not err.Err?
+                log.info "table added to the db config", V_(tableMeta.Tables[0].Name), V_(provider)
                 err = null
             else
-                log.error "table could not be added to db config", V_(err), V_(tableMeta.Name), V_(provider)
+                log.error "table could not be added to db config", V_(err), V_(tableMeta.Tables[0].Name), V_(provider)
             Cache.delete cacheKey provider
-            log.debug "db config cache were emptied", V_(tableMeta.Name), V_(provider)
+            log.debug "db config cache were emptied", V_(tableMeta.Tables[0].Name), V_(provider)
             callback err
 
     emptyDBConfigCache = () =>
