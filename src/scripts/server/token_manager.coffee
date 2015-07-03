@@ -59,7 +59,7 @@ class TokenManager
 
         sendSecurityMessage Const.ENDPOINT_TYPE.USER_MGR, request, (err, message) ->
             data = null
-            if not err? and message?.CrTabTok.TableToken?
+            if not err? and message?.CrTabTok?.TableToken?
                 data = message.CrTabTok.TableToken
             else
                 err ?= new Error "Message does not contain a CrSSTok.SourceSysToken member"

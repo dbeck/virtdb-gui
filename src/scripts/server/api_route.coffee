@@ -9,6 +9,7 @@ VirtDBLoader = require "./virtdb_loader"
 KeyValue = require "./key_value"
 ConfigService = require "./config_service"
 DiagConnector = require "./diag_connector"
+User = require './user'
 timeout = require "connect-timeout"
 log = VirtDBConnector.log
 V_ = log.Variable
@@ -228,6 +229,11 @@ router.post "/db_config/add"
     action = req.body.action
 
     try
+        if Config.Features.Security
+            User.getTableToken req.user, provider, (err, token) ->
+                if not err?
+                    DBConfig.addUserMapping provider, req.user.name, token
+
         metadataHandler = new MetadataHandler()
         metadataHandler.getTableMetadata provider, table, (err, metaData) ->
             if err?

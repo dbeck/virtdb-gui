@@ -8,6 +8,7 @@ Const = VirtDB.Const
 log = VirtDB.log
 V_ = log.Variable
 Protocol = require "./protocol"
+User = require './user'
 
 class DBConfig
 
@@ -46,6 +47,19 @@ class DBConfig
         catch ex
             log.error V_(ex)
             throw ex
+
+    @addUserMapping: (provider, username, token) =>
+        message =
+            Type: 'ASSIGN_USER'
+            AssignUser:
+                Provider: provider
+                UserName: username
+                Token: token
+
+        Protocol.sendDBConfig dbConfig, message, (err) ->
+            if err?.Err?
+                log.error "Error while creating user mapping", V_(err.Err.Msg)
+
 
     @addTable: (provider, tableMeta, action, callback) =>
         if not dbConfig?

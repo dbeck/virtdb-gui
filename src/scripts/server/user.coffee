@@ -17,15 +17,15 @@ class User
             done? null, @
             return
 
-    getTableToken: (sourceSystem, done) =>
-        if @tableTokens[sourceSystem]?
-            done null, @tableTokens[sourceSystem]
+    @getTableToken: (user, sourceSystem, done) ->
+        if user.tableTokens[sourceSystem]?
+            done null, user.tableTokens[sourceSystem]
             return
-        TokenManager.createTableToken @token, sourceSystem, (err, tableToken) =>
+        TokenManager.createTableToken user.token, sourceSystem, (err, tableToken) =>
             if err?
                 done err, null
                 return
-            @tableTokens[sourceSystem] = tableToken
+            user.tableTokens[sourceSystem] = tableToken
             done null, tableToken
 
 
