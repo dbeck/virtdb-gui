@@ -17,7 +17,7 @@ findOwnCert = (callback) ->
         own = getOwnCert()
         certStore.listKeys (err, certs) ->
             if err?
-                console.log "listKeys err: ", err
+                console.error "listKeys err: ", err
             if not err?
                 for cert in certs when cert.ComponentName is own.ComponentName and cert.PublicKey is own.PublicKey
                     callback null, cert
@@ -44,7 +44,7 @@ setInstalled =  ->
             data = JSON.stringify curve, null, 4
             fs.writeFile 'curve.json', data, (err) ->
                 if err?
-                    console.log "Error storing installed state.", err
+                    console.error "Error storing installed state.", err
         else
             console.error err
 
@@ -64,7 +64,7 @@ Installer =
     process: (options, callback) ->
         findOwnCert (err, cert) ->
             if err?
-                console.log "Find own cert err: ", err
+                console.error "Find own cert err: ", err
                 callback err, null
                 return
             component = VirtDB.Const.COMPONENT_NAME
@@ -80,7 +80,7 @@ Installer =
                         else
                             callback err
                 else
-                    console.log "approveTempKey err:", err
+                    console.error "approveTempKey err:", err
                     callback err
 
 module.exports = Installer

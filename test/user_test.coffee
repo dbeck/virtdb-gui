@@ -68,13 +68,13 @@ describe "User", ->
         createLoginToken.callArgWith 2, null, USER
 
         done = sandbox.spy()
-        user.getTableToken 'sourceSystem', done
+        User.getTableToken user, 'sourceSystem', done
         createTableToken.callArgWith 2, null, 'tableToken1'
         done.should.have.been.calledOnce
         done.should.have.been.calledWithExactly null, "tableToken1"
 
         secondCall = sandbox.spy()
-        user.getTableToken 'sourceSystem', secondCall
+        User.getTableToken user, 'sourceSystem', secondCall
         secondCall.should.have.been.calledOnce
         secondCall.should.have.been.calledWithExactly null, 'tableToken1'
 
