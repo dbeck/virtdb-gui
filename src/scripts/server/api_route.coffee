@@ -190,9 +190,9 @@ router.post "/data_provider/data"
                     data: dataRows
                 }
 
-        # DataProvider.getData provider, table, count, onData
+        token = req?.user?.token
         dataHandler = new DataHandler
-        dataHandler.getData provider, table, count, onData
+        dataHandler.getData token, provider, table, count, onData
     catch ex
         log.error V_(ex)
         throw ex

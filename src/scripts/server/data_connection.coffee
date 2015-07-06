@@ -20,7 +20,7 @@ class DataConnection
 
     constructor: (@_queryAddresses, @_columnAddresses, @_name) ->
 
-    getData: (schema, table, fields, count, onData) =>
+    getData: (loginToken, schema, table, fields, count, onData) =>
         @_onColumn = onData
         @_queryId = Math.floor((Math.random() * 100000) + 1) + ""
         @_initColumnSocket(@_queryId)
@@ -32,6 +32,8 @@ class DataConnection
             Fields: fields
             Limit: count
             Schema: schema
+        if loginToken?
+            queryMessage["UserToken"] = loginToken
         try
             log.trace "sending Query message", V_(@queryId), V_(table)
             @_querySocket.send DataProto.serialize queryMessage, "virtdb.interface.pb.Query"
