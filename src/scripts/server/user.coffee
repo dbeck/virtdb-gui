@@ -1,10 +1,15 @@
 TokenManager = require './token_manager'
 
 class User
+
     tableTokens: null
+    sourceSystemTokens: null
     token: null
+
     constructor: (@name, @password) ->
         @tableTokens = {}
+        @sourceSystemTokens = {}
+
     authenticate: (done) =>
         TokenManager.createLoginToken @name, @password, (err, user) =>
             if err?
@@ -27,6 +32,17 @@ class User
                 return
             user.tableTokens[sourceSystem] = tableToken
             done null, tableToken
+
+    @getSourceSystemToken: (user, sourceSystem, done) ->
+        if user.sourceSystemTokens[sourceSystem]?
+            done null, user.sourceSystemTokens[sourceSystem]
+            return
+        TokenManager.createSourceSystemToken user.token, sourceSystem, (err, sourceSystemToken) =>
+            if err?
+                done err, null
+                return
+            user.sourceSystemTokens[sourceSystem] = sourceSystemToken
+            done null, sourceSystemToken
 
 
 module.exports = User

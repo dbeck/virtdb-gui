@@ -35,11 +35,19 @@ class EndpointController
         @$scope.$watch "selectedComponent", () =>
             @updateComponentInfo()
             @requestComponentConfig()
+            @requestComponentCredentialTemplate()
 
     requestComponentConfig: () =>
         if @$scope.selectedComponent?
             @ServerConnector.getConfig { selectedComponent: @$scope.selectedComponent}, (data) =>
                 @$scope.componentConfig = data
+        return
+
+    requestComponentCredentialTemplate: () =>
+        if @$scope.selectedComponent?
+            @ServerConnector.getCredentialTemplate { selectedComponent: @$scope.selectedComponent}, (data) =>
+                console.log data
+                @$scope.credentialTemplate = data
         return
 
     requestEndpoints: () =>
@@ -79,7 +87,7 @@ class EndpointController
         #                 @$scope.componentInfo.push infoRow
         return
 
-    sendConfig: () =>
+    sendConfig: =>
         for item in @$scope.componentConfig
             if item.Data.Value.Type == 'BOOL' and item.Data.Value.Value[0]?.toLowerCase?() == 'false'
                 item.Data.Value.Value[0] = false
@@ -93,3 +101,12 @@ class EndpointController
                 @$rootScope.Settings = data
             @requestComponentConfig()
         , @requestComponentConfig
+
+    sendCredential: =>
+        console.log "sendCredential"
+        console.log @$scope.credentialTemplate
+        @ServerConnector.setCredential
+            selectedComponent: @$scope.selectedComponent
+            credentials: @$scope.credentialTemplate
+        , =>
+            @$scope.credentialTemplate = []

@@ -20,6 +20,7 @@ validator = require "./validator"
 DataHandler = require "./data_handler"
 MetadataHandler = require "./meta_data_handler"
 Authentication = require "./authentication"
+TokenManager = require "./token_manager"
 
 require('source-map-support').install()
 
@@ -245,6 +246,45 @@ router.post "/db_config/add"
                 else
                     res.status(500).send()
             return
+    catch ex
+        log.error V_(ex)
+        throw ex
+
+router.get "/get_credential_template/:component"
+    , auth.ensureAuthenticated
+    , timeout(Config.getCommandLineParameter("timeout"))
+, (req, res, next) =>
+    try
+        component = req.params.component
+        VirtDBConnector.SourceSystemCredential.getTemplate component, (err, result) =>
+            console.log "Error:", err
+            console.log "Result:", result
+            if not err?
+                res.json result
+                return
+            res.json {}
+    catch ex
+        log.error V_(ex)
+        throw ex
+
+router.post "/set_credential/:component"
+    , auth.ensureAuthenticated
+    , timeout(Config.getCommandLineParameter("timeout"))
+, (req, res, next) =>
+    try
+        component = req.params.component
+        User.getSourceSystemToken req.user, component, (err, sourceSystemToken) =>
+            if err?
+                res.json {}
+                return
+            credentials =
+                NamedValues: req.body
+            VirtDBConnector.SourceSystemCredential.setCredential component, sourceSystemToken, credentials, (err, result) =>
+                if not err?
+                    res.json {}
+                    return
+                res.json {}
+
     catch ex
         log.error V_(ex)
         throw ex
