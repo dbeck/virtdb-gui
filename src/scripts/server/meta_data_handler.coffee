@@ -18,9 +18,9 @@ class MetadataHandler
             if cachedProvider is provider
                 CacheHandler.delete key
 
-    getTableList: (provider, search, from, to, filterList, onReady) =>
+    getTableList: (provider, search, from, to, filterList, token, onReady) =>
         try
-            tableListRequest = createTableListMessage()
+            tableListRequest = createTableListMessage token
 
             cacheKey = generateCacheKey provider, tableListRequest
             cachedResponse = CacheHandler.get cacheKey
@@ -40,9 +40,9 @@ class MetadataHandler
             log.error V_(ex)
             throw ex
 
-    getTableMetadata: (provider, table, onReady) =>
+    getTableMetadata: (provider, table, token, onReady) =>
         try
-            tableMetadataRequest = createTableMetadataMessage(table)
+            tableMetadataRequest = createTableMetadataMessage table, token
 
             cacheKey = generateCacheKey provider, tableMetadataRequest
             cachedResponse = CacheHandler.get cacheKey
@@ -89,18 +89,24 @@ class MetadataHandler
         result = createTableListResult tables, from, to
         return result
 
-    createTableListMessage = ->
-        return metadataRequest =
+    createTableListMessage = (token) ->
+        metadataRequest =
             Name: ".*"
             Schema: ".*"
             WithFields: false
+        if token?
+            metadataRequest["UserToken"] = token
+        return metadataRequest
 
-    createTableMetadataMessage = (table) ->
+    createTableMetadataMessage = (table, token) ->
         tableObj = convertTableToObject table
-        return metadataRequest =
+        metadataRequest =
             Schema: tableObj.Schema,
             Name: tableObj.Name,
             WithFields: true
+        if token?
+            metadataRequest["UserToken"] = token
+        return metadataRequest
 
     convertTableToObject = (table) ->
         tableObj = {}

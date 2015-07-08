@@ -94,8 +94,9 @@ router.post "/data_provider/meta_data/"
             res.json response
 
     try
+        token = req?.user?.token
         metadataHandler = new MetadataHandler()
-        metadataHandler.getTableMetadata provider, table, onMetadata
+        metadataHandler.getTableMetadata provider, table, token, onMetadata
     catch ex
         log.error V_(ex)
         throw ex
@@ -131,8 +132,9 @@ router.post "/data_provider/table_list"
     tablesToFilter = req.body.tables
 
     try
+        token = req?.user?.token
         metadataHandler = new MetadataHandler()
-        metadataHandler.getTableList provider, search, from, to, tablesToFilter, (err, result) ->
+        metadataHandler.getTableList provider, search, from, to, tablesToFilter, token, (err, result) ->
             if err?
                 res.status(500).send()
                 return
