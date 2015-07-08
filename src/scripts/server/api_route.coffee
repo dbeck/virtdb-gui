@@ -20,7 +20,7 @@ validator = require "./validator"
 DataHandler = require "./data_handler"
 MetadataHandler = require "./meta_data_handler"
 Authentication = require "./authentication"
-TokenManager = require "./token_manager"
+TokenManager = VirtDBConnector.TokenManager
 
 require('source-map-support').install()
 

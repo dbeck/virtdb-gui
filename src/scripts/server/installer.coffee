@@ -2,7 +2,7 @@ config = require './config'
 certStore = require './certificates'
 VirtDB = require 'virtdb-connector'
 user = require './user_manager'
-token = require './token_manager'
+token = VirtDB.TokenManager
 fs = require 'fs'
 
 getOwnCert = ->

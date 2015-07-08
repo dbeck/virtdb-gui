@@ -1,4 +1,4 @@
-TokenManager = require './token_manager'
+TokenManager = (require "virtdb-connector").TokenManager
 
 class User
 
@@ -26,7 +26,7 @@ class User
         if user.tableTokens[sourceSystem]?
             done null, user.tableTokens[sourceSystem]
             return
-        TokenManager.createTableToken user.token, sourceSystem, (err, tableToken) =>
+        TokenManager.createTableToken user.token, sourceSystem, (err, tableToken) ->
             if err?
                 done err, null
                 return
@@ -37,7 +37,7 @@ class User
         if user.sourceSystemTokens[sourceSystem]?
             done null, user.sourceSystemTokens[sourceSystem]
             return
-        TokenManager.createSourceSystemToken user.token, sourceSystem, (err, sourceSystemToken) =>
+        TokenManager.createSourceSystemToken user.token, sourceSystem, (err, sourceSystemToken) ->
             if err?
                 done err, null
                 return
