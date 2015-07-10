@@ -2,28 +2,28 @@ div.container
     div.row
         div.col-md-3
             h3 Components
-            table.table.table-bordered
+            table.table.table-bordered.component-list
                 tbody
                     tr(
                     ng-repeat='component in componentList'
                     ng-click="$parent.selectedComponent = component")
-                        td.btn-success(ng-class="{'selected-component': $parent.selectedComponent === component}")
+                        td.btn-success.btn-component(ng-class="{'selected-component': $parent.selectedComponent === component}")
                             span.glyphicon.glyphicon-hdd
-                            span  {{component}}
+                            span(text="{{component}}")  {{component}}
         div.col-md-6
             h3 Configuration
-                button.pull-right.btn.btn-success(ng-click="endpointController.sendConfig()") Save
-            table.table
+                button.pull-right.btn.btn-success.btn-save(ng-click="endpointController.sendConfig()") Save
+            table.table.settings
                 tr(ng-repeat="item in componentConfig")
                     td 
                         span.strong {{ item.Data.Scope.Value[0] }} / {{ item.Name }}
                         span.strong(ng-if="isRequired(item)") *
                         span.small(ng-if="isRange(item)") ( Range: {{getMinimum(item)}} - {{getMaximum(item)}} ) 
                     td
-                        input(type="number" ng-if="isNumber(item)" ng-model="item.Data.Value.Value[0]" ng-required="isRequired(item)")
-                        input(type="text" ng-if="!isNumber(item) && !isPassword(item)" ng-model="item.Data.Value.Value[0]" ng-required="isRequired(item)")
+                        input(type="number" name="{{item.Name}}" ng-if="isNumber(item)" ng-model="item.Data.Value.Value[0]" ng-required="isRequired(item)")
+                        input(type="text" name="{{item.Name}}" ng-if="!isNumber(item) && !isPassword(item)" ng-model="item.Data.Value.Value[0]" ng-required="isRequired(item)")
 
-                        input(type="password" ng-if="isPassword(item)" ng-model="item.Data.Value.Value[0]" ng-required="isRequired(item)")
+                        input(type="password" name="{{item.Name}}" ng-if="isPassword(item)" ng-model="item.Data.Value.Value[0]" ng-required="isRequired(item)")
 
         div.col-md-3
             h3 Endpoints

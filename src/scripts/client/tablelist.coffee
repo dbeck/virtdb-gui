@@ -52,6 +52,7 @@ TableItem = React.createClass(
             ]
 
         children.push R.td
+            name: @props.table.name
             key: "tableName" + @props.table.name
             onClick: clickHandler(@props.table)
         , @props.table.name
