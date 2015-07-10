@@ -27,7 +27,7 @@ div.navbar.navbar-default(ng-controller="FeatureController")
                                 span.badge(ng-if="waitingCertCount > 0") {{ waitingCertCount }}
                         li
                             a(href='#users') Users
-                li.dropdown
+                li.dropdown#userMenu
                     a.dropdown-toggle(data-toggle="dropdown" ng-if="!Features.Security") Configuration
                         strong.caret
                     a.dropdown-toggle(data-toggle="dropdown" ng-if="Features.Security") {{ user.name }}

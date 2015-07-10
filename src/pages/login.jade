@@ -26,16 +26,16 @@ body
             .navbar-header
                 a.navbar-brand(href='/')
                     img(src="/images/final_logo_ws_compressed.png", width="100")
-    div.container(ng-controller="UserController as user")
+    #loginFormContainer.container(ng-controller="UserController as user")
         h1 Login
         div
-            form(action='/login', method="post")
+            form#loginForm(action='/login', method="post")
                 div
                     label Username
-                    input(type="text", name="username")
+                    input#usernameInput(type="text", name="username")
                 div
                     label Password
-                    input(type="password", name="password")
+                    input#passwordInput(type="password", name="password")
                 div
                     span
-                        input(type="submit", value="Log In")
+                        input#submitInput(type="submit", value="Log In")
