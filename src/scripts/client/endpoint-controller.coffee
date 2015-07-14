@@ -1,9 +1,10 @@
 app = require './virtdb-app.js'
+
 module.exports = app.controller 'EndpointController',
 class EndpointController
     endpoints: null
 
-    constructor: (ServerConnector, $scope, $rootScope) ->
+    constructor: (CurrentUser, ServerConnector, $scope, $rootScope) ->
         @ServerConnector = ServerConnector
         @$scope = $scope
         @$rootScope = $rootScope
@@ -30,6 +31,9 @@ class EndpointController
             maximum = item?.Data?.Maximum?.Value?[0]
             maximum ?= ""
             return maximum
+
+        CurrentUser.get (user) ->
+            $scope.user = user
 
     setupWatches: () =>
         @$scope.$watch "selectedComponent", () =>
