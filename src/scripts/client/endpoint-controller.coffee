@@ -1,9 +1,10 @@
 app = require './virtdb-app.js'
+
 module.exports = app.controller 'EndpointController',
 class EndpointController
     endpoints: null
 
-    constructor: (ServerConnector, $scope, $rootScope) ->
+    constructor: (CurrentUser, ServerConnector, $scope, $rootScope) ->
         @ServerConnector = ServerConnector
         @$scope = $scope
         @$rootScope = $rootScope
@@ -31,23 +32,29 @@ class EndpointController
             maximum ?= ""
             return maximum
 
+        CurrentUser.get (user) ->
+            $scope.user = user
+
     setupWatches: () =>
         @$scope.$watch "selectedComponent", () =>
             @updateComponentInfo()
             @requestComponentConfig()
+            @requestComponentCredential()
 
     requestComponentConfig: () =>
         if @$scope.selectedComponent?
             @ServerConnector.getConfig { selectedComponent: @$scope.selectedComponent}, (data) =>
                 @$scope.componentConfig = data
-        return
+
+    requestComponentCredential: () =>
+        if @$scope.selectedComponent?
+            @ServerConnector.getCredential { selectedComponent: @$scope.selectedComponent}, (data) =>
+                @$scope.credentialTemplate = data
 
     requestEndpoints: () =>
-        @ServerConnector.getEndpoints(
-            (data) =>
-                @endpoints = data
-                @$scope.componentList = Object.keys data
-        )
+        @ServerConnector.getEndpoints (data) =>
+            @endpoints = data
+            @$scope.componentList = Object.keys data
 
     getComponentList: () =>
         components = []
@@ -68,18 +75,7 @@ class EndpointController
                             Address: addr
                         @$scope.componentInfo.push infoRow
 
-        # for ep in @endpoints when ep.Name is @$scope.selectedComponent
-        #     if ep.Connections?
-        #         for connection in ep.Connections
-        #             for addr in connection.Address
-        #                 infoRow =
-        #                     SvcType: ep.SvcType
-        #                     SocketType: connection.Type
-        #                     Address: addr
-        #                 @$scope.componentInfo.push infoRow
-        return
-
-    sendConfig: () =>
+    sendConfig: =>
         for item in @$scope.componentConfig
             if item.Data.Value.Type == 'BOOL' and item.Data.Value.Value[0]?.toLowerCase?() == 'false'
                 item.Data.Value.Value[0] = false
@@ -93,3 +89,10 @@ class EndpointController
                 @$rootScope.Settings = data
             @requestComponentConfig()
         , @requestComponentConfig
+
+    sendCredential: =>
+        @ServerConnector.setCredential
+            selectedComponent: @$scope.selectedComponent
+            credentials: @$scope.credentialTemplate
+        , =>
+            @requestComponentCredential()

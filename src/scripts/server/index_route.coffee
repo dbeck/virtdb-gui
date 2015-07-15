@@ -4,6 +4,7 @@ passport = require 'passport'
 config = require './config'
 Authentication = require './authentication'
 Installer = require './installer'
+CacheHandler = require './cache_handler'
 
 require("source-map-support").install()
 auth = require './authentication'
@@ -40,6 +41,7 @@ router.get '/login'
     serveHtml res, 'login'
 
 router.get '/logout', (req, res) ->
+    CacheHandler.reset()
     req.logout()
     res.redirect '/'
 

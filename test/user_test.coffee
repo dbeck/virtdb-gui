@@ -1,5 +1,5 @@
 require("source-map-support").install()
-TokenManager = require "../src/scripts/server/token_manager"
+TokenManager = (require "virtdb-connector").TokenManager
 Endpoints = require "../src/scripts/server/endpoints"
 User = require "../src/scripts/server/user"
 SocketStub = require "./socket_stub"
@@ -55,6 +55,8 @@ describe "User", ->
         done.should.have.been.calledWithExactly null, false, {message: "Error: #{ERROR_TEXT}"}
 
     it "should be able to get tableToken for a source system", ->
+        SRC_SYS = "src-sys"
+        TT = "tableToken1"
         USER =
             LoginToken: "tokensgslgnskgsk"
             Data:
@@ -62,20 +64,51 @@ describe "User", ->
                 PassHash: "sfsfsfs"
                 IsAdmin: true
         createLoginToken = sandbox.stub TokenManager, "createLoginToken"
+        createLoginToken.yields null, USER
         createTableToken = sandbox.stub TokenManager, 'createTableToken'
+        createTableToken.yields null, 'tableToken1'
+
         user = new User("user", "pass")
         user.authenticate()
-        createLoginToken.callArgWith 2, null, USER
 
         done = sandbox.spy()
-        User.getTableToken user, 'sourceSystem', done
-        createTableToken.callArgWith 2, null, 'tableToken1'
+        User.getTableToken user, SRC_SYS, done
         done.should.have.been.calledOnce
-        done.should.have.been.calledWithExactly null, "tableToken1"
+        done.should.have.been.calledWithExactly null, TT
 
         secondCall = sandbox.spy()
-        User.getTableToken user, 'sourceSystem', secondCall
+        User.getTableToken user, SRC_SYS, secondCall
         secondCall.should.have.been.calledOnce
-        secondCall.should.have.been.calledWithExactly null, 'tableToken1'
+        secondCall.should.have.been.calledWithExactly null, TT
 
+        createTableToken.should.have.been.calledOnce
 
+    it "should be able to get sourceSystemToken for a source system", ->
+        SRC_SYS = "src-sys"
+        SST = "Source-system-token2"
+        USER =
+            LoginToken: "tokensgslgnskgsk"
+            Data:
+                Name: "user"
+                PassHash: "sfsfsfs"
+                IsAdmin: true
+
+        createLoginToken = sandbox.stub TokenManager, "createLoginToken"
+        createLoginToken.yields null, USER
+        createSourceSystemToken = sandbox.stub TokenManager, 'createSourceSystemToken'
+        createSourceSystemToken.yields null, SST
+
+        user = new User("user", "pass")
+        user.authenticate()
+
+        done = sandbox.spy()
+        User.getSourceSystemToken user, SRC_SYS, done
+        done.should.have.been.calledOnce
+        done.should.have.been.calledWithExactly null, SST
+
+        secondCall = sandbox.spy()
+        User.getSourceSystemToken user, SRC_SYS, secondCall
+        secondCall.should.have.been.calledOnce
+        secondCall.should.have.been.calledWithExactly null, SST
+
+        createSourceSystemToken.should.have.been.calledOnce

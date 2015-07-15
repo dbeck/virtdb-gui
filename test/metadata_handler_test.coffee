@@ -96,6 +96,13 @@ TABLE_LIST_REQUEST =
     Schema: ".*"
     WithFields: false
 
+USER_TOKEN = "user-token-324234"
+TABLE_LIST_REQUEST_WITH_TOKEN =
+    Name: ".*"
+    Schema: ".*"
+    WithFields: false
+    UserToken: USER_TOKEN
+
 PROVIDER = "prov"
 TABLE = "tab"
 SCHEMA = "sch"
@@ -104,6 +111,12 @@ TABLE_META_REQUEST =
     Name: TABLE
     Schema: SCHEMA
     WithFields: true
+TABLE_META_REQUEST_WITH_TOKEN =
+    Name: TABLE
+    Schema: SCHEMA
+    WithFields: true
+    UserToken: USER_TOKEN
+TOKEN = null
 
 describe "MetadataHandler", ->
 
@@ -121,6 +134,34 @@ describe "MetadataHandler", ->
 
     describe "getTableList", ->
 
+        it "should send the right request if cache is empty (no token)", ->
+            SEARCH = ""
+            FROM = 0
+            TO = 10
+            FILTERLIST = []
+
+            requestStub = sandbox.stub VirtDB, "sendRequest"
+            cacheHandlerGetStub = sandbox.stub CacheHandler, "get"
+            cacheHandlerGetStub.returns null
+            handler = new MetadataHandler
+            onReadySpy = sandbox.spy()
+            handler.getTableList PROVIDER, SEARCH, FROM, TO, FILTERLIST, TOKEN, onReadySpy
+            requestStub.should.have.been.calledWith PROVIDER, Const.ENDPOINT_TYPE.META_DATA, (MetaDataProto.serialize TABLE_LIST_REQUEST, "virtdb.interface.pb.MetaDataRequest"), sinon.match.func
+
+        it "should send the right request if cache is empty (with token)", ->
+            SEARCH = ""
+            FROM = 0
+            TO = 10
+            FILTERLIST = []
+
+            requestStub = sandbox.stub VirtDB, "sendRequest"
+            cacheHandlerGetStub = sandbox.stub CacheHandler, "get"
+            cacheHandlerGetStub.returns null
+            handler = new MetadataHandler
+            onReadySpy = sandbox.spy()
+            handler.getTableList PROVIDER, SEARCH, FROM, TO, FILTERLIST, USER_TOKEN, onReadySpy
+            requestStub.should.have.been.calledWith PROVIDER, Const.ENDPOINT_TYPE.META_DATA, (MetaDataProto.serialize TABLE_LIST_REQUEST_WITH_TOKEN, "virtdb.interface.pb.MetaDataRequest"), sinon.match.func
+
         it "should send the right request if cache is empty", ->
             SEARCH = ""
             FROM = 0
@@ -132,7 +173,7 @@ describe "MetadataHandler", ->
             cacheHandlerGetStub.returns null
             handler = new MetadataHandler
             onReadySpy = sandbox.spy()
-            handler.getTableList PROVIDER, SEARCH, FROM, TO, FILTERLIST, onReadySpy
+            handler.getTableList PROVIDER, SEARCH, FROM, TO, FILTERLIST, TOKEN, onReadySpy
             requestStub.should.have.been.calledWith PROVIDER, Const.ENDPOINT_TYPE.META_DATA, (MetaDataProto.serialize TABLE_LIST_REQUEST, "virtdb.interface.pb.MetaDataRequest"), sinon.match.func
 
         it "should save the received metadata in cache if it wasn't there", ->
@@ -147,7 +188,7 @@ describe "MetadataHandler", ->
             onReadySpy = sandbox.spy()
             requestStub = sandbox.stub VirtDB, "sendRequest"
             handler = new MetadataHandler
-            handler.getTableList PROVIDER, SEARCH, FROM, TO, FILTERLIST, onReadySpy
+            handler.getTableList PROVIDER, SEARCH, FROM, TO, FILTERLIST, TOKEN, onReadySpy
             requestStub.callArgWith 3, null, (MetaDataProto.serialize TABLE_LIST_RESPONSE, "virtdb.interface.pb.MetaData")
             cacheHandlerSetStub.should.have.been.calledWith sinon.match.string, TABLE_LIST_RESPONSE
 
@@ -162,7 +203,7 @@ describe "MetadataHandler", ->
             cacheHandlerGetStub.returns null
             handler = new MetadataHandler
             onReadySpy = sandbox.spy()
-            handler.getTableList PROVIDER, SEARCH, FROM, TO, FILTERLIST, onReadySpy
+            handler.getTableList PROVIDER, SEARCH, FROM, TO, FILTERLIST, TOKEN, onReadySpy
             requestStub.should.have.been.called
 
         it "should not request metadata if it was in the cache", ->
@@ -176,7 +217,7 @@ describe "MetadataHandler", ->
             cacheHandlerGetStub.returns TABLE_LIST_RESPONSE
             onReadySpy = sandbox.spy()
             handler = new MetadataHandler
-            handler.getTableList PROVIDER, SEARCH, FROM, TO, FILTERLIST, onReadySpy
+            handler.getTableList PROVIDER, SEARCH, FROM, TO, FILTERLIST, TOKEN, onReadySpy
             requestStub.should.not.have.been.called
 
         it "should return the requested metadata: full table list, no filtering, no search", ->
@@ -190,7 +231,7 @@ describe "MetadataHandler", ->
             onReadySpy = sandbox.spy()
             requestStub = sandbox.stub VirtDB, "sendRequest"
             handler = new MetadataHandler
-            handler.getTableList PROVIDER, SEARCH, FROM, TO, FILTERLIST, onReadySpy
+            handler.getTableList PROVIDER, SEARCH, FROM, TO, FILTERLIST, TOKEN, onReadySpy
             cacheHandlerSetStub = sandbox.stub CacheHandler, 'set'
 
             requestStub.callArgWith 3, null, (MetaDataProto.serialize TABLE_LIST_RESPONSE, "virtdb.interface.pb.MetaData")
@@ -206,7 +247,7 @@ describe "MetadataHandler", ->
             cacheHandlerGetStub.returns TABLE_LIST_RESPONSE
             onReadySpy = sandbox.spy()
             handler = new MetadataHandler
-            handler.getTableList PROVIDER, SEARCH, FROM, TO, FILTERLIST, onReadySpy
+            handler.getTableList PROVIDER, SEARCH, FROM, TO, FILTERLIST, TOKEN, onReadySpy
             onReadySpy.should.have.been.calledWithExactly null, TABLE_LIST_RESPONSE_RESULT_FULL
 
         it "should return the requested metadata: reduced table list, no filtering, no search", ->
@@ -220,7 +261,7 @@ describe "MetadataHandler", ->
             onReadySpy = sandbox.spy()
             requestStub = sandbox.stub VirtDB, "sendRequest"
             handler = new MetadataHandler
-            handler.getTableList PROVIDER, SEARCH, FROM, TO, FILTERLIST, onReadySpy
+            handler.getTableList PROVIDER, SEARCH, FROM, TO, FILTERLIST, TOKEN, onReadySpy
             cacheHandlerSetStub = sandbox.stub CacheHandler, 'set'
 
             requestStub.callArgWith 3, null, (MetaDataProto.serialize TABLE_LIST_RESPONSE, "virtdb.interface.pb.MetaData")
@@ -238,7 +279,7 @@ describe "MetadataHandler", ->
             cacheHandlerGetStub.returns TABLE_LIST_RESPONSE
             onReadySpy = sandbox.spy()
             handler = new MetadataHandler
-            handler.getTableList PROVIDER, SEARCH, FROM, TO, FILTERLIST, onReadySpy
+            handler.getTableList PROVIDER, SEARCH, FROM, TO, FILTERLIST, TOKEN, onReadySpy
             onReadySpy.should.have.been.calledWithExactly null, TABLE_LIST_RESPONSE_RESULT_PART_24
 
         it "should return the requested metadata: full table list, no filtering, with search", ->
@@ -253,7 +294,7 @@ describe "MetadataHandler", ->
             onReadySpy = sandbox.spy()
             requestStub = sandbox.stub VirtDB, "sendRequest"
             handler = new MetadataHandler
-            handler.getTableList PROVIDER, SEARCH, FROM, TO, FILTERLIST, onReadySpy
+            handler.getTableList PROVIDER, SEARCH, FROM, TO, FILTERLIST, TOKEN, onReadySpy
 
             requestStub.callArgWith 3, null, (MetaDataProto.serialize TABLE_LIST_RESPONSE, "virtdb.interface.pb.MetaData")
             onReadySpy.should.have.been.calledWithExactly null, TABLE_LIST_RESPONSE_RESULT_PART_TABLE
@@ -268,7 +309,7 @@ describe "MetadataHandler", ->
             cacheHandlerGetStub.returns TABLE_LIST_RESPONSE
             onReadySpy = sandbox.spy()
             handler = new MetadataHandler
-            handler.getTableList PROVIDER, SEARCH, FROM, TO, FILTERLIST, onReadySpy
+            handler.getTableList PROVIDER, SEARCH, FROM, TO, FILTERLIST, TOKEN, onReadySpy
             onReadySpy.should.have.been.calledWithExactly null, TABLE_LIST_RESPONSE_RESULT_PART_TABLE
 
         it "should return the requested metadata: reduced table list, no filtering, with search", ->
@@ -283,7 +324,7 @@ describe "MetadataHandler", ->
             onReadySpy = sandbox.spy()
             requestStub = sandbox.stub VirtDB, "sendRequest"
             handler = new MetadataHandler
-            handler.getTableList PROVIDER, SEARCH, FROM, TO, FILTERLIST, onReadySpy
+            handler.getTableList PROVIDER, SEARCH, FROM, TO, FILTERLIST, TOKEN, onReadySpy
             requestStub.callArgWith 3, null, (MetaDataProto.serialize TABLE_LIST_RESPONSE, "virtdb.interface.pb.MetaData")
             onReadySpy.should.have.been.calledWithExactly null, TABLE_LIST_RESPONSE_RESULT_PART_DATAA_23
 
@@ -297,7 +338,7 @@ describe "MetadataHandler", ->
             cacheHandlerGetStub.returns TABLE_LIST_RESPONSE
             onReadySpy = sandbox.spy()
             handler = new MetadataHandler
-            handler.getTableList PROVIDER, SEARCH, FROM, TO, FILTERLIST, onReadySpy
+            handler.getTableList PROVIDER, SEARCH, FROM, TO, FILTERLIST, TOKEN, onReadySpy
             onReadySpy.should.have.been.calledWithExactly null, TABLE_LIST_RESPONSE_RESULT_PART_DATAA_23
 
         it "should return the requested metadata: full table list, filtering, no search", ->
@@ -312,7 +353,7 @@ describe "MetadataHandler", ->
             onReadySpy = sandbox.spy()
             requestStub = sandbox.stub VirtDB, "sendRequest"
             handler = new MetadataHandler
-            handler.getTableList PROVIDER, SEARCH, FROM, TO, FILTERLIST, onReadySpy
+            handler.getTableList PROVIDER, SEARCH, FROM, TO, FILTERLIST, TOKEN, onReadySpy
             requestStub.callArgWith 3, null, (MetaDataProto.serialize TABLE_LIST_RESPONSE, "virtdb.interface.pb.MetaData")
             onReadySpy.should.have.been.calledWithExactly null, TABLE_LIST_RESPONSE_RESULT_PART_FILTERING
 
@@ -326,18 +367,26 @@ describe "MetadataHandler", ->
             cacheHandlerGetStub.returns TABLE_LIST_RESPONSE
             onReadySpy = sandbox.spy()
             handler = new MetadataHandler
-            handler.getTableList PROVIDER, SEARCH, FROM, TO, FILTERLIST, onReadySpy
+            handler.getTableList PROVIDER, SEARCH, FROM, TO, FILTERLIST, TOKEN, onReadySpy
             onReadySpy.should.have.been.calledWithExactly null, TABLE_LIST_RESPONSE_RESULT_PART_FILTERING
 
     describe "getTableMetadata", ->
 
-        it "should send the right request if cache is empty", ->
+        it "should send the right request if cache is empty (no token)", ->
             (sandbox.stub CacheHandler, "get").returns null
             onReadySpy = sandbox.spy()
             requestStub = sandbox.stub VirtDB, "sendRequest"
             handler = new MetadataHandler
-            handler.getTableMetadata PROVIDER, TABLENAME, onReadySpy
+            handler.getTableMetadata PROVIDER, TABLENAME, TOKEN, onReadySpy
             requestStub.should.have.been.calledWith PROVIDER, Const.ENDPOINT_TYPE.META_DATA, (MetaDataProto.serialize TABLE_META_REQUEST, "virtdb.interface.pb.MetaDataRequest"), sinon.match.func
+
+        it "should send the right request if cache is empty (with token)", ->
+            (sandbox.stub CacheHandler, "get").returns null
+            onReadySpy = sandbox.spy()
+            requestStub = sandbox.stub VirtDB, "sendRequest"
+            handler = new MetadataHandler
+            handler.getTableMetadata PROVIDER, TABLENAME, USER_TOKEN, onReadySpy
+            requestStub.should.have.been.calledWith PROVIDER, Const.ENDPOINT_TYPE.META_DATA, (MetaDataProto.serialize TABLE_META_REQUEST_WITH_TOKEN, "virtdb.interface.pb.MetaDataRequest"), sinon.match.func
 
         it "should not request meta data if it is in cache", ->
             TABLE = "table"
@@ -345,7 +394,7 @@ describe "MetadataHandler", ->
             onReadySpy = sandbox.spy()
             requestStub = sandbox.stub VirtDB, "sendRequest"
             handler = new MetadataHandler
-            handler.getTableMetadata PROVIDER, TABLE, onReadySpy
+            handler.getTableMetadata PROVIDER, TABLE, TOKEN, onReadySpy
             requestStub.should.not.have.been.called
 
         it "should request meta data if it is not in cache", ->
@@ -354,7 +403,7 @@ describe "MetadataHandler", ->
             onReadySpy = sandbox.spy()
             requestStub = sandbox.stub VirtDB, "sendRequest"
             handler = new MetadataHandler
-            handler.getTableMetadata PROVIDER, TABLE, onReadySpy
+            handler.getTableMetadata PROVIDER, TABLE, TOKEN, onReadySpy
             requestStub.should.have.been.calledOnce
 
         it "should return the meta data if it was in cache", ->
@@ -362,7 +411,7 @@ describe "MetadataHandler", ->
             (sandbox.stub CacheHandler, "get").returns TABLE_META_RESPONSE
             onReadySpy = sandbox.spy()
             handler = new MetadataHandler
-            handler.getTableMetadata PROVIDER, TABLE, onReadySpy
+            handler.getTableMetadata PROVIDER, TABLE, TOKEN, onReadySpy
             onReadySpy.should.have.been.calledWith null, TABLE_META_RESPONSE
 
         it "should return the requested meta data", ->
@@ -372,7 +421,7 @@ describe "MetadataHandler", ->
             cacheHandlerSetStub = sandbox.stub CacheHandler, 'set'
             requestStub = sandbox.stub VirtDB, "sendRequest"
             handler = new MetadataHandler
-            handler.getTableMetadata PROVIDER, TABLE, onReadySpy
+            handler.getTableMetadata PROVIDER, TABLE, TOKEN, onReadySpy
             requestStub.callArgWith 3, null, (MetaDataProto.serialize TABLE_META_RESPONSE, "virtdb.interface.pb.MetaData")
             onReadySpy.should.have.been.calledWith null, TABLE_META_RESPONSE
 
@@ -384,7 +433,7 @@ describe "MetadataHandler", ->
             onReadySpy = sandbox.spy()
             requestStub = sandbox.stub VirtDB, "sendRequest"
             handler = new MetadataHandler
-            handler.getTableMetadata PROVIDER, TABLE, onReadySpy
+            handler.getTableMetadata PROVIDER, TABLE, TOKEN, onReadySpy
             requestStub.callArgWith 3, null, (MetaDataProto.serialize TABLE_META_RESPONSE, "virtdb.interface.pb.MetaData")
             cacheHandlerSetStub.should.have.been.calledWith sinon.match.string, TABLE_META_RESPONSE
         it "should not save meta data to cache when it doesn't contain any tables", ->
@@ -396,7 +445,7 @@ describe "MetadataHandler", ->
             onReadySpy = sandbox.spy()
             requestStub = sandbox.stub VirtDB, "sendRequest"
             handler = new MetadataHandler
-            handler.getTableMetadata PROVIDER, TABLE, onReadySpy
+            handler.getTableMetadata PROVIDER, TABLE, TOKEN, onReadySpy
             requestStub.callArgWith 3, null, (MetaDataProto.serialize NO_TABLE_RESPONSE, "virtdb.interface.pb.MetaData")
             cacheHandlerSetStub.should.not.have.been.called
 
@@ -416,7 +465,7 @@ describe "MetadataHandler", ->
             onReadySpy = sandbox.spy()
             requestStub = sandbox.stub VirtDB, "sendRequest"
             handler = new MetadataHandler
-            handler.getTableMetadata PROVIDER, TABLE, onReadySpy
+            handler.getTableMetadata PROVIDER, TABLE, TOKEN, onReadySpy
             requestStub.callArgWith 3, null, (MetaDataProto.serialize NO_FIELDS_RESPONSE, "virtdb.interface.pb.MetaData")
             cacheHandlerSetStub.should.not.have.been.called
 
@@ -434,7 +483,7 @@ describe "MetadataHandler", ->
         requestStub.yields null, (MetaDataProto.serialize TABLE_LIST_RESPONSE, "virtdb.interface.pb.MetaData")
 
         handler = new MetadataHandler
-        handler.getTableList PROVIDER, SEARCH, FROM, TO, FILTERLIST, sandbox.spy()
+        handler.getTableList PROVIDER, SEARCH, FROM, TO, FILTERLIST, TOKEN, sandbox.spy()
 
         requestStub.should.have.been.calledOnce
         cacheHandlerSetSpy.should.have.been.calledWithExactly sinon.match.string, TABLE_LIST_RESPONSE

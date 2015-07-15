@@ -78,6 +78,7 @@ describe "DataConnection", ->
         zmqMock.verify()
 
     it "should getData when schema is given", ->
+        TOKEN = "token"
         QUERY_ID = 42
         ON_DATA = () ->
             console.log "DATA_ARRIVED!!!!"
@@ -91,6 +92,7 @@ describe "DataConnection", ->
             Fields: FIELDS
             Limit: COUNT
             Schema: SCHEMA
+            UserToken: TOKEN
         SERIALIZED_MSG = "sermsg"
 
         conn = new DataConnection QUERY_ADDRESSES, COLUMN_ADDRESSES
@@ -103,7 +105,7 @@ describe "DataConnection", ->
         sendStub = sandbox.stub()
         conn._querySocket = {send: sendStub, close: sandbox.spy(), disconnect: sandbox.spy()}
 
-        conn.getData SCHEMA, TABLE, FIELDS, COUNT, ON_DATA
+        conn.getData TOKEN, SCHEMA, TABLE, FIELDS, COUNT, ON_DATA
 
         conn._onColumn.should.be.deep.equal ON_DATA
         initQuerySocketStub.should.have.been.calledOnce
@@ -114,6 +116,45 @@ describe "DataConnection", ->
         sendStub.should.have.been.calledWith SERIALIZED_MSG
 
     it "should getData when schema is null", ->
+        TOKEN = "token"
+        QUERY_ID = 42
+        ON_DATA = () ->
+            console.log "DATA_ARRIVED!!!!"
+        TABLE = "table"
+        SCHEMA = null
+        FIELDS = "fields"
+        COUNT = 10
+        QUERY_MSG =
+            QueryId: QUERY_ID + ""
+            Table: TABLE
+            Fields: FIELDS
+            Limit: COUNT
+            Schema: ""
+            UserToken: TOKEN
+        SERIALIZED_MSG = "sermsg"
+
+        conn = new DataConnection QUERY_ADDRESSES, COLUMN_ADDRESSES
+
+        initQuerySocketStub = sandbox.stub conn, "_initQuerySocket"
+        initColumnSocketStub = sandbox.stub conn, "_initColumnSocket"
+        sandbox.stub(Math, "floor").returns QUERY_ID
+        dataSerializeStub = sandbox.stub Proto.data, "serialize"
+        dataSerializeStub.returns SERIALIZED_MSG
+        sendStub = sandbox.stub()
+        conn._querySocket = {send: sendStub, close: sandbox.spy(), disconnect: sandbox.spy()}
+
+        conn.getData TOKEN, SCHEMA, TABLE, FIELDS, COUNT, ON_DATA
+
+        conn._onColumn.should.be.deep.equal ON_DATA
+        initQuerySocketStub.should.have.been.calledOnce
+        initColumnSocketStub.should.have.been.calledOnce
+        dataSerializeStub.should.have.been.calledOnce
+        dataSerializeStub.should.have.been.calledWithExactly(QUERY_MSG, "virtdb.interface.pb.Query")
+        sendStub.should.have.been.calledOnce
+        sendStub.should.have.been.calledWith SERIALIZED_MSG
+
+    it "should getData when schema and token are null", ->
+        TOKEN = undefined
         QUERY_ID = 42
         ON_DATA = () ->
             console.log "DATA_ARRIVED!!!!"
@@ -139,7 +180,7 @@ describe "DataConnection", ->
         sendStub = sandbox.stub()
         conn._querySocket = {send: sendStub, close: sandbox.spy(), disconnect: sandbox.spy()}
 
-        conn.getData SCHEMA, TABLE, FIELDS, COUNT, ON_DATA
+        conn.getData TOKEN, SCHEMA, TABLE, FIELDS, COUNT, ON_DATA
 
         conn._onColumn.should.be.deep.equal ON_DATA
         initQuerySocketStub.should.have.been.calledOnce

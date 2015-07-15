@@ -34,6 +34,7 @@ describe "DataHandler", ->
     # Not complete test, we should check that the final callback is called, also should test the column receiver class
     it "should request data from connection and give it to the column receiver", ->
 
+        TOKEN = "token"
         PROVIDER = "prov"
         TABLE = "table"
         SCHEMA = "schema"
@@ -60,7 +61,7 @@ describe "DataHandler", ->
         dataConnection = sinon.createStubInstance DataConnection
         dataConnectionCreateInstanceStub = sandbox.stub DataConnection, "createInstance"
         dataConnectionCreateInstanceStub.returns dataConnection
-        dataConnection.getData.callsArgWith 4, COLUMN
+        dataConnection.getData.callsArgWith 5, COLUMN
 
         columnReceiver = sinon.createStubInstance ColumnReceiver
         columnReceiverCreateInstanceStub = sandbox.stub ColumnReceiver, "createInstance"
@@ -69,25 +70,16 @@ describe "DataHandler", ->
 
         dataHandler = new DataHandler
 
-        endpointsGetQueryAddressStub = sandbox.stub Endpoints, "getQueryAddress"
-        endpointsGetQueryAddressStub.returns ADDRESSES.QUERY
-        endpointsGetColumnAddressStub = sandbox.stub Endpoints, "getColumnAddress"
-        endpointsGetColumnAddressStub.returns ADDRESSES.COLUMN
+        (sandbox.stub Endpoints, "getQueryAddress").returns ADDRESSES.QUERY
+        (sandbox.stub Endpoints, "getColumnAddress").returns ADDRESSES.COLUMN
 
-        dataHandler.getData PROVIDER, TABLE, COUNT, onDataSpy
+        dataHandler.getData TOKEN, PROVIDER, TABLE, COUNT, onDataSpy
 
         metadataHandler.getTableMetadata.should.calledOnce
         metadataHandler.getTableMetadata.should.calledWith PROVIDER, TABLE
-        columnReceiverCreateInstanceStub.should.calledOnce
         columnReceiverCreateInstanceStub.should.calledWithExactly onDataSpy, FIELDS
-        endpointsGetQueryAddressStub.should.calledOnce
-        endpointsGetQueryAddressStub.should.calledWithExactly PROVIDER
-        endpointsGetColumnAddressStub.should.calledOnce
-        endpointsGetColumnAddressStub.should.calledWithExactly PROVIDER
-        dataConnection.getData.should.calledWith SCHEMA, TABLE, FIELDS, COUNT
-        columnReceiver.add.should.called
+        dataConnection.getData.should.calledWith TOKEN, SCHEMA, TABLE, FIELDS, COUNT
         columnReceiver.add.should.calledWith COLUMN
-        dataConnectionCreateInstanceStub.should.calledOnce
         dataConnectionCreateInstanceStub.should.calledWith ADDRESSES.QUERY, ADDRESSES.COLUMN
 
     #should test provider addresses

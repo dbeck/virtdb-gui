@@ -11,19 +11,35 @@ div.container
                             span.glyphicon.glyphicon-hdd
                             span(text="{{component}}")  {{component}}
         div.col-md-6
-            h3 Configuration
-                button.pull-right.btn.btn-success.btn-save(ng-click="endpointController.sendConfig()") Save
-            table.table.settings
-                tr(ng-repeat="item in componentConfig")
-                    td 
-                        span.strong {{ item.Data.Scope.Value[0] }} / {{ item.Name }}
-                        span.strong(ng-if="isRequired(item)") *
-                        span.small(ng-if="isRange(item)") ( Range: {{getMinimum(item)}} - {{getMaximum(item)}} ) 
-                    td
-                        input(type="number" name="{{item.Name}}" ng-if="isNumber(item)" ng-model="item.Data.Value.Value[0]" ng-required="isRequired(item)")
-                        input(type="text" name="{{item.Name}}" ng-if="!isNumber(item) && !isPassword(item)" ng-model="item.Data.Value.Value[0]" ng-required="isRequired(item)")
+            h3 Settings
+            div(ng-if="componentConfig.length > 0 && (!Features.Security || user.isAdmin)")
+                h4 Configuration
+                table.table.settings(ng-if="componentConfig !== null")
+                    tr(ng-repeat="item in componentConfig")
+                        td
+                            span.strong {{ item.Data.Scope.Value[0] }} / {{ item.Name }}
+                            span.strong(ng-if="isRequired(item)") *
+                            span.small(ng-if="isRange(item)") ( Range: {{getMinimum(item)}} - {{getMaximum(item)}} )
+                        td
+                            input(type="number" name="{{item.Name}}" ng-if="isNumber(item)" ng-model="item.Data.Value.Value[0]" ng-required="isRequired(item)")
+                            input(type="text" name="{{item.Name}}" ng-if="!isNumber(item) && !isPassword(item)" ng-model="item.Data.Value.Value[0]" ng-required="isRequired(item)")
+                            input(type="password" name="{{item.Name}}" ng-if="isPassword(item)" ng-model="item.Data.Value.Value[0]" ng-required="isRequired(item)")
+                div
+                    button.btn.btn-success.btn-save.btn-sm(ng-click="endpointController.sendConfig()") Save
 
-                        input(type="password" name="{{item.Name}}" ng-if="isPassword(item)" ng-model="item.Data.Value.Value[0]" ng-required="isRequired(item)")
+            div(ng-if="credentialTemplate.length > 0 && Features.Security")
+                h4 Credential
+                table.table
+                    tr(ng-repeat="field in credentialTemplate")
+                        td
+                            span.strong {{ field.Name }}
+                        td
+                            input(type="text" ng-if="field.Type === 'STRING'" ng-model="field.Value" ng-required="true")
+                            input(type="email" ng-if="field.Type === 'EMAIL'" ng-model="field.Value" ng-required="true")
+                            input(type="password" ng-if="field.Type === 'PASSWORD'" ng-model="field.Value" ng-required="true")
+                            input(type="checkbox" ng-if="field.Type === 'BOOLEAN'" ng-model="field.Value" ng-true-value="true" ng-false-value="false")
+                div
+                    button.btn-sm.btn-success(ng-click="endpointController.sendCredential()") Send credentials
 
         div.col-md-3
             h3 Endpoints

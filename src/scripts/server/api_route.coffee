@@ -20,6 +20,8 @@ validator = require "./validator"
 DataHandler = require "./data_handler"
 MetadataHandler = require "./meta_data_handler"
 Authentication = require "./authentication"
+TokenManager = VirtDBConnector.TokenManager
+Credentials = require "./credential"
 
 require('source-map-support').install()
 
@@ -93,8 +95,9 @@ router.post "/data_provider/meta_data/"
             res.json response
 
     try
+        token = req?.user?.token
         metadataHandler = new MetadataHandler()
-        metadataHandler.getTableMetadata provider, table, onMetadata
+        metadataHandler.getTableMetadata provider, table, token, onMetadata
     catch ex
         log.error V_(ex)
         throw ex
@@ -130,8 +133,9 @@ router.post "/data_provider/table_list"
     tablesToFilter = req.body.tables
 
     try
+        token = req?.user?.token
         metadataHandler = new MetadataHandler()
-        metadataHandler.getTableList provider, search, from, to, tablesToFilter, (err, result) ->
+        metadataHandler.getTableList provider, search, from, to, tablesToFilter, token, (err, result) ->
             if err?
                 res.status(500).send()
                 return
@@ -189,9 +193,9 @@ router.post "/data_provider/data"
                     data: dataRows
                 }
 
-        # DataProvider.getData provider, table, count, onData
+        token = req?.user?.token
         dataHandler = new DataHandler
-        dataHandler.getData provider, table, count, onData
+        dataHandler.getData token, provider, table, count, onData
     catch ex
         log.error V_(ex)
         throw ex
@@ -245,6 +249,48 @@ router.post "/db_config/add"
                 else
                     res.status(500).send()
             return
+    catch ex
+        log.error V_(ex)
+        throw ex
+
+router.get "/get_credential/:component"
+    , auth.ensureAuthenticated
+    , timeout(Config.getCommandLineParameter("timeout"))
+, (req, res, next) =>
+    try
+        component = req.params.component
+        VirtDBConnector.SourceSystemCredential.getTemplate component, (err, template) ->
+            if err?
+                log.error "Error during getting credential template", (V_ component), (V_ err)
+                res.json {}
+                return
+            Credentials.getCredential req.user.token, component, (err, credential) ->
+                if err?
+                    res.json template
+                    return
+                if credential?
+                    for field in credential.NamedValues
+                        for templateField in template
+                            if templateField.Name is field.Name
+                                templateField.Value ?= field.Value
+                res.json template
+    catch ex
+        log.error V_(ex)
+        throw ex
+
+router.post "/set_credential/:component"
+    , auth.ensureAuthenticated
+    , timeout(Config.getCommandLineParameter("timeout"))
+, (req, res, next) =>
+    try
+        component = req.params.component
+        Credentials.getSourceSystemToken req.user.token, component, (err, sourceSystemToken) ->
+            credentials =
+                NamedValues: req.body
+            VirtDBConnector.SourceSystemCredential.setCredential component, sourceSystemToken, credentials, (err, result) =>
+                if err?
+                    log.error "Cannot set credential", (V_ component), (V_ err)
+                res.json {}
     catch ex
         log.error V_(ex)
         throw ex

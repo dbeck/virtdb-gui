@@ -14,7 +14,7 @@ class DataHandler
 
     constructor: ->
 
-    getData: (provider, tableName, count, onData) =>
+    getData: (loginToken, provider, tableName, count, onData) =>
         try
             metadataHandler = MetadataHandler.createInstance()
             metadataHandler.getTableMetadata provider, tableName, (err, metadataMessage) =>
@@ -27,7 +27,7 @@ class DataHandler
                     return
                 @_columnReceiver = ColumnReceiver.createInstance onData, tableMeta.Fields
                 @connection = DataConnection.createInstance (Endpoints.getQueryAddress provider), (Endpoints.getColumnAddress provider), provider
-                @connection.getData tableMeta.Schema, tableMeta.Name, tableMeta.Fields, count, (column, onFinished) =>
+                @connection.getData loginToken, tableMeta.Schema, tableMeta.Name, tableMeta.Fields, count, (column, onFinished) =>
                     @_columnReceiver.add column, onFinished
         catch ex
             log.error V_(ex)

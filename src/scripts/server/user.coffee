@@ -1,10 +1,15 @@
-TokenManager = require './token_manager'
+TokenManager = (require "virtdb-connector").TokenManager
 
 class User
+
     tableTokens: null
+    sourceSystemTokens: null
     token: null
+
     constructor: (@name, @password) ->
         @tableTokens = {}
+        @sourceSystemTokens = {}
+
     authenticate: (done) =>
         TokenManager.createLoginToken @name, @password, (err, user) =>
             if err?
@@ -21,12 +26,11 @@ class User
         if user.tableTokens[sourceSystem]?
             done null, user.tableTokens[sourceSystem]
             return
-        TokenManager.createTableToken user.token, sourceSystem, (err, tableToken) =>
+        TokenManager.createTableToken user.token, sourceSystem, (err, tableToken) ->
             if err?
                 done err, null
                 return
             user.tableTokens[sourceSystem] = tableToken
             done null, tableToken
-
 
 module.exports = User
