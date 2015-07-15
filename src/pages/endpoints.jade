@@ -24,6 +24,8 @@ div.container
                             input(type="number" name="{{item.Name}}" ng-if="isNumber(item)" ng-model="item.Data.Value.Value[0]" ng-required="isRequired(item)")
                             input(type="text" name="{{item.Name}}" ng-if="!isNumber(item) && !isPassword(item)" ng-model="item.Data.Value.Value[0]" ng-required="isRequired(item)")
                             input(type="password" name="{{item.Name}}" ng-if="isPassword(item)" ng-model="item.Data.Value.Value[0]" ng-required="isRequired(item)")
+                div
+                    button.btn.btn-success.btn-save.btn-sm(ng-click="endpointController.sendConfig()") Save
 
             div(ng-if="credentialTemplate.length > 0 && Features.Security")
                 h4 Credential
