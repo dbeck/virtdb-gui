@@ -44,7 +44,7 @@ describe "DataHandler", ->
             Tables: [
                 Name: TABLE
                 Schema: SCHEMA
-                Fields: FIELDS
+                Fields: FIELDS.map (x) -> { Name: x }
             ]
         ADDRESSES =
             QUERY: ["qaddr1", "qaddr2"]
@@ -56,7 +56,7 @@ describe "DataHandler", ->
         metadataHandler = sinon.createStubInstance MetadataHandler
         metadataHandlerCreateInstanceStub = sandbox.stub MetadataHandler, "createInstance"
         metadataHandlerCreateInstanceStub.returns metadataHandler
-        metadataHandler.getTableMetadata.callsArgWith 2, null, METADATA
+        metadataHandler.getTableMetadata.callsArgWith 3, null, METADATA
 
         dataConnection = sinon.createStubInstance DataConnection
         dataConnectionCreateInstanceStub = sandbox.stub DataConnection, "createInstance"
@@ -76,7 +76,7 @@ describe "DataHandler", ->
         dataHandler.getData TOKEN, PROVIDER, TABLE, COUNT, onDataSpy
 
         metadataHandler.getTableMetadata.should.calledOnce
-        metadataHandler.getTableMetadata.should.calledWith PROVIDER, TABLE
+        metadataHandler.getTableMetadata.should.calledWith PROVIDER, TABLE, TOKEN
         columnReceiverCreateInstanceStub.should.calledWithExactly onDataSpy, FIELDS
         dataConnection.getData.should.calledWith TOKEN, SCHEMA, TABLE, FIELDS, COUNT
         columnReceiver.add.should.calledWith COLUMN

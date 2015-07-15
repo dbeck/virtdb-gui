@@ -39,12 +39,10 @@ module.exports = app.factory 'ServerConnector', ['$http', 'ErrorService', '$q', 
                     ErrorService.errorHappened status, "Failed to approve certificate of #{component.ComponentName}. (#{response})"
 
         removeCertificate: (component, onSuccess) ->
-            data =
-                publicKey: component.PublicKey
-            $http.delete(@address + "/api/certificate/#{encodeURIComponent(component.ComponentName)}")
+            $http.delete(@address + "/api/certificate/#{encodeURIComponent(component.ComponentName)}/#{encodeURIComponent(component.PublicKey)}")
                 .success(onSuccess)
                 .error (response, status) =>
-                        ErrorService.errorHappened status, "Failed to remove certificate of #{component.ComponentName}. (#{response})"
+                    ErrorService.errorHappened status, "Failed to remove certificate of #{component.ComponentName}. (#{response})"
 
         getEndpoints: (onSuccess, onError) =>
             $http.get(@address + "/api/endpoints").success(onSuccess)
