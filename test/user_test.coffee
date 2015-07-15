@@ -82,33 +82,3 @@ describe "User", ->
         secondCall.should.have.been.calledWithExactly null, TT
 
         createTableToken.should.have.been.calledOnce
-
-    it "should be able to get sourceSystemToken for a source system", ->
-        SRC_SYS = "src-sys"
-        SST = "Source-system-token2"
-        USER =
-            LoginToken: "tokensgslgnskgsk"
-            Data:
-                Name: "user"
-                PassHash: "sfsfsfs"
-                IsAdmin: true
-
-        createLoginToken = sandbox.stub TokenManager, "createLoginToken"
-        createLoginToken.yields null, USER
-        createSourceSystemToken = sandbox.stub TokenManager, 'createSourceSystemToken'
-        createSourceSystemToken.yields null, SST
-
-        user = new User("user", "pass")
-        user.authenticate()
-
-        done = sandbox.spy()
-        User.getSourceSystemToken user, SRC_SYS, done
-        done.should.have.been.calledOnce
-        done.should.have.been.calledWithExactly null, SST
-
-        secondCall = sandbox.spy()
-        User.getSourceSystemToken user, SRC_SYS, secondCall
-        secondCall.should.have.been.calledOnce
-        secondCall.should.have.been.calledWithExactly null, SST
-
-        createSourceSystemToken.should.have.been.calledOnce
