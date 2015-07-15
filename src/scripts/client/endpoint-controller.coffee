@@ -35,27 +35,22 @@ class EndpointController
         @$scope.$watch "selectedComponent", () =>
             @updateComponentInfo()
             @requestComponentConfig()
-            @requestComponentCredentialTemplate()
+            @requestComponentCredential()
 
     requestComponentConfig: () =>
         if @$scope.selectedComponent?
             @ServerConnector.getConfig { selectedComponent: @$scope.selectedComponent}, (data) =>
                 @$scope.componentConfig = data
-        return
 
-    requestComponentCredentialTemplate: () =>
+    requestComponentCredential: () =>
         if @$scope.selectedComponent?
-            @ServerConnector.getCredentialTemplate { selectedComponent: @$scope.selectedComponent}, (data) =>
-                console.log data
+            @ServerConnector.getCredential { selectedComponent: @$scope.selectedComponent}, (data) =>
                 @$scope.credentialTemplate = data
-        return
 
     requestEndpoints: () =>
-        @ServerConnector.getEndpoints(
-            (data) =>
-                @endpoints = data
-                @$scope.componentList = Object.keys data
-        )
+        @ServerConnector.getEndpoints (data) =>
+            @endpoints = data
+            @$scope.componentList = Object.keys data
 
     getComponentList: () =>
         components = []
@@ -76,17 +71,6 @@ class EndpointController
                             Address: addr
                         @$scope.componentInfo.push infoRow
 
-        # for ep in @endpoints when ep.Name is @$scope.selectedComponent
-        #     if ep.Connections?
-        #         for connection in ep.Connections
-        #             for addr in connection.Address
-        #                 infoRow =
-        #                     SvcType: ep.SvcType
-        #                     SocketType: connection.Type
-        #                     Address: addr
-        #                 @$scope.componentInfo.push infoRow
-        return
-
     sendConfig: =>
         for item in @$scope.componentConfig
             if item.Data.Value.Type == 'BOOL' and item.Data.Value.Value[0]?.toLowerCase?() == 'false'
@@ -103,10 +87,8 @@ class EndpointController
         , @requestComponentConfig
 
     sendCredential: =>
-        console.log "sendCredential"
-        console.log @$scope.credentialTemplate
         @ServerConnector.setCredential
             selectedComponent: @$scope.selectedComponent
             credentials: @$scope.credentialTemplate
         , =>
-            @$scope.credentialTemplate = []
+            @requestComponentCredential()

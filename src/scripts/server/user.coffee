@@ -33,16 +33,4 @@ class User
             user.tableTokens[sourceSystem] = tableToken
             done null, tableToken
 
-    @getSourceSystemToken: (user, sourceSystem, done) ->
-        if user.sourceSystemTokens[sourceSystem]?
-            done null, user.sourceSystemTokens[sourceSystem]
-            return
-        TokenManager.createSourceSystemToken user.token, sourceSystem, (err, sourceSystemToken) ->
-            if err?
-                done err, null
-                return
-            user.sourceSystemTokens[sourceSystem] = sourceSystemToken
-            done null, sourceSystemToken
-
-
 module.exports = User

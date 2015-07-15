@@ -21,6 +21,7 @@ DataHandler = require "./data_handler"
 MetadataHandler = require "./meta_data_handler"
 Authentication = require "./authentication"
 TokenManager = VirtDBConnector.TokenManager
+Credentials = require "./credential"
 
 require('source-map-support').install()
 
@@ -252,19 +253,27 @@ router.post "/db_config/add"
         log.error V_(ex)
         throw ex
 
-router.get "/get_credential_template/:component"
+router.get "/get_credential/:component"
     , auth.ensureAuthenticated
     , timeout(Config.getCommandLineParameter("timeout"))
 , (req, res, next) =>
     try
         component = req.params.component
-        VirtDBConnector.SourceSystemCredential.getTemplate component, (err, result) =>
-            console.log "Error:", err
-            console.log "Result:", result
-            if not err?
-                res.json result
+        VirtDBConnector.SourceSystemCredential.getTemplate component, (err, template) ->
+            if err?
+                log.error "Error during getting credential template", (V_ component), (V_ err)
+                res.json {}
                 return
-            res.json {}
+            Credentials.getCredential req.user.token, component, (err, credential) ->
+                if err?
+                    res.json template
+                    return
+                if credential?
+                    for field in credential.NamedValues
+                        for templateField in template
+                            if templateField.Name is field.Name
+                                templateField.Value ?= field.Value
+                res.json template
     catch ex
         log.error V_(ex)
         throw ex
@@ -275,18 +284,13 @@ router.post "/set_credential/:component"
 , (req, res, next) =>
     try
         component = req.params.component
-        User.getSourceSystemToken req.user, component, (err, sourceSystemToken) =>
-            if err?
-                res.json {}
-                return
+        Credentials.getSourceSystemToken req.user.token, component, (err, sourceSystemToken) ->
             credentials =
                 NamedValues: req.body
             VirtDBConnector.SourceSystemCredential.setCredential component, sourceSystemToken, credentials, (err, result) =>
-                if not err?
-                    res.json {}
-                    return
+                if err?
+                    log.error "Cannot set credential", (V_ component), (V_ err)
                 res.json {}
-
     catch ex
         log.error V_(ex)
         throw ex
