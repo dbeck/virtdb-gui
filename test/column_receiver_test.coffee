@@ -7,7 +7,7 @@ chai.should()
 expect = chai.expect
 
 sinon = require "sinon"
-sinonChai = require("sinon-chai");
+sinonChai = require "sinon-chai"
 chai.use sinonChai
 
 describe "ColumnReceiver", ->
@@ -21,15 +21,7 @@ describe "ColumnReceiver", ->
         sandbox.restore()
 
     it "should collect the columns and get it back when they are all received and the order of columns was ok", ->
-        fields = [
-            Name: "FIELD1"
-        ,
-            Name: "FIELD2"
-        ,
-            Name: "FIELD3"
-        ,
-            Name: "FIELD4"
-        ]
+        fields = ["FIELD1", "FIELD2", "FIELD3", "FIELD4"]
         data = [
             Name: "FIELD1"
             Data: "DATA1"
@@ -65,7 +57,7 @@ describe "ColumnReceiver", ->
         fieldDataGet = sandbox.stub FieldData, "get"
         for d in data
             fieldDataGet.withArgs(d).returns d.Data
-        
+
         cr = new ColumnReceiver readyCallback, fields
         for col in data
             cr.add col
@@ -73,15 +65,7 @@ describe "ColumnReceiver", ->
         readyCallback.should.have.been.calledWith expected
 
     it "should collect the columns and get it back when they are all received and the order of columns was random", ->
-        fields = [
-            Name: "FIELD1"
-        ,
-            Name: "FIELD2"
-        ,
-            Name: "FIELD3"
-        ,
-            Name: "FIELD4"
-        ]
+        fields = ["FIELD1", "FIELD2", "FIELD3", "FIELD4"]
         data = [
             Name: "FIELD1"
             Data: "DATA1"
@@ -117,7 +101,7 @@ describe "ColumnReceiver", ->
         fieldDataGet = sandbox.stub FieldData, "get"
         for d in data
             fieldDataGet.withArgs(d).returns d.Data
-        
+
         cr = new ColumnReceiver readyCallback, fields
         cr.add data[3]
         cr.add data[1]
@@ -128,11 +112,7 @@ describe "ColumnReceiver", ->
 
 
     it "should log error but not die if provider sends a column multiple times", ->
-        fields = [
-            Name: "FIELD1"
-        ,
-            Name: "FIELD2"
-        ]
+        fields = ["FIELD1", "FIELD2"]
         data = [
             Name: "FIELD1"
             Data: "DATA1"
@@ -154,7 +134,7 @@ describe "ColumnReceiver", ->
         fieldDataGet = sandbox.stub FieldData, "get"
         for d in data
             fieldDataGet.withArgs(d).returns d.Data
-        
+
         cr = new ColumnReceiver readyCallback, fields
         cr.add data[0]
         cr.add data[0]

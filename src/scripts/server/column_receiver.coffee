@@ -17,7 +17,7 @@ class ColumnReceiver
         @_fieldIndices = {}
         i = 0;
         for field in @_fields
-            fieldName = @_fields[i].Name
+            fieldName = @_fields[i]
             @_fieldIndices[fieldName] = i
             @_columnEndOfData[fieldName] = false
             @_columns[i] = null

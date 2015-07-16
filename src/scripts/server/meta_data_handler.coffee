@@ -161,7 +161,7 @@ class MetadataHandler
     parseCacheKey = (key) ->
         parts = key.split "_"
         return [parts[0], (JSON.parse parts[1])]
-        
+
     sendMetaDataRequest = (name, request, cb) ->
         message = MetaDataProto.serialize request, "virtdb.interface.pb.MetaDataRequest"
         VirtDB.sendRequest name, Const.ENDPOINT_TYPE.META_DATA, message, (parseReply name, cb)

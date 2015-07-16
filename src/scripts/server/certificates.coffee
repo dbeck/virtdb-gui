@@ -84,11 +84,11 @@ router.put "/certificate/:component"
             return
         res.json ""
 
-router.delete "/certificate/:component"
+router.delete "/certificate/:component/:publicKey"
     , auth.ensureAuthenticated
     , timeout(Config.getCommandLineParameter("timeout"))
 , (req, res, next) ->
-    CertificateClient.deleteKey req.params.component, req.body.publicKey, req.user.token, (err, results) ->
+    CertificateClient.deleteKey req.params.component, req.params.publicKey, req.user.token, (err, results) ->
         if err?
             res.status(500).send()
             return
