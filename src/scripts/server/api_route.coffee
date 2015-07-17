@@ -21,7 +21,7 @@ DataHandler = require "./data_handler"
 MetadataHandler = require "./meta_data_handler"
 Authentication = require "./authentication"
 TokenManager = VirtDBConnector.TokenManager
-Credentials = require "./credential"
+Credentials = require "./credentials"
 
 require('source-map-support').install()
 
@@ -264,21 +264,12 @@ router.get "/get_credential/:component"
 , (req, res, next) =>
     try
         component = req.params.component
-        VirtDBConnector.SourceSystemCredential.getTemplate component, (err, template) ->
+        Credentials.getCredential req.user.token, component, (err, credential) ->
             if err?
-                log.error "Error during getting credential template", (V_ component), (V_ err)
+                log.error "Error during getting credential", (V_ component), (V_ err)
                 res.json {}
                 return
-            Credentials.getCredential req.user.token, component, (err, credential) ->
-                if err?
-                    res.json template
-                    return
-                if credential?
-                    for field in credential.NamedValues
-                        for templateField in template
-                            if templateField.Name is field.Name
-                                templateField.Value ?= field.Value
-                res.json template
+            res.json credential
     catch ex
         log.error V_(ex)
         throw ex
@@ -289,13 +280,10 @@ router.post "/set_credential/:component"
 , (req, res, next) =>
     try
         component = req.params.component
-        Credentials.getSourceSystemToken req.user.token, component, (err, sourceSystemToken) ->
-            credentials =
-                NamedValues: req.body
-            VirtDBConnector.SourceSystemCredential.setCredential component, sourceSystemToken, credentials, (err, result) =>
-                if err?
-                    log.error "Cannot set credential", (V_ component), (V_ err)
-                res.json {}
+        Credentials.setCredential req.user.token, component, req.body, (err) ->
+            if err?
+                log.error "Cannot set credential", (V_ component), (V_ err)
+            res.json {}
     catch ex
         log.error V_(ex)
         throw ex
