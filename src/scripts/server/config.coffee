@@ -54,7 +54,7 @@ VirtDBConnector = (require "virtdb-connector")
 
 Features =
     Installer: false
-    Security: true
+    Security: false
     Monitoring: true
 
 DB_CONFIG_SERVICE = "DatabaseConfigService/ComponentName"
