@@ -233,7 +233,7 @@ router.post "/db_config/add"
     action = req.body.action
 
     try
-        getMetadata = (token) ->
+        addTable = (token) ->
             metadataHandler = new MetadataHandler()
             metadataHandler.getTableMetadata provider, table, token, (err, metaData) ->
                 if err?
@@ -248,10 +248,10 @@ router.post "/db_config/add"
         if Config.Features.Security
             User.getTableToken req.user, provider, (err, token) ->
                 if not err?
+                    addTable token
                     DBConfig.addUserMapping provider, req.user.name, token
-                    getMetadata token
         else
-            getMetadata()
+            addTable()
 
         return
     catch ex
