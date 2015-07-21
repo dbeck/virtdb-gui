@@ -1,5 +1,6 @@
 nomnom = require "nomnom"
 path = require 'path'
+fs = require "fs"
 CLI_OPTIONS =
     name:
         abbr: 'n',
@@ -52,10 +53,15 @@ ConfigService = require "./config_service"
 util = require "util"
 VirtDBConnector = (require "virtdb-connector")
 
-Features =
-    Installer: false
-    Security: false
-    Monitoring: true
+Features = null
+try
+    Features = JSON.parse fs.readFileSync ".virtdb/features.json"
+catch ex
+    console.error "Cannot read feature file, using defaults instead"
+    Features =
+        Installer: false
+        Security: false
+        Monitoring: true
 
 DB_CONFIG_SERVICE = "DatabaseConfigService/ComponentName"
 CACHE_TTL = "Cache/TTL"
