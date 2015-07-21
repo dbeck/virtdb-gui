@@ -10,6 +10,7 @@ adminController = app.controller 'AdminController',
         updateCertificates ServerConnector, $scope, $rootScope
         $scope.approve = approve.bind null, ServerConnector, $rootScope, $scope
         $scope.remove = remove.bind null, ServerConnector, $rootScope, $scope
+        $scope.logout = CurrentUser.logout
 
 updateCertificates = (connector, scope, rootScope) ->
     connector.getCertificates (components) ->

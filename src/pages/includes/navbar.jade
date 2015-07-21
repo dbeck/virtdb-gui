@@ -44,6 +44,6 @@ div.navbar.navbar-default(ng-controller="FeatureController")
                         li
                             a(ng-if="Features.Security && user.name != ''" data-toggle="modal" data-target="#change-password-modal") Change password
                         li
-                            a(href='/logout' ng-if="Features.Security && user.name != ''") Logout
+                            a(href='/logout' ng-if="Features.Security && user.name != ''" ng-click="logout()") Logout
 
 
