@@ -78,10 +78,22 @@ app.use('/', index);
 
 VirtDBLoader.start(function(err) {
     if (err == null) {
-        var http = require('http').Server(app);
+        var protocolString = '';
+        var protocol = null;
+        try {
+            var options = {
+                key: fs.readFileSync('./ssl/server.key'),
+                cert: fs.readFileSync('./ssl/server.crt')
+            }
+            protocol = require('https').createServer(options, app);
+            protocolString = 'https';
+        } catch (ex) {
+            protocol = require('http').createServer(app);
+            protocolString = 'http';
+        }
 
-        var server = http.listen(EXPRESS_PORT, function() {
-            console.log('Listening on port %d', server.address().port);
+        var server = protocol.listen(EXPRESS_PORT, function() {
+            console.log('Listening on', protocolString, 'port', server.address().port);
         });
     }
     else {
