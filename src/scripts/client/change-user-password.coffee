@@ -21,7 +21,6 @@ module.exports = app.controller 'ChangeUserPassword',
                 @$scope.$apply()
 
         setEditUser: =>
-            console.log @$rootScope.editUser
             if not @$rootScope.editUser?
                 @CurrentUser.get (user) =>
                     @$scope.name = user.name
