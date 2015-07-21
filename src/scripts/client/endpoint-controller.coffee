@@ -57,11 +57,13 @@ class EndpointController
             @$scope.componentList = Object.keys data
 
     getComponentList: () =>
-        components = []
-        for ep in @endpoints
-            if ep.Name not in components
-                components.push ep.Name
-        return components
+        return @endpoints.map (endpoint) ->
+            endpoint.Name
+        .sort()
+        .filter (name, index, componentList) ->
+            if index is componentList.length - 1
+                return true
+            return name isnt componentList[index + 1]
 
     updateComponentInfo: () =>
         @$scope.componentInfo = []
