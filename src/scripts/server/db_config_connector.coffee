@@ -15,11 +15,11 @@ class DBConfig
     dbConfig = null
     DB_CONFIG_CACHE_PREFIX = "db_config_tables"
 
-    @setDBConfig: (name) =>
+    @setDBConfig: (name) ->
         dbConfig = name
         emptyDBConfigCache()
 
-    @getTables: (provider, onReady) =>
+    @getTables: (provider, onReady) ->
         try
             if (replyFromCache provider, onReady)
                 return
@@ -48,7 +48,7 @@ class DBConfig
             log.error V_(ex)
             throw ex
 
-    @addUserMapping: (provider, username, token) =>
+    @addUserMapping: (provider, username, token) ->
         message =
             Type: 'ASSIGN_USER'
             AssignUser:
@@ -60,8 +60,41 @@ class DBConfig
             if err?.Err?
                 log.error "Error while creating user mapping", V_(err.Err.Msg)
 
+    @createUser: (username, password) ->
+        message =
+            Type: 'CREATE_USER'
+            CreateUser:
+                UserName: username
 
-    @addTable: (provider, tableMeta, action, callback) =>
+        if password?
+            message["CreateUser"]["Password"] = password
+
+        Protocol.sendDBConfig dbConfig, message, (err) ->
+            if err?.Err?
+                log.error "Error while creating user", V_(err.Err.Msg)
+
+    @updateUser: (username, password) ->
+        message =
+            Type: 'UPDATE_USER'
+            UpdateUser:
+                UserName: username
+                Password: password
+
+        Protocol.sendDBConfig dbConfig, message, (err) ->
+            if err?.Err?
+                log.error "Error while updating user", V_(err.Err.Msg)
+
+    @deleteUser: (username) ->
+        message =
+            Type: 'DELETE_USER'
+            DeleteUser:
+                UserName: username
+
+        Protocol.sendDBConfig dbConfig, message, (err) ->
+            if err?.Err?
+                log.error "Error while deleting user", V_(err.Err.Msg)
+
+    @addTable: (provider, tableMeta, action, callback) ->
         if not dbConfig?
             log.error "missing db config service"
             return
