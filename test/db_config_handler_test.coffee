@@ -88,6 +88,9 @@ DB_CONFIG_ADD_REPLY_ERROR =
 
 DB_CONFIG = "db-config"
 
+USER_NAME = "USER"
+PASSWORD  = "2423ldhlkvs"
+
 describe "DBConfig", ->
 
     sandbox = null
@@ -170,6 +173,46 @@ describe "DBConfig", ->
             cacheListKeyStub.returns [keyToDelete, "db_config_tables_prov2", "db_es_prov3"]
             DBConfig.addTable PROVIDER, METADATA, ACTION, cb
             cacheDelStub.should.have.been.calledWithExactly keyToDelete
+
+    describe "createUser", ->
+
+        it "should send good request when password is missing", ->
+            message =
+                Type: "CREATE_USER"
+                CreateUser:
+                    UserName: USER_NAME
+            DBConfig.createUser USER_NAME
+            requestStub.should.have.been.calledWithExactly DB_CONFIG, Const.ENDPOINT_TYPE.DB_CONFIG, (DBConfigProto.serialize message, "virtdb.interface.pb.DBConfigRequest"), sinon.match.func
+
+        it "should send good request when password is missing", ->
+            message =
+                Type: "CREATE_USER"
+                CreateUser:
+                    UserName: USER_NAME
+                    Password: PASSWORD
+            DBConfig.createUser USER_NAME, PASSWORD
+            requestStub.should.have.been.calledWithExactly DB_CONFIG, Const.ENDPOINT_TYPE.DB_CONFIG, (DBConfigProto.serialize message, "virtdb.interface.pb.DBConfigRequest"), sinon.match.func
+
+    describe "updateUser", ->
+
+        it "should send good request", ->
+            message =
+                Type: "UPDATE_USER"
+                UpdateUser:
+                    UserName: USER_NAME
+                    Password: PASSWORD
+            DBConfig.updateUser USER_NAME, PASSWORD
+            requestStub.should.have.been.calledWithExactly DB_CONFIG, Const.ENDPOINT_TYPE.DB_CONFIG, (DBConfigProto.serialize message, "virtdb.interface.pb.DBConfigRequest"), sinon.match.func
+
+    describe "deleteUser", ->
+
+        it "should send good request", ->
+            message =
+                Type: "DELETE_USER"
+                DeleteUser:
+                    UserName: USER_NAME
+            DBConfig.deleteUser USER_NAME
+            requestStub.should.have.been.calledWithExactly DB_CONFIG, Const.ENDPOINT_TYPE.DB_CONFIG, (DBConfigProto.serialize message, "virtdb.interface.pb.DBConfigRequest"), sinon.match.func
 
     it "should empty cache when db config changed", ->
         cacheListKeyStub.returns ["db_config_tables_prov1", "db_config_tables_prov2", "db_es_prov3"]
