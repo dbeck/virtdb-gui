@@ -13,7 +13,7 @@ router.put "/:name", (req, res, err) =>
             res.status(500).send()
         else
             res.status(200).send()
-    DBConfig.updateUser req.body.name req.body.password
+    DBConfig.updateUser req.params.name, req.body.password
 
 router.post "/", (req, res, err) =>
     UserManager.createUser req.body.name, req.body.password, req.body.isAdmin, req.user.token, (err, data) =>
@@ -21,7 +21,7 @@ router.post "/", (req, res, err) =>
             res.status(500).send()
         else
             res.status(200).send()
-    DBConfig.createUser req.body.name req.body.password
+    DBConfig.createUser req.body.name, req.body.password
 
 router.delete "/:name", (req, res, err) =>
     UserManager.deleteUser req.params.name, req.user.token, (err, data) =>
@@ -29,7 +29,7 @@ router.delete "/:name", (req, res, err) =>
             res.status(500).send()
         else
             res.status(200).send()
-    DBConfig.deleteUser req.body.name
+    DBConfig.deleteUser req.params.name
 
 router.get "/list", (req, res, err) =>
     UserManager.listUsers req.user.token, (err, users) =>
