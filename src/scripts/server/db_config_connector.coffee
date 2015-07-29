@@ -19,7 +19,7 @@ class DBConfig
         dbConfig = name
         emptyDBConfigCache()
 
-    @getTables: (provider, onReady) ->
+    @getTables: (provider, username, onReady) ->
         try
             if (replyFromCache provider, onReady)
                 return
@@ -33,6 +33,9 @@ class DBConfig
                 Type: 'QUERY_TABLES'
                 QueryTables:
                     Provider: provider
+
+            if Config.Features.Security and username?
+                message.QueryTables.UserName = username
 
             Protocol.sendDBConfig dbConfig, message, (msg) ->
                 try

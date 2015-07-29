@@ -122,33 +122,33 @@ describe "DBConfig", ->
 
         it "should send good request", ->
             cacheGetStub.returns null
-            DBConfig.getTables PROVIDER, cb
+            DBConfig.getTables PROVIDER, null, cb
             requestStub.should.have.been.calledWithExactly DB_CONFIG, Const.ENDPOINT_TYPE.DB_CONFIG, (DBConfigProto.serialize DB_CONFIG_REQUEST, "virtdb.interface.pb.DBConfigRequest"), sinon.match.func
 
         it "should cache the received data", ->
              cacheGetStub.returns null
              requestStub.yields null, (DBConfigProto.serialize DB_CONFIG_REPLY1, "virtdb.interface.pb.DBConfigReply")
-             DBConfig.getTables PROVIDER, cb
+             DBConfig.getTables PROVIDER, null, cb
              cacheSetStub.should.have.been.calledWithExactly sinon.match.string, ["#{TABLE_SCHEMA1}.#{TABLE_NAME1}"]
 
         it "should return the cached data if it is available", ->
             result = ["#{TABLE_SCHEMA1}.#{TABLE_NAME1}"]
             cacheGetStub.returns result
-            DBConfig.getTables PROVIDER, cb
+            DBConfig.getTables PROVIDER, null, cb
             requestStub.should.not.have.been.called
             cb.should.have.been.calledWithExactly result
 
         it "should return the received data if it is not available from cache: 1 table", ->
             cacheGetStub.returns null
             requestStub.yields null, (DBConfigProto.serialize DB_CONFIG_REPLY1, "virtdb.interface.pb.DBConfigReply")
-            DBConfig.getTables PROVIDER, cb
+            DBConfig.getTables PROVIDER, null, cb
             requestStub.should.have.been.calledOnce
             cb.should.have.been.calledWithExactly ["#{TABLE_SCHEMA1}.#{TABLE_NAME1}"]
 
         it "should return the received data if it is not available from cache: one table: 3 table", ->
             cacheGetStub.returns null
             requestStub.yields null, (DBConfigProto.serialize DB_CONFIG_REPLY2, "virtdb.interface.pb.DBConfigReply")
-            DBConfig.getTables PROVIDER, cb
+            DBConfig.getTables PROVIDER, null, cb
             cb.should.have.been.calledWithExactly ["#{TABLE_SCHEMA1}.#{TABLE_NAME1}","#{TABLE_SCHEMA2}.#{TABLE_NAME2}","#{TABLE_SCHEMA3}.#{TABLE_NAME3}",]
 
     describe "addTable", ->
