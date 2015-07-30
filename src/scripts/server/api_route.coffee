@@ -210,7 +210,10 @@ router.post "/db_config/get"
 , (req, res, next) ->
     provider = req.body.provider
     try
-        DBConfig.getTables provider, (tableList) =>
+        username = null
+        if Config.Features.Security
+            username = req.user.name
+        DBConfig.getTables provider, username, (tableList) =>
             res.json tableList
     catch ex
         log.error V_(ex)
