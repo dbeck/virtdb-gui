@@ -133,10 +133,11 @@ module.exports = app.controller 'TableListController',
         changeStatus: (table) =>
             data =
                 table: table.name
-                action: if table.configured then 'DELETE' else 'CREATE'
                 provider: @$scope.selectedProvider
-            @ServerConnector.sendDBConfig data, (data) =>
-                @requestConfiguredTables()
+            if table.configured
+                @ServerConnector.deleteDBConfig data, @requestConfiguredTables
+            else
+                @ServerConnector.sendDBConfig data, @requestConfiguredTables
 
         filterTableList: () =>
             @$scope.search = ""

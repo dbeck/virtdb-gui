@@ -81,3 +81,4 @@ div(ng-controller="UserController as users")
                 td(ng-if="user.Name !== userName")
                     button.btn.btn-default.btn-sm(data-toggle="modal" data-target="#change-password-modal" ng-click="users.initChangePassword(id)") Change password
                     button.btn.btn-default.btn-sm(data-toggle="modal" data-target="#delete-confirm-modal" ng-click="users.initDeleteUser(id)") Delete
+                    button.btn.btn-default.btn-sm.disabled(ng-click="users.addUserToDB(user.Name)" ng-if="DBUserList !== null && DBUserList.indexOf(user.Name) === -1") Add to database

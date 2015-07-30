@@ -30,6 +30,8 @@ userController = app.controller 'UserController',
         getUserList: () =>
             @ServerConnector.getUserList (users) =>
                 @$scope.userList = users
+            @ServerConnector.getDBUsers (dbUsers) =>
+                @$scope.DBUserList = dbUsers
 
         createUser: () =>
             nameErr = @Validator.validateName @$scope.editUserName
@@ -51,6 +53,10 @@ userController = app.controller 'UserController',
         deleteUser: () =>
             @ServerConnector.deleteUser @$scope.editUserName, () =>
                 @getUserList()
+
+#        addDBUser: (username) =>
+#            @ServerConnector.addDBUser username, () =>
+#                @getUserList()
 
         changeAdminStatus: (id) =>
             data =

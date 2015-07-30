@@ -219,6 +219,26 @@ router.post "/db_config/get"
         log.error V_(ex)
         throw ex
 
+router.get "/db_config/list_users"
+    , auth.ensureAuthenticated
+    , timeout(Config.getCommandLineParameter("timeout"))
+, (req, res, next) ->
+    DBConfig.listUsers (err, users) ->
+        if err?
+            res.status(500).send()
+            return
+        res.json users
+
+#router.post "/db_config/add_user"
+#    , auth.ensureAuthenticated
+#    , timeout(Config.getCommandLineParameter("timeout"))
+#, (req, res, next) ->
+#    DBConfig.listUsers (err, users) ->
+#        if err?
+#            res.status(500).send()
+#            return
+#        res.json users
+
 router.post "/db_config/add"
     , auth.ensureAuthenticated
     , validator("/data_provider/data",
@@ -226,14 +246,11 @@ router.post "/db_config/add"
             required: true
         table:
             required: true
-        action:
-            required: true
     )
     , timeout(Config.getCommandLineParameter("timeout"))
 , (req, res, next) ->
     table = req.body.table
     provider = req.body.provider
-    action = req.body.action
 
     try
         addTable = (token, username) ->
@@ -242,7 +259,7 @@ router.post "/db_config/add"
                 if err?
                     res.status(500).send()
                     return
-                DBConfig.addTable provider, metaData, action, username, (err) ->
+                DBConfig.addTable provider, metaData, username, (err) ->
                     if not err?
                         res.status(200).send()
                     else
@@ -257,6 +274,40 @@ router.post "/db_config/add"
             addTable()
 
         return
+    catch ex
+        log.error V_(ex)
+        throw ex
+
+router.post "/db_config/delete"
+    , auth.ensureAuthenticated
+    , validator("/data_provider/data",
+        provider:
+            required: true
+        table:
+            required: true
+    )
+    , timeout(Config.getCommandLineParameter("timeout"))
+, (req, res, next) ->
+    table = req.body.table
+    provider = req.body.provider
+    try
+        deleteTable = (token, username) ->
+            metadataHandler = new MetadataHandler()
+            metadataHandler.getTableMetadata provider, table, token, (err, metaData) ->
+                if err?
+                    res.status(500).send()
+                    return
+                DBConfig.deleteTable provider, metaData, username, (err) ->
+                    if not err?
+                        res.status(200).send()
+                    else
+                        res.status(500).send()
+        if Config.Features.Security
+            User.getTableToken req.user, provider, (err, token) ->
+                if not err?
+                    deleteTable token, req.user.name
+        else
+            deleteTable()
     catch ex
         log.error V_(ex)
         throw ex

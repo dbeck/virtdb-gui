@@ -30,14 +30,18 @@ parseUserManagerReply = (callback) ->
         catch ex
             callback ex, null
 
-sendDBConfig = (service, message, onReady) ->
+sendDBConfig = (service, message, callback) ->
     serializedMessage = DBConfigProto.serialize message, "virtdb.interface.pb.DBConfigRequest"
     VirtDB.sendRequest service, Const.ENDPOINT_TYPE.DB_CONFIG, serializedMessage, (err, message) =>
+        if err?
+            callback err, null
+            return
         try
             reply = DBConfigProto.parse message, "virtdb.interface.pb.DBConfigReply"
+            callback null, reply
         catch ex
             VirtDB.MonitoringService.requestError @service, Const.REQUEST_ERROR.INVALID_REQUEST, ex.toString()
-        onReady reply
+            callback ex, null
     VirtDB.MonitoringService.bumpStatistic "DB config request sent"
 
 module.exports.sendUserManagerRequest = sendUserManagerRequest

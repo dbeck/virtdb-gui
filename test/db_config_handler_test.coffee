@@ -64,6 +64,12 @@ DB_CONFIG_ADD_REQUEST =
         Provider: PROVIDER
         Table: TABLE_METADATA1
 
+DB_CONFIG_DELETE_REQUEST =
+    Type: 'DELETE_TABLE'
+    DeleteTable:
+        Provider: PROVIDER
+        Table: TABLE_METADATA1
+
 DB_CONFIG_REQUEST =
     Type: 'QUERY_TABLES'
     QueryTables:
@@ -81,8 +87,16 @@ DB_CONFIG_REPLY2 =
 DB_CONFIG_ADD_REPLY_NO_ERROR =
     Type: 'ADD_TABLE'
 ERROR_TEXT = "Some very bad thing happened!"
+ERROR = new Error ERROR_TEXT
 DB_CONFIG_ADD_REPLY_ERROR =
     Type: 'ADD_TABLE'
+    Err:
+        Msg: ERROR_TEXT
+
+DB_CONFIG_DELETE_REPLY_NO_ERROR =
+    Type: 'DELETE_TABLE'
+DB_CONFIG_DELETE_REPLY_ERROR =
+    Type: 'DELETE_TABLE'
     Err:
         Msg: ERROR_TEXT
 
@@ -154,24 +168,47 @@ describe "DBConfig", ->
     describe "addTable", ->
 
         it "should send good request", ->
-            DBConfig.addTable PROVIDER, METADATA, ACTION, null, cb
+            DBConfig.addTable PROVIDER, METADATA, null, cb
             requestStub.should.have.been.calledWithExactly DB_CONFIG, Const.ENDPOINT_TYPE.DB_CONFIG, (DBConfigProto.serialize DB_CONFIG_ADD_REQUEST, "virtdb.interface.pb.DBConfigRequest"), sinon.match.func
 
         it "should response null when no error", ->
             requestStub.yields null, (DBConfigProto.serialize DB_CONFIG_ADD_REPLY_NO_ERROR, "virtdb.interface.pb.DBConfigReply")
-            DBConfig.addTable PROVIDER, METADATA, ACTION, null, cb
+            DBConfig.addTable PROVIDER, METADATA, null, cb
             cb.should.have.been.calledWithExactly null
 
         it "should response the error when it occurs", ->
             requestStub.yields null, (DBConfigProto.serialize DB_CONFIG_ADD_REPLY_ERROR, "virtdb.interface.pb.DBConfigReply")
-            DBConfig.addTable PROVIDER, METADATA, ACTION, null, cb
-            cb.should.have.been.calledWith DB_CONFIG_ADD_REPLY_ERROR
+            DBConfig.addTable PROVIDER, METADATA, null, cb
+            cb.should.have.been.calledWith ERROR
 
         it "should empty cache when db config changed", ->
             keyToDelete = "db_config_tables_" + PROVIDER
             requestStub.yields null, (DBConfigProto.serialize DB_CONFIG_ADD_REPLY_NO_ERROR, "virtdb.interface.pb.DBConfigReply")
             cacheListKeyStub.returns [keyToDelete, "db_config_tables_prov2", "db_es_prov3"]
-            DBConfig.addTable PROVIDER, METADATA, ACTION, null, cb
+            DBConfig.addTable PROVIDER, METADATA, null, cb
+            cacheDelStub.should.have.been.calledWithExactly keyToDelete
+
+    describe "deleteTable", ->
+
+        it "should send good request", ->
+            DBConfig.deleteTable PROVIDER, METADATA, null, cb
+            requestStub.should.have.been.calledWithExactly DB_CONFIG, Const.ENDPOINT_TYPE.DB_CONFIG, (DBConfigProto.serialize DB_CONFIG_DELETE_REQUEST, "virtdb.interface.pb.DBConfigRequest"), sinon.match.func
+
+        it "should response null when no error", ->
+            requestStub.yields null, (DBConfigProto.serialize DB_CONFIG_DELETE_REPLY_NO_ERROR, "virtdb.interface.pb.DBConfigReply")
+            DBConfig.deleteTable PROVIDER, METADATA, null, cb
+            cb.should.have.been.calledWithExactly null
+
+        it "should response the error when it occurs", ->
+            requestStub.yields null, (DBConfigProto.serialize DB_CONFIG_DELETE_REPLY_ERROR, "virtdb.interface.pb.DBConfigReply")
+            DBConfig.deleteTable PROVIDER, METADATA, null, cb
+            cb.should.have.been.calledWith ERROR
+
+        it "should empty cache when db config changed", ->
+            keyToDelete = "db_config_tables_" + PROVIDER
+            requestStub.yields null, (DBConfigProto.serialize DB_CONFIG_DELETE_REPLY_NO_ERROR, "virtdb.interface.pb.DBConfigReply")
+            cacheListKeyStub.returns [keyToDelete, "db_config_tables_prov2", "db_es_prov3"]
+            DBConfig.deleteTable PROVIDER, METADATA, null, cb
             cacheDelStub.should.have.been.calledWithExactly keyToDelete
 
     describe "createUser", ->
@@ -213,6 +250,44 @@ describe "DBConfig", ->
                     UserName: USER_NAME
             DBConfig.deleteUser USER_NAME
             requestStub.should.have.been.calledWithExactly DB_CONFIG, Const.ENDPOINT_TYPE.DB_CONFIG, (DBConfigProto.serialize message, "virtdb.interface.pb.DBConfigRequest"), sinon.match.func
+
+    describe "listUsers", ->
+
+        it "should send good request", ->
+            message =
+                Type: "LIST_USERS"
+            callback = sinon.spy()
+            DBConfig.listUsers callback
+            requestStub.should.have.been.calledWithExactly DB_CONFIG, Const.ENDPOINT_TYPE.DB_CONFIG, (DBConfigProto.serialize message, "virtdb.interface.pb.DBConfigRequest"), sinon.match.func
+
+        it "should give back the user list", ->
+            users =
+                Name: [
+                    "Bela"
+                ,
+                    "Joska"
+                ,
+                    "Pista"
+            ]
+            reply =
+                Type: "LIST_USERS"
+                Users: users
+            callback = sinon.spy()
+            requestStub.yields null, (DBConfigProto.serialize reply, "virtdb.interface.pb.DBConfigReply")
+            DBConfig.listUsers callback
+            callback.should.have.been.calledWithExactly null, users.Name
+
+        it "should give back null when error happened", ->
+            errorText = "SOME VERY BAD THING HAPPENED"
+            error = new Error errorText
+            reply =
+                Type: "LIST_USERS"
+                Err:
+                    Msg: errorText
+            callback = sinon.spy()
+            requestStub.yields null, (DBConfigProto.serialize reply, "virtdb.interface.pb.DBConfigReply")
+            DBConfig.listUsers callback
+            callback.should.have.been.calledWithExactly error, null
 
     it "should empty cache when db config changed", ->
         cacheListKeyStub.returns ["db_config_tables_prov1", "db_config_tables_prov2", "db_es_prov3"]
