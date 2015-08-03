@@ -17,6 +17,7 @@ Endpoints = require "./endpoints"
 auth = require './authentication'
 validator = require "./validator"
 
+UserManager = require './user_manager'
 DataHandler = require "./data_handler"
 MetadataHandler = require "./meta_data_handler"
 Authentication = require "./authentication"
@@ -229,15 +230,22 @@ router.get "/db_config/list_users"
             return
         res.json users
 
-#router.post "/db_config/add_user"
-#    , auth.ensureAuthenticated
-#    , timeout(Config.getCommandLineParameter("timeout"))
-#, (req, res, next) ->
-#    DBConfig.listUsers (err, users) ->
-#        if err?
-#            res.status(500).send()
-#            return
-#        res.json users
+router.post "/db_config/add_user"
+    , auth.ensureAuthenticated
+    , timeout(Config.getCommandLineParameter("timeout"))
+, (req, res, next) ->
+    username = req.body.name
+    password = req.body.password
+    isAdmin = req.body.isAdmin
+    UserManager.updateUser username, password, isAdmin, req.user.token, (err, data) =>
+        if not err?
+            DBConfig.createUser username, password, (err, data) ->
+                if err?
+                    res.status(500).send()
+                    return
+                res.status(200).send()
+        else
+            res.status(500).send()
 
 router.post "/db_config/add"
     , auth.ensureAuthenticated

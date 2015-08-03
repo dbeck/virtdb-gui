@@ -199,13 +199,13 @@ module.exports = app.factory 'ServerConnector', ['$http', 'ErrorService', '$q', 
                 onSuccess null
             )
 
-#        addDBUser: (username, onSuccess) =>
-#            $http.get @address + "/api/db_config/add_user", {Name: username}
-#            .success(onSuccess)
-#            .error( (response, status) =>
-#                ErrorService.errorHappened status, "Failed to add user to the host database: (#{response})"
-#                onSuccess null
-#            )
+        addUserToDB: (data, onSuccess) =>
+            $http.post @address + "/api/db_config/add_user", data
+            .success(onSuccess)
+            .error( (response, status) =>
+                ErrorService.errorHappened status, "Failed to add user to the host database: (#{response})"
+                onSuccess null
+            )
 
         getLogs: (data, onDiagMessage) =>
             $http.post(@address + "/api/get_diag/", data)

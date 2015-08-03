@@ -65,7 +65,7 @@ class DBConfig
                 Token: token
 
         Protocol.sendDBConfig dbConfig, message, (err, reply) ->
-            handleError err, reply, "Error while creating user mapping"
+            callback (handleError err, reply, "Error while adding user mapping"), null
 
     @createUser: (username, password, callback) ->
         if not (checkDBConfig callback)?
@@ -79,7 +79,7 @@ class DBConfig
             message["CreateUser"]["Password"] = password
 
         Protocol.sendDBConfig dbConfig, message, (err, reply) ->
-            handleError err, reply, "Error while creating user mapping"
+            callback (handleError err, reply, "Error while creating user"), null
 
     @updateUser: (username, password, callback) ->
         if not (checkDBConfig callback)?
@@ -92,7 +92,7 @@ class DBConfig
                 Password: password
 
         Protocol.sendDBConfig dbConfig, message, (err, reply) ->
-            handleError err, reply, "Error while updating user mapping"
+            callback (handleError err, reply, "Error while updating user"), null
 
     @deleteUser: (username, callback) ->
         if not (checkDBConfig callback)?
@@ -104,7 +104,7 @@ class DBConfig
                 UserName: username
 
         Protocol.sendDBConfig dbConfig, message, (err, reply) ->
-            handleError err, reply, "Error while deleting user mapping"
+            callback (handleError err, reply, "Error while deleting user"), null
 
     @listUsers: (callback) ->
         if not (checkDBConfig callback)?
