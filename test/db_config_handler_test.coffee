@@ -154,24 +154,24 @@ describe "DBConfig", ->
     describe "addTable", ->
 
         it "should send good request", ->
-            DBConfig.addTable PROVIDER, METADATA, ACTION, cb
+            DBConfig.addTable PROVIDER, METADATA, ACTION, null, cb
             requestStub.should.have.been.calledWithExactly DB_CONFIG, Const.ENDPOINT_TYPE.DB_CONFIG, (DBConfigProto.serialize DB_CONFIG_ADD_REQUEST, "virtdb.interface.pb.DBConfigRequest"), sinon.match.func
 
         it "should response null when no error", ->
             requestStub.yields null, (DBConfigProto.serialize DB_CONFIG_ADD_REPLY_NO_ERROR, "virtdb.interface.pb.DBConfigReply")
-            DBConfig.addTable PROVIDER, METADATA, ACTION, cb
+            DBConfig.addTable PROVIDER, METADATA, ACTION, null, cb
             cb.should.have.been.calledWithExactly null
 
         it "should response the error when it occurs", ->
             requestStub.yields null, (DBConfigProto.serialize DB_CONFIG_ADD_REPLY_ERROR, "virtdb.interface.pb.DBConfigReply")
-            DBConfig.addTable PROVIDER, METADATA, ACTION, cb
+            DBConfig.addTable PROVIDER, METADATA, ACTION, null, cb
             cb.should.have.been.calledWith DB_CONFIG_ADD_REPLY_ERROR
 
         it "should empty cache when db config changed", ->
             keyToDelete = "db_config_tables_" + PROVIDER
             requestStub.yields null, (DBConfigProto.serialize DB_CONFIG_ADD_REPLY_NO_ERROR, "virtdb.interface.pb.DBConfigReply")
             cacheListKeyStub.returns [keyToDelete, "db_config_tables_prov2", "db_es_prov3"]
-            DBConfig.addTable PROVIDER, METADATA, ACTION, cb
+            DBConfig.addTable PROVIDER, METADATA, ACTION, null, cb
             cacheDelStub.should.have.been.calledWithExactly keyToDelete
 
     describe "createUser", ->
