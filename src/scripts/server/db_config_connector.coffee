@@ -97,7 +97,7 @@ class DBConfig
             if err?.Err?
                 log.error "Error while deleting user", V_(err.Err.Msg)
 
-    @addTable: (provider, tableMeta, action, callback) ->
+    @addTable: (provider, tableMeta, action, username, callback) ->
         if not dbConfig?
             log.error "missing db config service"
             return
@@ -119,6 +119,10 @@ class DBConfig
                     DeleteTable:
                         Provider: provider
                         Table: tableMeta.Tables[0]
+
+        if Config.Features.Security and username?
+            serverConfigMessage.AddTable?.UserName = username
+            serverConfigMessage.DeleteTable?.UserName = username
 
         Protocol.sendDBConfig dbConfig, serverConfigMessage, (err) ->
             if not err.Err?
