@@ -28,6 +28,8 @@ bower_components
 # Compiled files
 static
 server/*
+*.js
+*.js.map
 
 #test report
 test_report.xml
