@@ -12,6 +12,10 @@ class VirtDBLoader
     @start: (callback) =>
         address = Configuration.getCommandLineParameter("serviceConfig")
         name = Configuration.getCommandLineParameter("name")
+        offline = Configuration.getCommandLineParameter("offline")
+        if offline
+            callback?(null)
+            return
         process.title = "virtdb-gui / #{name}"
         isConsoleLogEnabled = Configuration.getCommandLineParameter "forceConsoleLog"
 

@@ -59,6 +59,10 @@ userController = app.controller 'UserController',
             @ServerConnector.updateUser data, () =>
                 @getUserList()
 
+        login: =>
+            @ServerConnector.login @$scope.username, @$scope.password, ->
+                window.location = '/'
+
         initCreateUser: () =>
             @$scope.error = null
             @$scope.editUserName = ""

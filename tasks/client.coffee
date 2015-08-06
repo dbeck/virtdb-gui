@@ -1,3 +1,4 @@
+args = (require 'nomnom').parse()
 gulp = require 'gulp'
 stylus = require 'gulp-stylus'
 jade = require 'gulp-jade'
@@ -32,14 +33,23 @@ gulp.task 'copy-images', ->
     gulp.src ['./src/images/*.png', './src/images/*.jpg']
         .pipe gulp.dest './static/images'
 
-gulp.task 'compile-client-coffee', ->
-    gulp.src './src/scripts/client/*.coffee'
+compileCoffee = (src, dest) ->
+    gulp.src src
         .pipe sourcemaps.init()
         .pipe coffee
             bare: true
         .on 'error', console.error
         .pipe sourcemaps.write '.'
-        .pipe gulp.dest './static/scripts/'
+        .pipe gulp.dest dest
+
+gulp.task 'compile-client-production', ->
+    compileCoffee './src/scripts/client/*.coffee', './static/scripts'
+
+gulp.task 'compile-client-dev', ['compile-client-production'], ->
+    if args.offline
+        compileCoffee './src/scripts/client/dev/*.coffee', './static/scripts'
+
+gulp.task 'compile-client-coffee', ['compile-client-dev']
 
 gulp.task 'bower-install', ->
     bower()
