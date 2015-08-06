@@ -1,5 +1,5 @@
 app = require './virtdb-app.js'
-module.exports = app.factory 'ServerConnector', ['$http', 'ErrorService', '$q', ($http, ErrorService, $q) ->
+module.exports = app.factory 'ServerConnector', ['$http', '$timeout', 'ErrorService', '$q', ($http, $timeout, ErrorService, $q) ->
     new class ServerConnector
 
         constructor: () ->
@@ -7,10 +7,7 @@ module.exports = app.factory 'ServerConnector', ['$http', 'ErrorService', '$q', 
             @pendingRequestIds = {}
 
         getFeatures: (onSuccess) ->
-            $http.get @address + "/api/features"
-            .success(onSuccess)
-            .error (response, status) ->
-                ErrorService.errorHappened status, "Failed to get list of enabled features. (#{response})"
+            return { Security: true }
 
         getSettings: (onSuccess) ->
             $http.get @address + "/api/settings"
@@ -52,11 +49,7 @@ module.exports = app.factory 'ServerConnector', ['$http', 'ErrorService', '$q', 
             )
 
         getDataProviders: (onSuccess) =>
-            $http.get(@address + "/api/data_provider/list").success(onSuccess)
-            .error( (response, status) =>
-                ErrorService.errorHappened status, "Failed to get data provider list. (#{response})"
-                onSuccess []
-            )
+            onSuccess ["random", "oracle", "sap", "sap-cache", "oracle-cache", "googlesheet-provider", "some-very-long-long-name-provider"]
 
         getAuthenticationMethods: (onSuccess) =>
             $http.get(@address + "/api/authmethods").success(onSuccess)
@@ -66,20 +59,14 @@ module.exports = app.factory 'ServerConnector', ['$http', 'ErrorService', '$q', 
             )
 
         getCurrentUser: (onSuccess) =>
-            $http.get(@address + "/api/user").success(onSuccess)
-            .error( (response, status) =>
-                ErrorService.errorHappened status, "Failed to get user information. (#{response})"
-                onSuccess null
-            )
-
-        login: (username, password, done) =>
-            data =
-                username: username
-                password: password
-            $http.post(@address + "/login", data).success(done)
-            .error( (response, status) =>
-                ErrorService.errorHappened status, "Failed to loging user #{data.username}"
-            )
+            $timeout =>
+                onSuccess
+                    name: "admin"
+                    password: null
+                    tableTokens: {}
+                    sourceSystemTokens: {}
+                    token: "1438841921-20-LT"
+            , 100
 
         getUserList: (onSuccess) =>
             $http.get(@address + "/api/user/list").success(onSuccess)
@@ -106,43 +93,127 @@ module.exports = app.factory 'ServerConnector', ['$http', 'ErrorService', '$q', 
                 ErrorService.errorHappened status, "Failed to create user #{data.name}. (#{response})"
             )
 
-        getTableList: (data, onSuccess, onError) =>
-            data.id = generateRequestId()
-
-            $http.post(@address + "/api/data_provider/table_list", data, {timeout: @createCanceler data.id})
-            .success( (response) =>
-                onSuccess response.data
-            )
+        login: (username, password, done) =>
+            data =
+                username: username
+                password: password
+            $http.post(@address + "/login", data).success( -> done?())
             .error( (response, status) =>
-                if status not in [0, 503]
-                    ErrorService.errorHappened status, "Failed to get table list for #{data.provider}. (#{response})"
-                onError response, status
+                ErrorService.errorHappened status, "Failed to loging user #{data.username}"
             )
-            return data.id
+
+        getTableList: (data, onSuccess, onError) =>
+            $timeout =>
+                onSuccess
+                    from: 0
+                    to: 49
+                    count: 57
+                    results: ["OOGMPP", "UZISIF", "MJBDXF", "KRBNUE", "RWRKOY", "MHYRPE", "YVXNXL", "TDJBLH", "ZEWQBX", "SPCIIS", "PCXNGV", "FLAWTO", "QGTHBQ", "YUQDQN", "UNQUJX", "ANCKZJ", "VBKHAX", "DPKZMA", "YWJUOQ", "CNFPOS", "EIUBRM", "HOLEJB", "EQXFPR", "THTKEU", "IOONEL", "CIHHCF", "ZNGFEZ", "UAOZHY", "GYKYCS", "TJGJSJ", "FSTMUY", "EWRZNS", "VGDZPZ", "JGACMJ", "IYJTEL", "HNIMIY", "KQQIBR", "IUNZVZ", "XVPNMZ", "BOJVKW", "PBWVKQ", "TCYFBF", "HKKOYZ", "JQSHJT", "PFAEAE", "WZYBSE", "SQCNSY", "HMAODN", "BXYBJR", "TRWAQB"]
+                id: 851507
+            , 100
+            return 851507
 
         getMetaData: (data, onSuccess) =>
-            data.id = generateRequestId()
-            $http.post(@address + "/api/data_provider/meta_data", data, {timeout: @createCanceler data.id})
-            .success( (response) =>
-                onSuccess response.data
-            )
-            .error( (response, status) =>
-                ErrorService.errorHappened status, "Failed to get table information. (#{response})"
-                onSuccess []
-            )
-            return data.id
+            $timeout =>
+                onSuccess
+                    Name: data.table
+                    Comments: []
+                    Properties: []
+                    Fields: [
+                        {
+                            Name: "XGOCHL"
+                            Desc:
+                                Type: "STRING"
+                            Comments: []
+                            Properties: {}
+                        }
+                        {
+                            Name: "PEJYGU"
+                            Desc:
+                                Type: "STRING"
+                            Comments: []
+                            Properties: {}
+                        }
+                        {
+                            Name: "WABCYH"
+                            Desc:
+                                Type: "STRING"
+                            Comments: []
+                            Properties: {}
+                        }
+                        {
+                            Name: "FIFAHZ"
+                            Desc:
+                                Type: "STRING"
+                            Comments: []
+                            Properties: {}
+                        }
+                        {
+                            Name: "KMUIHZ"
+                            Desc:
+                                Type: "STRING"
+                            Comments: []
+                            Properties: {}
+                        }
+                        {
+                            Name: "DQXJIA"
+                            Desc:
+                                Type: "STRING"
+                            Comments: []
+                            Properties: {}
+                        }
+                        {
+                            Name: "JPAVJR"
+                            Desc:
+                                Type: "STRING"
+                            Comments: []
+                            Properties: {}
+                        }
+                        {
+                            Name: "DYDGPW"
+                            Desc:
+                                Type: "STRING"
+                            Comments: []
+                            Properties: {}
+                        }
+                        {
+                            Name: "UDOJKA"
+                            Desc:
+                                Type: "STRING"
+                            Comments: []
+                            Properties: {}
+                        }
+                    ]
+                    id: 614976
+                , 100
+            return 614976
 
         getData: (data, onSuccess) =>
-            data.id = generateRequestId()
-            $http.post(@address + "/api/data_provider/data", data, {timeout: @createCanceler data.id})
-            .success( (response) =>
-                onSuccess response.data
-            )
-            .error( (response, status) =>
-                ErrorService.errorHappened status, "Failed to get table data. (#{response})"
-                onSuccess []
-            )
-            return data.id
+            $timeout =>
+                onSuccess [
+                        ["GVOFCJ","HPKGOW","QJNIJL","ZOGCLF","FYMQUU","MEKPFO","DHQAYA","XBKBBD","HGDPTU"]
+                        ["PUQOKS","SAWAIK","TWWWPC","DKQJXN","FMBFQI","XDCNWN","SVAPNT","BNBGLL","UQZHMS"]
+                        ["XLWVTO","PGYFCB","NPDVOJ","QFIFWN","NKZMZP","ZXZQAV","TDTPQG","RZXPVD","CXCMKO"]
+                        ["DEYWVO","HEFGRE","WZVQRO","SIBIIR","PEKRIT","TEFBUR","XVXCXH","XRGINY","PORGNN"]
+                        ["SOTAOR","SVZCJS","EMWSSS","EDWSLQ","KYUVBB","HOWIOR","FMGTTO","NAQDIF","TTHKTC"]
+                        ["SQDWMQ","RHUZEO","DSHEOU","KZOQOU","NENQGH","ZCNDSK","YHGCFY","CISJYD","VZDNJP"]
+                        ["TJWOBW","JDALGW","CLPPKX","HQYAAM","KPCKLI","BZEEOR","AMIDJR","QGOMTU","XPJNCM"]
+                        ["RAUKTK","OGRTPK","GZXMHJ","CJMAXR","XWBDPU","XNEWSK","NNVOEO","JILMQJ","QIOISF"]
+                        ["AWMTRB","LSDVEO","RPAAZK","XWHRXD","NBUHTM","VCIQZQ","TTPMGY","KGUGBP","TZSLOT"]
+                        ["TEHHKD","XELGYY","AUDKIR","IFKVCA","IWNWAP","HCUOGI","KCVODZ","XBYAOI","PQZOFZ"]
+                        ["DPVVVC","RGFSWQ","LXIWEH","QTKSXS","ZDOGWR","LVPFMI","KLDCYI","AWGJPV","AGETCY"]
+                        ["ORQTOG","FLBYFS","WDOSYI","XBGBNS","RRKWUI","CAULCJ","LNJEML","LOXZHV","QIQDBC"]
+                        ["SWDOIP","XPGEVT","OUUFDD","DBNMXT","LOZGOQ","VASXWG","ZUOOBD","HHCKJK","ZVCEGP"]
+                        ["XOGXND","VEMNHU","DCCQAI","BPTXFP","JQLHDL","OFLGAV","MNTXGL","IXNWCS","QTBAMN"]
+                        ["CLUEBG","ASUPBT","IXNAOE","TLNGGQ","XGULVV","MTIJGY","FEPIBC","NFCDHI","YSXOKE"]
+                        ["NUVLZZ","ZHSUQM","NJYKSB","EKSOQD","CLFMVA","MBITMD","XZQQPA","SPLURF","RXCSFM"]
+                        ["NPCQLN","ZNHPZN","WECXDA","FAZLSN","GBRDRF","XQPNRJ","FRBTEX","OVCOQV","XSDUAI"]
+                        ["IQZDLP","BKIGAQ","TKWQYJ","KQTHRN","GCERVR","MKXGXD","RLXPZH","WIBQLE","UZRIOG"]
+                        ["OQCXYG","TQRIWH","HHPMKU","SLISVD","YUIGHI","CEAVCH","VOGWDZ","MABOIS","HMMOIK"]
+                        ["MPMXUD","QQWVBB","LCIAUP","BWKMCZ","DKOUNX","HLNDOA","NZRRBJ","IMNAPL","WJJRAA"]
+                    ]
+            , 100
+            return 233063
 
         getConfig: (data, onSuccess) =>
             $http.get @address + '/api/get_config/' + data.selectedComponent

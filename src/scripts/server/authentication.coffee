@@ -2,7 +2,6 @@ passport = require 'passport'
 express = require("express")
 config = require("./config")
 fs = require 'fs'
-bodyparser = require 'body-parser'
 User = require "./user"
 
 BasicStrategy = (require 'passport-http').BasicStrategy
@@ -35,8 +34,6 @@ class Authentication
     @initialize: (app) =>
         @users = []
         @init()
-        app.use bodyparser.urlencoded({ extended: false })
-        app.use bodyparser.json()
         app.use passport.initialize()
         app.use passport.session()
 

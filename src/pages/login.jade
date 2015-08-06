@@ -7,8 +7,8 @@ head
     link(rel='stylesheet', href='../styles/spinner.css')
     link(rel='stylesheet', href='../styles/onoffbutton.css')
     link(href='../styles/font-awesome.freelancer.min.css', rel='stylesheet', type='text/css')
-    link(href='http://fonts.googleapis.com/css?family=Montserrat:400,700', rel='stylesheet', type='text/css')
-    link(href='http://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic', rel='stylesheet', type='text/css')
+    link(href='https://fonts.googleapis.com/css?family=Montserrat:400,700', rel='stylesheet', type='text/css')
+    link(href='https://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic', rel='stylesheet', type='text/css')
     link(rel='stylesheet', href='../styles/style.css')
     script(type='text/javascript' src='../libs/jquery.js')
     script(type='text/javascript' src='../libs/angular.js')
@@ -29,13 +29,13 @@ body
     #loginFormContainer.container(ng-controller="UserController as user")
         h1 Login
         div
-            form#loginForm(action='/login', method="post")
+            form#loginForm(ng-submit='user.login()')
                 div
                     label Username
-                    input#usernameInput(type="text", name="username" autofocus)
+                    input#usernameInput(type="text", name="username", ng-model="username" autofocus)
                 div
                     label Password
-                    input#passwordInput(type="password", name="password")
+                    input#passwordInput(type="password", name="password", ng-model="password")
                 div
                     span
                         input#submitInput(type="submit", value="Log In")

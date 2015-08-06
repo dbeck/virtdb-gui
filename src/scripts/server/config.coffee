@@ -46,6 +46,11 @@ CLI_OPTIONS =
         full: "auth-file"
         default: "login.json"
         help: "JSON file containing array of user objects with username and password fields"
+    offline:
+        abbr: 'o'
+        flag: true
+        default: false
+        help: 'if set, gui will not connect to VirtDB and use dummy data. this is for development purposes only'
 
 nomnom.options(CLI_OPTIONS).parse()
 
