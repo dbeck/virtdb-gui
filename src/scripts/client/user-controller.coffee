@@ -30,6 +30,8 @@ userController = app.controller 'UserController',
         getUserList: () =>
             @ServerConnector.getUserList (users) =>
                 @$scope.userList = users
+            @ServerConnector.getDBUsers (dbUsers) =>
+                @$scope.DBUserList = dbUsers
 
         createUser: () =>
             nameErr = @Validator.validateName @$scope.editUserName
@@ -52,12 +54,25 @@ userController = app.controller 'UserController',
             @ServerConnector.deleteUser @$scope.editUserName, () =>
                 @getUserList()
 
+        addUserToDB: (id) =>
+            err = @Validator.validatePassword @$scope.editUserPass1, @$scope.editUserPass2
+            if err?
+                @$scope.error = err.message
+                return
+            @$scope.error = null
+            data =
+                name: @$scope.editUserName
+                password: @$scope.editUserPass1
+                isAdmin: @$scope.editUserIsAdmin
+            @ServerConnector.addUserToDB data, () =>
+                $('#user-to-db-modal').modal("hide")
+                @getUserList()
+
         changeAdminStatus: (id) =>
             data =
                 name: @$scope.userList[id].Name
                 isAdmin: @$scope.userList[id].IsAdmin
-            @ServerConnector.updateUser data, () =>
-                @getUserList()
+            @ServerConnector.updateUser data, @getUserList
 
         login: =>
             @ServerConnector.login @$scope.username, @$scope.password, ->
@@ -79,5 +94,11 @@ userController = app.controller 'UserController',
 
         initChangePassword: (id) =>
             @$rootScope.editUser = @$scope.userList[id]
+
+        initUserToDB: (id) =>
+            @$scope.editUserName = @$scope.userList[id].Name
+            @$scope.editUserIsAdmin = @$scope.userList[id].IsAdmin
+            @$scope.editUserPass1 = ""
+            @$scope.editUserPass2 = ""
 
 module.exports = userController
