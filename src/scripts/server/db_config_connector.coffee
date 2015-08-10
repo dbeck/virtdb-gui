@@ -24,9 +24,10 @@ class DBConfig
             if (replyFromCache provider, onReady)
                 return
 
-            if not dbConfig?
-                log.error "missing db config service"
+            err = checkDBConfig()
+            if err?
                 onReady []
+                log.error V_ err
                 return
 
             message =
@@ -54,7 +55,10 @@ class DBConfig
             throw ex
 
     @addUserMapping: (provider, username, token, callback) ->
-        if not (checkDBConfig callback)?
+        err = checkDBConfig()
+        if err?
+            callback err, null
+            log.error V_ err
             return
 
         message =
@@ -68,7 +72,10 @@ class DBConfig
             callback? (collectError err, reply, "Error while adding user mapping"), null
 
     @createUser: (username, password, callback) ->
-        if not (checkDBConfig callback)?
+        err = checkDBConfig()
+        if err?
+            callback err, null
+            log.error V_ err
             return
 
         message =
@@ -82,7 +89,10 @@ class DBConfig
             callback? (collectError err, reply, "Error while creating user"), null
 
     @updateUser: (username, password, callback) ->
-        if not (checkDBConfig callback)?
+        err = checkDBConfig()
+        if err?
+            callback err, null
+            log.error V_ err
             return
 
         message =
@@ -95,7 +105,10 @@ class DBConfig
             callback? (collectError err, reply, "Error while updating user"), null
 
     @deleteUser: (username, callback) ->
-        if not (checkDBConfig callback)?
+        err = checkDBConfig()
+        if err?
+            callback err, null
+            log.error V_ err
             return
 
         message =
@@ -107,7 +120,10 @@ class DBConfig
             callback? (collectError err, reply, "Error while deleting user"), null
 
     @listUsers: (callback) ->
-        if not (checkDBConfig callback)?
+        err = checkDBConfig()
+        if err?
+            callback err, null
+            log.error V_ err
             return
 
         message =
@@ -122,7 +138,16 @@ class DBConfig
                 callback null, reply.Users.Name
 
     @deleteTable: (provider, tableMeta, username, callback) ->
-        if (not (checkDBConfig callback)?) or (not (checkMetadata tableMeta))
+        err = checkDBConfig()
+        if err?
+            callback err
+            log.error V_ err
+            return
+
+        err = checkMetadata(tableMeta)
+        if err?
+            callback err
+            log.error V_ err
             return
 
         message =
@@ -143,7 +168,16 @@ class DBConfig
             callback? error
 
     @addTable: (provider, tableMeta, username, callback) ->
-        if (not (checkDBConfig callback)?) or (not (checkMetadata tableMeta))
+        err = checkDBConfig()
+        if err?
+            callback err
+            log.error V_ err
+            return
+
+        err = checkMetadata(tableMeta)
+        if err?
+            callback err
+            log.error V_ err
             return
 
         message =
@@ -171,12 +205,10 @@ class DBConfig
 
     checkMetadata = (metadata) ->
         if not metadata?
-            log.error "couldn't add table to the db config due to a problem with the meta data", V_(metadata)
-            return false
-
+            return new Error "couldn't add table to the db config due to a problem with the meta data: #{metadata}"
         if metadata.Tables.length is not 1
-            log.error "exactly one table should be in metadata", V_(metadata)
-        return true
+            return new Error "exactly one table should be in metadata: #{metadata}"
+        return null
 
     makeTableListResponse = (provider, tables, callback) ->
         tableList = []
@@ -210,12 +242,10 @@ class DBConfig
             log.error desc, V_(error)
         return error
 
-    checkDBConfig = (callback) ->
+    checkDBConfig =  ->
         if not dbConfig?
-            err = new Error "DBConfig service is not set"
-            log.error V_(err)
-            callback?(err, null)
-        return dbConfig
+            return new Error "DBConfig service is not set"
+        return null
 
 Config.addConfigListener Config.DB_CONFIG_SERVICE, DBConfig.setDBConfig
 module.exports = DBConfig
