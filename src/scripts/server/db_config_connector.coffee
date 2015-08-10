@@ -65,7 +65,7 @@ class DBConfig
                 Token: token
 
         Protocol.sendDBConfig dbConfig, message, (err, reply) ->
-            callback (handleError err, reply, "Error while adding user mapping"), null
+            callback? (collectError err, reply, "Error while adding user mapping"), null
 
     @createUser: (username, password, callback) ->
         if not (checkDBConfig callback)?
@@ -79,7 +79,7 @@ class DBConfig
             message["CreateUser"]["Password"] = password
 
         Protocol.sendDBConfig dbConfig, message, (err, reply) ->
-            callback (handleError err, reply, "Error while creating user"), null
+            callback? (collectError err, reply, "Error while creating user"), null
 
     @updateUser: (username, password, callback) ->
         if not (checkDBConfig callback)?
@@ -92,7 +92,7 @@ class DBConfig
                 Password: password
 
         Protocol.sendDBConfig dbConfig, message, (err, reply) ->
-            callback (handleError err, reply, "Error while updating user"), null
+            callback? (collectError err, reply, "Error while updating user"), null
 
     @deleteUser: (username, callback) ->
         if not (checkDBConfig callback)?
@@ -104,7 +104,7 @@ class DBConfig
                 UserName: username
 
         Protocol.sendDBConfig dbConfig, message, (err, reply) ->
-            callback (handleError err, reply, "Error while deleting user"), null
+            callback? (collectError err, reply, "Error while deleting user"), null
 
     @listUsers: (callback) ->
         if not (checkDBConfig callback)?
@@ -114,7 +114,7 @@ class DBConfig
             Type: 'LIST_USERS'
 
         Protocol.sendDBConfig dbConfig, message, (err, reply) ->
-            error = handleError err, reply, "Error while getting DB users"
+            error = collectError err, reply, "Error while getting DB users"
             if error?
                 callback error, null
                 return
@@ -135,14 +135,12 @@ class DBConfig
             message.AddTable?.UserName = username
 
         Protocol.sendDBConfig dbConfig, message, (err, reply) ->
-            error = handleError err, reply, "Error deleting table to db config"
-            if error?
+            error = collectError err, reply, "Error deleting table from db config: #{provider}/#{tableMeta.Tables[0].Name}"
+            if not error?
                 log.info "table deleted from the db config", V_(tableMeta.Tables[0].Name), V_(provider)
-            else
-                log.error "table could not be deleted from db config", V_(error), V_(tableMeta.Tables[0].Name), V_(provider)
             Cache.delete cacheKey provider
             log.debug "db config cache were emptied", V_(tableMeta.Tables[0].Name), V_(provider)
-            callback error
+            callback? error
 
     @addTable: (provider, tableMeta, username, callback) ->
         if (not (checkDBConfig callback)?) or (not (checkMetadata tableMeta))
@@ -158,14 +156,12 @@ class DBConfig
             message.AddTable?.UserName = username
 
         Protocol.sendDBConfig dbConfig, message, (err, reply) ->
-            error = handleError err, reply, "Error adding table to db config"
-            if error?
-                log.error "table could not be added to db config", V_(error), V_(tableMeta.Tables[0].Name), V_(provider)
-            else
+            error = collectError err, reply, "Error adding table to db config: #{provider}/#{tableMeta.Tables[0].Name}"
+            if not error?
                 log.info "table added to the db config", V_(tableMeta.Tables[0].Name), V_(provider)
             Cache.delete cacheKey provider
             log.debug "db config cache were emptied", V_(tableMeta.Tables[0].Name), V_(provider)
-            callback error
+            callback? error
 
     emptyDBConfigCache = () =>
         keys = Cache.listKeys()
@@ -204,7 +200,7 @@ class DBConfig
     cacheKey = (provider) ->
         return DB_CONFIG_CACHE_PREFIX + "_" + provider
 
-    handleError = (err, reply, desc) ->
+    collectError = (err, reply, desc) ->
         error = null
         if err?
             error = err
@@ -215,10 +211,10 @@ class DBConfig
         return error
 
     checkDBConfig = (callback) ->
-        text = "DBConfig service is not set"
         if not dbConfig?
-            log.error text
-            callback? (new Error text), null
+            err = new Error "DBConfig service is not set"
+            log.error V_(err)
+            callback?(err, null)
         return dbConfig
 
 Config.addConfigListener Config.DB_CONFIG_SERVICE, DBConfig.setDBConfig

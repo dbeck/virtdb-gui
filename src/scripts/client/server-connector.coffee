@@ -170,21 +170,21 @@ module.exports = app.factory 'ServerConnector', ['$http', 'ErrorService', '$q', 
                     onError(response, status)
 
         sendDBConfig: (data, onSuccess) =>
-            $http.post(@address + "/api/db_config/add", data)
+            $http.post(@address + "/api/db_config/tables", data)
             .success(onSuccess)
             .error( (response, status) =>
                     ErrorService.errorHappened status, "Failed to add table: #{data.table} (#{response})"
             )
 
         deleteDBConfig: (data, onSuccess) =>
-            $http.post(@address + "/api/db_config/delete", data)
+            $http.delete(@address + "/api/db_config/tables", {params: data})
             .success(onSuccess)
             .error( (response, status) =>
                     ErrorService.errorHappened status, "Failed to delete table: #{data.table} (#{response})"
             )
 
         getDBConfig: (data, onSuccess) =>
-            $http.post(@address + "/api/db_config/get", data)
+            $http.get(@address + "/api/db_config/tables", {params: data})
             .success(onSuccess)
             .error( (response, status) =>
                 ErrorService.errorHappened status, "Failed to retreive list of added tables from host database for: #{data.provider} (#{response})"
@@ -192,7 +192,7 @@ module.exports = app.factory 'ServerConnector', ['$http', 'ErrorService', '$q', 
             )
 
         getDBUsers: (onSuccess) =>
-            $http.get @address + "/api/db_config/list_users"
+            $http.get @address + "/api/db_config/users"
             .success(onSuccess)
             .error( (response, status) =>
                 ErrorService.errorHappened status, "Failed to retreive list of database users from host database: (#{response})"
@@ -200,7 +200,7 @@ module.exports = app.factory 'ServerConnector', ['$http', 'ErrorService', '$q', 
             )
 
         addUserToDB: (data, onSuccess) =>
-            $http.post @address + "/api/db_config/add_user", data
+            $http.post @address + "/api/db_config/users", data
             .success(onSuccess)
             .error( (response, status) =>
                 ErrorService.errorHappened status, "Failed to add user to the host database: (#{response})"

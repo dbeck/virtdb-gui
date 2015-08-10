@@ -2,13 +2,16 @@ VirtDBConnector = require "virtdb-connector"
 log = VirtDBConnector.log
 V_ = log.Variable
 
-module.exports = (path, params) ->
+module.exports = (params, paramType) ->
     return (req, res, next) ->
+        if not paramType?
+            paramType = "body"
         try
             for param of params
-                if params[param].required and not req.body[param]?
+                value = req[paramType]?[param]?
+                if params[param].required and not value
                     throw new Error("Missing required parameter: #{param}")
-                if params[param].validate? and not params[param].validate req.body[param]
+                if params[param].validate? and not params[param].validate(value)
                     throw new Error("Invalid parameter: #{param}")
             next()
         catch ex

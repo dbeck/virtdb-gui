@@ -1,15 +1,13 @@
 require './monitoring'
 require './certificates'
 router = require './router'
-util = require "util"
-DBConfig = require "./db_config_connector"
 Config = require "./config"
+
 VirtDBConnector = require "virtdb-connector"
 VirtDBLoader = require "./virtdb_loader"
 KeyValue = require "./key_value"
 ConfigService = require "./config_service"
 DiagConnector = require "./diag_connector"
-User = require './user'
 timeout = require "connect-timeout"
 log = VirtDBConnector.log
 V_ = log.Variable
@@ -17,22 +15,19 @@ Endpoints = require "./endpoints"
 auth = require './authentication'
 validator = require "./validator"
 
-UserManager = require './user_manager'
 DataHandler = require "./data_handler"
 MetadataHandler = require "./meta_data_handler"
-Authentication = require "./authentication"
 TokenManager = VirtDBConnector.TokenManager
 Credentials = require "./credentials"
 
-require('source-map-support').install()
-
 router.use require 'express-domain-middleware'
 
-router.get /.*/, (req, res, next) =>
-    VirtDBConnector.MonitoringService.bumpStatistic "HTTP request arrived"
+router.all "/*", (req, res, next) =>
+    VirtDBConnector.MonitoringService.bumpStatistic "HTTP API request arrived"
     next()
 
 router.use '/user', (require './user_router')
+router.use '/db_config', (require './db_config_router')
 
 # GET home page.
 router.get "/"
@@ -51,7 +46,7 @@ router.get "/settings", (req, res) ->
 router.get "/authmethods"
     , timeout(Config.getCommandLineParameter("timeout"))
 , (req, res, next) ->
-    res.json Authentication.methods
+    res.json auth.methods
 
 router.get "/endpoints"
     , auth.ensureAuthenticated
@@ -66,7 +61,7 @@ router.get "/endpoints"
 
 router.post "/data_provider/meta_data/"
     , auth.ensureAuthenticated
-    , validator("/data_provider/meta_data",
+    , validator(
         provider:
             required: true
         table:
@@ -116,7 +111,7 @@ router.get "/data_provider/list"
 
 router.post "/data_provider/table_list"
     , auth.ensureAuthenticated
-    , validator("/data_provider/table_list",
+    , validator(
         provider:
             required: true
         from:
@@ -153,7 +148,7 @@ router.post "/data_provider/table_list"
 
 router.post "/data_provider/data"
     , auth.ensureAuthenticated
-    , validator("/data_provider/data",
+    , validator(
         provider:
             required: true
         table:
@@ -197,125 +192,6 @@ router.post "/data_provider/data"
         token = req?.user?.token
         dataHandler = new DataHandler
         dataHandler.getData token, provider, table, count, onData
-    catch ex
-        log.error V_(ex)
-        throw ex
-
-router.post "/db_config/get"
-    , auth.ensureAuthenticated
-    , validator("/data_provider/data",
-        provider:
-            required: true
-    )
-    , timeout(Config.getCommandLineParameter("timeout"))
-, (req, res, next) ->
-    provider = req.body.provider
-    try
-        username = null
-        if Config.Features.Security
-            username = req.user.name
-        DBConfig.getTables provider, username, (tableList) =>
-            res.json tableList
-    catch ex
-        log.error V_(ex)
-        throw ex
-
-router.get "/db_config/list_users"
-    , auth.ensureAuthenticated
-    , timeout(Config.getCommandLineParameter("timeout"))
-, (req, res, next) ->
-    DBConfig.listUsers (err, users) ->
-        if err?
-            res.status(500).send()
-            return
-        res.json users
-
-router.post "/db_config/add_user"
-    , auth.ensureAuthenticated
-    , timeout(Config.getCommandLineParameter("timeout"))
-, (req, res, next) ->
-    username = req.body.name
-    password = req.body.password
-    isAdmin = req.body.isAdmin
-    UserManager.updateUser username, password, isAdmin, req.user.token, (err, data) =>
-        if not err?
-            DBConfig.createUser username, password, (err, data) ->
-                if err?
-                    res.status(500).send()
-                    return
-                res.status(200).send()
-        else
-            res.status(500).send()
-
-router.post "/db_config/add"
-    , auth.ensureAuthenticated
-    , validator("/data_provider/data",
-        provider:
-            required: true
-        table:
-            required: true
-    )
-    , timeout(Config.getCommandLineParameter("timeout"))
-, (req, res, next) ->
-    table = req.body.table
-    provider = req.body.provider
-
-    try
-        addTable = (token, username) ->
-            metadataHandler = new MetadataHandler()
-            metadataHandler.getTableMetadata provider, table, token, (err, metaData) ->
-                if err?
-                    res.status(500).send()
-                    return
-                DBConfig.addTable provider, metaData, username, (err) ->
-                    if not err?
-                        res.status(200).send()
-                    else
-                        res.status(500).send()
-
-        if Config.Features.Security
-            User.getTableToken req.user, provider, (err, token) ->
-                if not err?
-                    addTable token, req.user.name
-                    DBConfig.addUserMapping provider, req.user.name, token
-        else
-            addTable()
-
-        return
-    catch ex
-        log.error V_(ex)
-        throw ex
-
-router.post "/db_config/delete"
-    , auth.ensureAuthenticated
-    , validator("/data_provider/data",
-        provider:
-            required: true
-        table:
-            required: true
-    )
-    , timeout(Config.getCommandLineParameter("timeout"))
-, (req, res, next) ->
-    table = req.body.table
-    provider = req.body.provider
-    try
-        deleteTable = (token, username) ->
-            metadataHandler = new MetadataHandler()
-            metadataHandler.getTableMetadata provider, table, token, (err, metaData) ->
-                if err?
-                    res.status(500).send()
-                    return
-                DBConfig.deleteTable provider, metaData, username, (err) ->
-                    if not err?
-                        res.status(200).send()
-                    else
-                        res.status(500).send()
-        if Config.Features.Security
-            User.getTableToken req.user, provider, (err, token) ->
-                if not err?
-                    deleteTable token, req.user.name
-        else
-            deleteTable()
     catch ex
         log.error V_(ex)
         throw ex
