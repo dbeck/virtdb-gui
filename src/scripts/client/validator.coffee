@@ -7,7 +7,7 @@ module.exports = app.factory 'Validator', [ ->
         validatePassword: (pass1, pass2) =>
             if pass1 isnt pass2
                return new Error "Password is not matching with its confirmation"
-            if pass1?.length is 0
+            if not pass1? or pass1.length is 0
                 return new Error "Password is empty"
             return null
 
