@@ -111,7 +111,7 @@ describe "ColumnReceiver", ->
         readyCallback.should.have.been.calledWith expected
 
 
-    it "should log error but not die if provider sends a column multiple times", ->
+    it "should append incoming data to the existing, if data arrives to the same column for multiple times", ->
         fields = ["FIELD1", "FIELD2"]
         data = [
             Name: "FIELD1"
@@ -124,7 +124,7 @@ describe "ColumnReceiver", ->
         ]
         expected = [
             Name: "FIELD1"
-            Data: "DATA1"
+            Data: "DATA1DATA1"
         ,
             Name: "FIELD2"
             Data: "DATA2"
@@ -142,4 +142,3 @@ describe "ColumnReceiver", ->
 
         readyCallback.should.have.been.calledOnce
         readyCallback.should.have.been.calledWith expected
-

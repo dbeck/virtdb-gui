@@ -24,10 +24,12 @@ class ColumnReceiver
             ++i
 
     add: (column, onFinished) =>
-        if @_columns[@_fieldIndices[column.Name]]?
-            return
         @_add column.Name, FieldData.get column
-        @_columnEndOfData[column.Name] = column.EndOfData
+        if column.EndOfData
+            # Reached end of data for this column. We are done with that.
+            delete @_columnEndOfData[column.Name]
+        else
+            @_columnEndOfData[column.Name] = false
         @_receivedColumnCount++
         if @_isAllColumnReceived()
             onFinished?()
@@ -41,11 +43,24 @@ class ColumnReceiver
         return false
 
     _add: (columnName, data) =>
-        @_columns[@_fieldIndices[columnName]] =
-            Name: columnName
-            Data: data
+        @_columns[@_fieldIndices[columnName]] ?= {}
+        column = @_columns[@_fieldIndices[columnName]]
+        column.Name ?= columnName
+        if column.Data?
+            # Append the new data to the already received data.
+            column.Data = column.Data.concat data
+        else
+            column.Data = data
 
     _isAllColumnReceived: () =>
+#        console.log "Called isAllColumnReceived...."
+        for columnName, endOfData of @_columnEndOfData
+#            console.log "#{columnName} end of data:", endOfData
+            if endOfData
+                # We are done with this column. Do not check this any more.
+                delete @_columnEndOfData[columnName]
+            else
+                return false
         return @_fields.length <= @_receivedColumnCount
 
     @createInstance: (onReady, fields) =>
