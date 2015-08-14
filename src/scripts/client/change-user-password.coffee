@@ -3,49 +3,53 @@ ServerConnector = require './server-connector'
 CurrentUser = require './current-user'
 Validator = require './validator'
 
+ENTER = 13
+
 module.exports = app.controller 'ChangeUserPassword',
     class ChangeUserPassword
         constructor: ($scope, ServerConnector, $rootScope, CurrentUser, Validator) ->
-            @$rootScope = $rootScope
-            @$scope = $scope
-            @Validator = Validator
-            @CurrentUser = CurrentUser
-            @ServerConnector = ServerConnector
+            $('#changePasswordModal').off()
+            $('#changePasswordModal').on "hide.bs.modal", (e) ->
+                $rootScope.editUser = null
+                clean($scope)
 
-            $('#change-password-modal').on "hide.bs.modal", (e) =>
-                @$rootScope.editUser = null
+            $('#changePasswordModal').on "show.bs.modal", (e) ->
+                setEditUser $rootScope, $scope, CurrentUser
+                $scope.$apply()
 
-            $('#change-password-modal').on "show.bs.modal", (e) =>
-                @clean()
-                @setEditUser()
-                @$scope.$apply()
+            $('#changePasswordModal').on "shown.bs.modal", (e) ->
+                $('[autofocus]', this).focus()
 
-        setEditUser: =>
-            if not @$rootScope.editUser?
-                @CurrentUser.get (user) =>
-                    @$scope.name = user.name
+            $('#changePasswordModal').keypress (e) ->
+                if e.which is ENTER
+                    $('#changePasswordModal form').submit()
+
+            $scope.changePassword = (name, password, confirmed) ->
+                err = Validator.validatePassword password, confirmed
+                if err?
+                    $scope.error = err.message
+                    return
+                $scope.error = null
+                sendUpdateUserMessage $scope.name, password, ServerConnector
+
+        setEditUser = (rootScope, scope, CurrentUser) ->
+            if not rootScope.editUser?
+                CurrentUser.get (user) =>
+                    scope.name = user.name
             else
-                @$scope.name = @$rootScope.editUser.Name
+                scope.name = rootScope.editUser.Name
 
-        changePassword: =>
-            err = @Validator.validatePassword @$scope.editUserPass1, @$scope.editUserPass2
-            if err?
-                @$scope.error = err.message
-                return
-            @$scope.error = null
-            @sendUpdateUserMessage()
+        clean = (scope) =>
+            scope.password = ''
+            scope.passwordConfirm = ''
+            scope.error = ""
 
-        sendUpdateUserMessage: =>
+        sendUpdateUserMessage = (username, password, ServerConnector) ->
             data =
-                name: @$scope.name
-                password: @$scope.editUserPass1
-            @ServerConnector.updateUser data, @finishUpdate
+                name: username
+                password: password
+            ServerConnector.updateUser data, finishUpdate
 
-        clean: =>
-            @$scope.editUserPass1 = ""
-            @$scope.editUserPass2 = ""
-            @$scope.error = ""
-
-        finishUpdate: =>
-            $('#change-password-modal').modal("hide")
+        finishUpdate = ->
+            $('#changePasswordModal').modal("hide")
 

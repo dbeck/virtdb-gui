@@ -1,90 +1,46 @@
-div(ng-controller="UserController as users")
-    include includes/change-password
-    div.modal.fade(id="create-user-modal" tabindex="-1" role="dialog" aria-labelledby="create-user-modal-label"
+div.modal.fade(id="createUserModal" tabindex="-1" role="dialog" aria-labelledby="create-user-modal-label"
     aria-hidden="true")
         div.modal-dialog
             div.modal-content
-                div.modal-header
-                    h4.modal-title(id="create-user-modal-label") Create user
-                div.modal-body
-                    div.alert.alert-danger(ng-show="error") {{error}}
-                    form
+                form(ng-submit="createUser(editUserName, editUserPass1, editUserPass2, editUserIsAdmin)")
+                    div.modal-header
+                        h4.modal-title(id="create-user-modal-label") Create user
+                    div.modal-body
+                        div.alert.alert-danger(ng-show="error") {{error}}
                         div.form-group
                             label(for="username") Username
                             input.form-control#username(type="text" placeholder="Enter username"
-                            ng-model="editUserName")
+                            ng-model="editUserName" autofocus)
                         div.form-group
-                            label(for="password") Password
-                            input.form-control#password(type="password" placeholder="Enter password"
+                            label(for="createUserPassword") Password
+                            input.form-control#createUserPassword(type="password" placeholder="Enter password"
                             ng-model="editUserPass1")
                         div.form-group
-                            label(for="confirm-password") Confirm password
-                            input.form-control#confirm-password(type="password" placeholder="Confirm password"
+                            label(for="createUserConfirmPassword") Confirm password
+                            input.form-control#createUserConfirmPassword(type="password" placeholder="Confirm password"
                             ng-model="editUserPass2")
                         div.checkbox
                             label
                                 input(type="checkbox" ng-model="editUserIsAdmin")
                                 | Admin
-                div.modal-footer
-                    button.btn.btn-default(data-dismiss="modal") Close
-                    button.btn.btn-primary(ng-click="users.createUser()") Create user
+                    div.modal-footer
+                        button.btn.btn-default(type="button" data-dismiss="modal") Close
+                        input.btn.btn-primary(type="submit" value="Create user")
 
-    div.modal.fade(id="change-password-modal" tabindex="-1" role="dialog" aria-labelledby="change-password-modal-label"
-    aria-hidden="true")
+    div.modal.fade(id="deleteConfirmModal" tabindex="-1" role="dialog" aria-labelledby="delete-user-modal-label" aria-hidden="true")
         div.modal-dialog
             div.modal-content
-                div.modal-header
-                    h4.modal-title(id="change-password-modal-label") Change password for: {{editUserName}}
-                div.modal-body
-                    div.alert.alert-danger(ng-show="error") {{error.message}}
-                    form
-                        div.form-group
-                            label(for="password") Password
-                            input.form-control(type="password" placeholder="Enter password" id="password"
-                            ng-model="editUserPass1")
-                        div.form-group
-                            label(for="confirm-password") Confirm password
-                            input.form-control(type="password" placeholder="Confirm password" id="confirm-password"
-                            ng-model="editUserPass2")
-                div.modal-footer
-                    button.btn.btn-default(data-dismiss="modal") Close
-                    button.btn.btn-primary(ng-click="users.changePassword()") Change password
-
-    div.modal.fade(id="user-to-db-modal" tabindex="-1" role="dialog" aria-labelledby="user-to-db-modal-label"
-    aria-hidden="true")
-        div.modal-dialog
-            div.modal-content
-                div.modal-header
-                    h4.modal-title(id="user-to-db-modal-label") Add {{editUserName}} to the database
-                div.modal-body
-                    div.alert.alert-danger(ng-show="error") {{error.message}}
-                    div Adding an existing user to the database requires changing its password.
-                    form
-                        div.form-group
-                            label(for="password") Password
-                            input.form-control(type="password" placeholder="Enter password" id="password"
-                            ng-model="editUserPass1")
-                        div.form-group
-                            label(for="confirm-password") Confirm password
-                            input.form-control(type="password" placeholder="Confirm password" id="confirm-password"
-                            ng-model="editUserPass2")
-                div.modal-footer
-                    button.btn.btn-default(data-dismiss="modal") Close
-                    button.btn.btn-primary(ng-click="users.addUserToDB()") Add
-
-    div.modal.fade(id="delete-confirm-modal" tabindex="-1" role="dialog" aria-labelledby="delete-confirm-modal" aria-hidden="true")
-        div.modal-dialog
-            div.modal-content
-                div.modal-header
-                    h4.modal-title(id="delete-confirm-modal-label") Delete user
-                div.modal-body
-                    div Are you sure you want to delete {{editUserName}}?
-                div.modal-footer
-                    button.btn.btn-default(data-dismiss="modal") No
-                    button.btn.btn-primary(type="submit" ng-click="users.deleteUser()" data-dismiss="modal") Yes, I want
+                form(ng-submit="deleteUser(editUserName)")
+                    div.modal-header
+                        h4.modal-title(id="delete-user-modal-label") Delete user
+                    div.modal-body
+                        div Are you sure you want to delete {{editUserName}}?
+                    div.modal-footer
+                        button.btn.btn-default(type="button" data-dismiss="modal") No
+                        input.btn.btn-primary(type="submit" value="Yes")
 
     div
-        button.btn.btn-default.btn-sm(data-toggle="modal" data-target="#create-user-modal" ng-click="users.initCreateUser()")
+        button.btn.btn-default.btn-sm(data-toggle="modal" data-target="#createUserModal")
             span.glyphicon.glyphicon-plus(aria-hidden="true")
             |   Create user
     table.table
@@ -101,6 +57,6 @@ div(ng-controller="UserController as users")
                         input.cmn-toggle.cmn-toggle-round-flat(ng-model="user.IsAdmin" id="change-admin-status-{{id}}" type="checkbox" ng-change="users.changeAdminStatus(id)")
                         label(for="change-admin-status-{{id}}")
                 td
-                    button.btn.btn-default.btn-sm(data-toggle="modal" data-target="#change-password-modal" ng-click="users.initChangePassword(id)" ng-if="user.Name !== userName") Change password
-                    button.btn.btn-default.btn-sm(data-toggle="modal" data-target="#delete-confirm-modal" ng-click="users.initDeleteUser(id)" ng-if="user.Name !== userName") Delete
+                    button.btn.btn-default.btn-sm(data-toggle="modal" data-target="#changePasswordModal" ng-click="users.initChangePassword(id)" ng-if="user.Name !== userName") Change password
+                    button.btn.btn-default.btn-sm(data-toggle="modal" data-target="#deleteConfirmModal" ng-click="initDeleteUser(id)" ng-if="user.Name !== userName") Delete
                     button.btn.btn-default.btn-sm(data-toggle="modal" data-target="#user-to-db-modal" ng-click="users.initUserToDB(id)" ng-if="DBUserList !== null && DBUserList.indexOf(user.Name) === -1") Add to database

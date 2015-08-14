@@ -92,6 +92,7 @@ module.exports = app.factory 'ServerConnector', ['$http', 'ErrorService', '$q', 
             $http.delete(@address + "/api/user/" + data).success(done)
             .error( (response, status) =>
                 ErrorService.errorHappened status, "Failed to delete user #{data.name}. (#{response})"
+                done(new Error(response))
             )
 
         updateUser: (data, done) =>
@@ -104,6 +105,7 @@ module.exports = app.factory 'ServerConnector', ['$http', 'ErrorService', '$q', 
             $http.post(@address + "/api/user", data).success(done)
             .error( (response, status) =>
                 ErrorService.errorHappened status, "Failed to create user #{data.name}. (#{response})"
+                done(new Error(response))
             )
 
         getTableList: (data, onSuccess, onError) =>
