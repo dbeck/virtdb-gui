@@ -13,11 +13,16 @@ chai.use sinonChai
 describe "ColumnReceiver", ->
 
     sandbox = null
+    readyCallback = null
+    fieldDataGet = null
 
     beforeEach =>
         sandbox = sinon.sandbox.create()
+        readyCallback = sinon.spy()
+        fieldDataGet = sandbox.stub FieldData, "get"
 
     afterEach =>
+        readyCallback = null
         sandbox.restore()
 
     it "should collect the columns and get it back when they are all received and the order of columns was ok", ->
@@ -53,8 +58,6 @@ describe "ColumnReceiver", ->
             Data: "DATA4"
         ]
 
-        readyCallback = sinon.spy()
-        fieldDataGet = sandbox.stub FieldData, "get"
         for d in data
             fieldDataGet.withArgs(d).returns d.Data
 
@@ -97,8 +100,6 @@ describe "ColumnReceiver", ->
             Data: "DATA4"
         ]
 
-        readyCallback = sandbox.spy()
-        fieldDataGet = sandbox.stub FieldData, "get"
         for d in data
             fieldDataGet.withArgs(d).returns d.Data
 
@@ -130,8 +131,6 @@ describe "ColumnReceiver", ->
             Data: "DATA2"
         ]
 
-        readyCallback = sandbox.spy()
-        fieldDataGet = sandbox.stub FieldData, "get"
         for d in data
             fieldDataGet.withArgs(d).returns d.Data
         logWarn = sandbox.stub VirtdbConnector.log, "warn"
@@ -173,8 +172,6 @@ describe "ColumnReceiver", ->
             Data: "DATA2"
         ]
 
-        readyCallback = sandbox.spy()
-        fieldDataGet = sandbox.stub FieldData, "get"
         cr = new ColumnReceiver readyCallback, fields
         for d in data
             fieldDataGet.withArgs(d).returns d.Data
@@ -200,8 +197,6 @@ describe "ColumnReceiver", ->
             EndOfData: false
         ]
 
-        readyCallback = sandbox.spy()
-        fieldDataGet = sandbox.stub FieldData, "get"
         cr = new ColumnReceiver readyCallback, fields
         for d in data
             fieldDataGet.withArgs(d).returns d.Data
@@ -226,8 +221,6 @@ describe "ColumnReceiver", ->
             EndOfData: true
         ]
 
-        readyCallback = sandbox.spy()
-        fieldDataGet = sandbox.stub FieldData, "get"
         cr = new ColumnReceiver readyCallback, fields
         for d in data
             fieldDataGet.withArgs(d).returns d.Data
