@@ -6,34 +6,36 @@ class ColumnReceiver
     _columns: null
     _readyCallback: null
     _fields: null
-    _columnEndOfData: null
     _fieldIndices: null
     _receivedColumnCount: null
+
+    finishedColumns = null
 
     constructor: (@_readyCallback, @_fields) ->
         @_receivedColumnCount = 0
         @_columns = []
-        @_columnEndOfData = {}
         @_fieldIndices = {}
         i = 0;
         for field in @_fields
             fieldName = @_fields[i]
             @_fieldIndices[fieldName] = i
-            @_columnEndOfData[fieldName] = false
             @_columns[i] = null
             ++i
 
+        finishedColumns = new Set
+
     add: (column, onFinished) =>
+        if finishedColumns.has(column.Name)
+            log.warn "Unexpected column data on column:", V_ column.Name,
+                "(End of data has already been reported earlier.)"
+            return
+
         @_add column.Name, FieldData.get column
         if column.EndOfData
-            # Reached end of data for this column. We are done with that.
-            delete @_columnEndOfData[column.Name]
-        else
-            @_columnEndOfData[column.Name] = false
-        @_receivedColumnCount++
-        if @_isAllColumnReceived()
-            onFinished?()
-            @_readyCallback @_columns
+            finishedColumns.add column.Name
+            if @_isAllColumnReceived()
+                onFinished?()
+                @_readyCallback @_columns
         return
 
     _contains: (columnName) =>
@@ -53,13 +55,7 @@ class ColumnReceiver
             column.Data = data
 
     _isAllColumnReceived: () =>
-        for columnName, endOfData of @_columnEndOfData
-            if endOfData
-                # We are done with this column. Do not check this any more.
-                delete @_columnEndOfData[columnName]
-            else
-                return false
-        return @_fields.length <= @_receivedColumnCount
+        return finishedColumns.size >= @_fields.length
 
     @createInstance: (onReady, fields) =>
         return new ColumnReceiver onReady, fields

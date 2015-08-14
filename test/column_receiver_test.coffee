@@ -111,7 +111,7 @@ describe "ColumnReceiver", ->
         readyCallback.should.have.been.calledWith expected
 
 
-    it "should append incoming data to the existing, if data arrives to the same column for multiple times", ->
+    it "should log warning if data arrives on a column after end of data, and drop that unexpected data", ->
         fields = ["FIELD1", "FIELD2"]
         data = [
             Name: "FIELD1"
@@ -124,7 +124,7 @@ describe "ColumnReceiver", ->
         ]
         expected = [
             Name: "FIELD1"
-            Data: "DATA1DATA1"
+            Data: "DATA1"
         ,
             Name: "FIELD2"
             Data: "DATA2"
@@ -134,6 +134,7 @@ describe "ColumnReceiver", ->
         fieldDataGet = sandbox.stub FieldData, "get"
         for d in data
             fieldDataGet.withArgs(d).returns d.Data
+        logWarn = sandbox.stub VirtdbConnector.log, "warn"
 
         cr = new ColumnReceiver readyCallback, fields
         cr.add data[0]
@@ -142,3 +143,94 @@ describe "ColumnReceiver", ->
 
         readyCallback.should.have.been.calledOnce
         readyCallback.should.have.been.calledWith expected
+        logWarn.should.have.been.calledOnce
+
+
+    it "should append incoming data to the existing, if data arrives to the same column for multiple times", ->
+        fields = ["FIELD1", "FIELD2"]
+        data = [
+            Name: "FIELD1"
+            Data: "You"
+            EndOfData: false
+        ,
+            Name: "FIELD2"
+            Data: "DATA2"
+            EndOfData: true
+        ,
+            Name: "FIELD1"
+            Data: "All"
+            EndOfData: false
+        ,
+            Name: "FIELD1"
+            Data: "Rock"
+            EndOfData: true
+        ]
+        expected = [
+            Name: "FIELD1"
+            Data: "YouAllRock"
+        ,
+            Name: "FIELD2"
+            Data: "DATA2"
+        ]
+
+        readyCallback = sandbox.spy()
+        fieldDataGet = sandbox.stub FieldData, "get"
+        cr = new ColumnReceiver readyCallback, fields
+        for d in data
+            fieldDataGet.withArgs(d).returns d.Data
+            cr.add d
+
+        readyCallback.should.have.been.calledOnce
+        readyCallback.should.have.been.calledWith expected
+
+
+    it "should not signal completion if not all the fields received end of data", ->
+        fields = ["FIELD1", "FIELD2"]
+        data = [
+            Name: "FIELD1"
+            Data: "DATA1"
+            EndOfData: false
+        ,
+            Name: "FIELD1"
+            Data: "DATA1"
+            EndOfData: true
+        ,
+            Name: "FIELD2"
+            Data: "DATA2"
+            EndOfData: false
+        ]
+
+        readyCallback = sandbox.spy()
+        fieldDataGet = sandbox.stub FieldData, "get"
+        cr = new ColumnReceiver readyCallback, fields
+        for d in data
+            fieldDataGet.withArgs(d).returns d.Data
+            cr.add d
+
+        readyCallback.should.have.not.been.called
+
+
+    it "should not signal completion if there is missing data for any field", ->
+        fields = ["FIELD1", "FIELD2", "FIELD3"]
+        data = [
+            Name: "FIELD1"
+            Data: "DATA1"
+            EndOfData: false
+        ,
+            Name: "FIELD1"
+            Data: "DATA1"
+            EndOfData: true
+        ,
+            Name: "FIELD3"
+            Data: "DATA3"
+            EndOfData: true
+        ]
+
+        readyCallback = sandbox.spy()
+        fieldDataGet = sandbox.stub FieldData, "get"
+        cr = new ColumnReceiver readyCallback, fields
+        for d in data
+            fieldDataGet.withArgs(d).returns d.Data
+            cr.add d
+
+        readyCallback.should.have.not.been.called
