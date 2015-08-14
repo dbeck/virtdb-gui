@@ -3,23 +3,22 @@ log = (require "virtdb-connector").log
 V_ = log.Variable
 
 class ColumnReceiver
-    _columns: null
-    _readyCallback: null
-    _fields: null
-    _fieldIndices: null
-    _receivedColumnCount: null
-
+    columns = null
+    readyCallback = null
+    fields = null
+    fieldIndices = null
     finishedColumns = null
 
-    constructor: (@_readyCallback, @_fields) ->
-        @_receivedColumnCount = 0
-        @_columns = []
-        @_fieldIndices = {}
+    constructor: (_readyCallback, _fields) ->
+        readyCallback = _readyCallback
+        fields = _fields
+        columns = []
+        fieldIndices = {}
         i = 0;
-        for field in @_fields
-            fieldName = @_fields[i]
-            @_fieldIndices[fieldName] = i
-            @_columns[i] = null
+        for field in fields
+            fieldName = fields[i]
+            fieldIndices[fieldName] = i
+            columns[i] = null
             ++i
 
         finishedColumns = new Set
@@ -35,18 +34,18 @@ class ColumnReceiver
             finishedColumns.add column.Name
             if @_isAllColumnReceived()
                 onFinished?()
-                @_readyCallback @_columns
+                readyCallback columns
         return
 
     _contains: (columnName) =>
-        for column in @_columns
+        for column in columns
             if column.Name == columnName
                 return true
         return false
 
     _add: (columnName, data) =>
-        @_columns[@_fieldIndices[columnName]] ?= {}
-        column = @_columns[@_fieldIndices[columnName]]
+        columns[fieldIndices[columnName]] ?= {}
+        column = columns[fieldIndices[columnName]]
         column.Name ?= columnName
         if column.Data?
             # Append the new data to the already received data.
@@ -55,7 +54,7 @@ class ColumnReceiver
             column.Data = data
 
     _isAllColumnReceived: () =>
-        return finishedColumns.size >= @_fields.length
+        return finishedColumns.size >= fields.length
 
     @createInstance: (onReady, fields) =>
         return new ColumnReceiver onReady, fields
