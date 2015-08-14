@@ -53,9 +53,7 @@ class ColumnReceiver
             column.Data = data
 
     _isAllColumnReceived: () =>
-#        console.log "Called isAllColumnReceived...."
         for columnName, endOfData of @_columnEndOfData
-#            console.log "#{columnName} end of data:", endOfData
             if endOfData
                 # We are done with this column. Do not check this any more.
                 delete @_columnEndOfData[columnName]
