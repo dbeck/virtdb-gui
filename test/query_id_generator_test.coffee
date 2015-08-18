@@ -20,7 +20,7 @@ describe "QueryIdGenerator", ->
         sandbox.restore()
 
     it "should get new IDs incrementally until the MAX ID value, then start it over", ->
-        for i in [1..idGen.MAX_QUERY_ID - 1]
+        for i in [0..idGen.MAX_QUERY_ID - 1]
             idGen.getNextQueryId().should.equal i.toString()
 
         idGen.getNextQueryId().should.equal "0"
