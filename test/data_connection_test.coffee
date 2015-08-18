@@ -4,6 +4,7 @@ VirtDBConnector = require "virtdb-connector"
 Const = VirtDBConnector.Const
 Proto = (require "virtdb-proto")
 lz4 = require "lz4"
+QueryIdGenerator = require "../src/scripts/server/query_id_generator"
 
 chai = require "chai"
 chai.should()
@@ -79,7 +80,7 @@ describe "DataConnection", ->
 
     it "should getData when schema is given", ->
         TOKEN = "token"
-        QUERY_ID = 42
+        QUERY_ID = "42"
         ON_DATA = () ->
             console.log "DATA_ARRIVED!!!!"
         TABLE = "table"
@@ -99,7 +100,7 @@ describe "DataConnection", ->
 
         initQuerySocketStub = sandbox.stub conn, "_initQuerySocket"
         initColumnSocketStub = sandbox.stub conn, "_initColumnSocket"
-        sandbox.stub(Math, "floor").returns QUERY_ID
+        sandbox.stub(QueryIdGenerator, "getNextQueryId").returns QUERY_ID
         dataSerializeStub = sandbox.stub Proto.data, "serialize"
         dataSerializeStub.returns SERIALIZED_MSG
         sendStub = sandbox.stub()
@@ -117,7 +118,7 @@ describe "DataConnection", ->
 
     it "should getData when schema is null", ->
         TOKEN = "token"
-        QUERY_ID = 42
+        QUERY_ID = "42"
         ON_DATA = () ->
             console.log "DATA_ARRIVED!!!!"
         TABLE = "table"
@@ -137,7 +138,7 @@ describe "DataConnection", ->
 
         initQuerySocketStub = sandbox.stub conn, "_initQuerySocket"
         initColumnSocketStub = sandbox.stub conn, "_initColumnSocket"
-        sandbox.stub(Math, "floor").returns QUERY_ID
+        sandbox.stub(QueryIdGenerator, "getNextQueryId").returns QUERY_ID
         dataSerializeStub = sandbox.stub Proto.data, "serialize"
         dataSerializeStub.returns SERIALIZED_MSG
         sendStub = sandbox.stub()
@@ -155,7 +156,7 @@ describe "DataConnection", ->
 
     it "should getData when schema and token are null", ->
         TOKEN = undefined
-        QUERY_ID = 42
+        QUERY_ID = "42"
         ON_DATA = () ->
             console.log "DATA_ARRIVED!!!!"
         TABLE = "table"
@@ -174,7 +175,7 @@ describe "DataConnection", ->
 
         initQuerySocketStub = sandbox.stub conn, "_initQuerySocket"
         initColumnSocketStub = sandbox.stub conn, "_initColumnSocket"
-        sandbox.stub(Math, "floor").returns QUERY_ID
+        sandbox.stub(QueryIdGenerator, "getNextQueryId").returns QUERY_ID
         dataSerializeStub = sandbox.stub Proto.data, "serialize"
         dataSerializeStub.returns SERIALIZED_MSG
         sendStub = sandbox.stub()

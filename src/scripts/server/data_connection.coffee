@@ -5,9 +5,11 @@ Const = VirtDB.Const
 log = VirtDB.log
 V_ = log.Variable
 lz4 = require "lz4"
+QueryIdGenerator = require "./query_id_generator"
 
 DataProto = (require "virtdb-proto").data
 CommonProto = (require "virtdb-proto").common
+
 
 class DataConnection
 
@@ -22,7 +24,7 @@ class DataConnection
 
     getData: (loginToken, schema, table, fields, count, onData) =>
         @_onColumn = onData
-        @_queryId = Math.floor((Math.random() * 100000) + 1) + ""
+        @_queryId = QueryIdGenerator.getNextQueryId()
         @_initColumnSocket(@_queryId)
         @_initQuerySocket()
         schema ?= ""
