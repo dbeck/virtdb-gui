@@ -7,12 +7,9 @@ class ColumnReceiver
     _readyCallback: null
     _fields: null
     _fieldIndices: null
-    _receivedColumnCount: null
-
-    finishedColumns = null
+    _finishedColumns: null
 
     constructor: (@_readyCallback, @_fields) ->
-        @_receivedColumnCount = 0
         @_columns = []
         @_fieldIndices = {}
         i = 0;
@@ -22,25 +19,30 @@ class ColumnReceiver
             @_columns[i] = null
             ++i
 
-        finishedColumns = new Set
+        @_finishedColumns = new Set
 
     add: (column, onFinished) =>
-        if finishedColumns.has(column.Name)
-            log.warn "Unexpected column data on column:", V_ column.Name,
+        columnName = column.Name
+        unless @_contains columnName
+            log.warn "Received data on unexpected column:", V_ columnName
+            return
+
+        if @_finishedColumns.has(columnName)
+            log.warn "Unexpected column data on column:", V_ columnName,
                 "(End of data has already been reported earlier.)"
             return
 
-        @_add column.Name, FieldData.get column
+        @_add columnName, FieldData.get column
         if column.EndOfData
-            finishedColumns.add column.Name
+            @_finishedColumns.add columnName
             if @_isAllColumnReceived()
                 onFinished?()
                 @_readyCallback @_columns
         return
 
     _contains: (columnName) =>
-        for column in @_columns
-            if column.Name == columnName
+        for field in @_fields
+            if field is columnName
                 return true
         return false
 
@@ -55,7 +57,7 @@ class ColumnReceiver
             column.Data = data
 
     _isAllColumnReceived: () =>
-        return finishedColumns.size >= @_fields.length
+        return @_finishedColumns.size >= @_fields.length
 
     @createInstance: (onReady, fields) =>
         return new ColumnReceiver onReady, fields
