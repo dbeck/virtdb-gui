@@ -19,7 +19,7 @@ class ColumnReceiver
             @_columns[i] = null
             ++i
 
-        @_finishedColumns = new Set
+        @_finishedColumns = {}
 
     add: (column, onFinished) =>
         columnName = column.Name
@@ -27,14 +27,14 @@ class ColumnReceiver
             log.warn "Received data on unexpected column:", V_ columnName
             return
 
-        if @_finishedColumns.has(columnName)
+        if @_finishedColumns[columnName]?
             log.warn "Unexpected column data on column:", V_ columnName,
                 "(End of data has already been reported earlier.)"
             return
 
         @_add columnName, FieldData.get column
         if column.EndOfData
-            @_finishedColumns.add columnName
+            @_finishedColumns[columnName] = true    # The value doesn't matter, as we are using it as a set.
             if @_isAllColumnReceived()
                 onFinished?()
                 @_readyCallback @_columns
@@ -57,7 +57,7 @@ class ColumnReceiver
             column.Data = data
 
     _isAllColumnReceived: () =>
-        return @_finishedColumns.size >= @_fields.length
+        return Object.keys(@_finishedColumns).length >= @_fields.length
 
     @createInstance: (onReady, fields) =>
         return new ColumnReceiver onReady, fields
