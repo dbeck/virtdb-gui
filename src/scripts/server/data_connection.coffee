@@ -88,6 +88,7 @@ class DataConnection
 
     _onColumnMessage: (channel, message) =>
         try
+            column = {}
             try
                 column = DataProto.parse message, "virtdb.interface.pb.Column"
             catch ex
