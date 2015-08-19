@@ -23,7 +23,7 @@ class ColumnReceiver
 
     add: (column, onFinished) =>
         columnName = column.Name
-        unless @_contains columnName
+        unless @_expected columnName
             log.warn "Received data on unexpected column:", V_ columnName
             return
 
@@ -40,9 +40,9 @@ class ColumnReceiver
                 @_readyCallback @_columns
         return
 
-    _contains: (columnName) =>
+    _expected: (incomingColumnName) =>
         for field in @_fields
-            if field is columnName
+            if field is incomingColumnName
                 return true
         return false
 
