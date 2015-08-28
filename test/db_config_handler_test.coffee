@@ -1,5 +1,6 @@
 VirtDB = require "virtdb-connector"
 Const = VirtDB.Const
+Config = require "../src/scripts/server/config"
 CacheHandler = require "../src/scripts/server/cache_handler"
 DBConfig = require "../src/scripts/server/db_config_connector"
 DBConfigProto = (require "virtdb-proto").db_config
@@ -202,9 +203,12 @@ describe "DBConfig", ->
             requestStub.should.have.been.calledWithExactly DB_CONFIG, Const.ENDPOINT_TYPE.DB_CONFIG, (DBConfigProto.serialize DB_CONFIG_DELETE_REQUEST, "virtdb.interface.pb.DBConfigRequest"), sinon.match.func
 
         it "should send good request is username is given", ->
+            securityConfig = Config.Features.Security
+            Config.Features.Security = true
             DBConfig.deleteTable PROVIDER, METADATA, USER_NAME, cb
             serializedMessage = DBConfigProto.serialize DB_CONFIG_DELETE_REQUEST_WITH_USER, "virtdb.interface.pb.DBConfigRequest"
-            requestStub.should.have.been.calledWithExactly DB_CONFIG, Const.ENDPOINT_TYPE.DB_CONFIG, serializedMessage, sinon.match.func
+            requestStub.should.have.been.calledWith DB_CONFIG, Const.ENDPOINT_TYPE.DB_CONFIG, serializedMessage, sinon.match.func
+            Config.Features.Security = securityConfig
 
         it "should response null when no error", ->
             requestStub.yields null, (DBConfigProto.serialize DB_CONFIG_DELETE_REPLY_NO_ERROR, "virtdb.interface.pb.DBConfigReply")
