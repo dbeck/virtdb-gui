@@ -18,32 +18,33 @@ input
             filter FlipH
             padding 2px
             width size * 2 + 4px
-            height size
-            background-color #dddddd
-            border-radius size
+            height 15px
+            background-color #f0f0f0
+            border-radius 1px
             transition background 0.4s
             &:before
                 top 2px
                 left 2px
                 bottom 2px
                 right 2px
-                background-color #fff
+                background-color #f0f0f0
                 border-radius size
                 transition background 0.4s
             &:after
-                top 4px
-                left 4px
-                bottom 4px
-                width base-size
-                background-color #dddddd
-                border-radius base-size
+                top 0px
+                left 0px
+                bottom 0px
+                width 10px
+                background-color #999999
+                border-radius 1px
                 transition margin 0.4s, background 0.4s
         &:checked
             & + label
-                background-color #8ce196
+                background-color #e5f4fa
                 &:after
-                    margin-left size
-                    background-color #8ce196
+                    margin-left 2px
+                    width 16px
+                    background-color #3fa9f5
 
 input.cmn-toggle-round-flat + label:before,
 input.cmn-toggle-round-flat + label:after

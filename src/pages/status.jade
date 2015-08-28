@@ -1,16 +1,24 @@
-div
-    table.table
-        tr
-            th Time
-            th Source
-            th Table
-            th Status
-            th Row count
-            th Seconds
-        tr(ng-repeat="status in statusController.statusMessages | orderBy:'time':true track by $index")
-            td {{status.time | date:'medium'}}
-            td {{status.component}}
-            td {{status.table_name}}
-            td {{status.status}}
-            td {{status.row_count}}
-            td {{status.seconds}}
+.container
+    .row
+        ul.breadcrumb
+            li.breadcrumb-icon
+                i.fa.fa-caret-right
+            li
+                a(href="/#/") home
+            li.active queries
+    div
+        table.table
+            tr
+                th Time
+                th Source
+                th Table
+                th Status
+                th Row count
+                th Seconds
+            tr(ng-repeat="status in statusController.statusMessages | orderBy:'time':true track by $index")
+                td {{status.time | date:'medium'}}
+                td {{status.component}}
+                td {{status.table_name}}
+                td {{status.status}}
+                td {{status.row_count}}
+                td {{status.seconds}}
