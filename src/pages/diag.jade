@@ -1,2 +1,10 @@
-div.diag-item
-    diag-table(data="diag.logEntries")
+.container
+    .row
+        ul.breadcrumb
+            li.breadcrumb-icon
+                i.fa.fa-caret-right
+            li
+                a(href="/#/") home
+            li.active log
+    .diag-item
+        diag-table(data="diag.logEntries")

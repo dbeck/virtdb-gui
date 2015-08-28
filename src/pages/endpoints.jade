@@ -1,7 +1,20 @@
 div.container
+    .row
+        ul.breadcrumb
+            li.breadcrumb-icon
+                i.fa.fa-caret-right
+            li
+                a(href="/#/") home
+            li.active settings
+        .row
+            .header.col-md-3
+                h3 Components
+            .header.col-md-6
+                h3 Settings
+            .header.col-md-3
+                h3 Endpoints
     div.row
         div.col-md-3
-            h3 Components
             table.table.table-bordered.component-list
                 tbody
                     tr(
@@ -11,7 +24,6 @@ div.container
                             span.glyphicon.glyphicon-hdd
                             span(text="{{component}}")  {{component}}
         div.col-md-6
-            h3 Settings
             div(ng-if="componentConfig.length > 0 && (!Features.Security || user.isAdmin)")
                 h4 Configuration
                 table.table.settings(ng-if="componentConfig !== null")
@@ -42,7 +54,6 @@ div.container
                     button.btn-sm.btn-success(ng-click="endpointController.sendCredential()") Send credentials
 
         div.col-md-3
-            h3 Endpoints
             div.list-group
                 div.small.list-group-item(ng-repeat='infoRow in componentInfo')
                     h6 {{infoRow.SvcType}}
