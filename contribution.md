@@ -5,6 +5,9 @@ do a GUI test drive.
 All steps `described with this style` are meant to be executed in the shell (bash, zsh, etc.)
 
 ### Prerequisities
+```bash
+apt-get install sudo
+```
 
 #### Node.js and getting source from git
 1. `apt-get install sudo`
@@ -19,12 +22,7 @@ All steps `described with this style` are meant to be executed in the shell (bas
       (You might need to enter your github credentials here.)
    
 #### ZeroMQ
-09. `sudo apt-get install make`
-10. `sudo apt-get install libtool`
-11. `sudo apt-get install pkg-config`
-12. `sudo apt-get install build-essential`
-13. `sudo apt-get install autoconf`
-14. `sudo apt-get install automake`
+09. `sudo apt-get install make, libtool, pkg-config, build-essential, autoconf, automake`
 15. Download ZeroMQ from www.zeromq.org (when I downloaded the version was 4.1.2)
 16. `sudo apt-get install uuid-dev`
 17. `sudo apt-get install uuid`
