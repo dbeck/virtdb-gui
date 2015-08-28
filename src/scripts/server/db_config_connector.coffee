@@ -157,7 +157,7 @@ class DBConfig
                 Table: tableMeta.Tables[0]
 
         if Config.Features.Security and username?
-            message.AddTable?.UserName = username
+            message.DeleteTable?.UserName = username
 
         Protocol.sendDBConfig dbConfig, message, (err, reply) ->
             error = collectError err, reply, "Error deleting table from db config: #{provider}/#{tableMeta.Tables[0].Name}"

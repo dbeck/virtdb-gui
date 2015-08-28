@@ -17,6 +17,8 @@ chai.use sinonChai
 PROVIDER = "prov"
 ACTION = 'CREATE'
 
+USER_NAME = "USER"
+PASSWORD  = "2423ldhlkvs"
 TABLE_NAME1 = 'AllstarFull1'
 TABLE_NAME2 = 'AllstarFull2'
 TABLE_NAME3 = 'AllstarFull3'
@@ -64,6 +66,13 @@ DB_CONFIG_ADD_REQUEST =
         Provider: PROVIDER
         Table: TABLE_METADATA1
 
+DB_CONFIG_DELETE_REQUEST_WITH_USER =
+    Type: 'DELETE_TABLE'
+    DeleteTable:
+        Provider: PROVIDER
+        Table: TABLE_METADATA1
+        UserName: USER_NAME
+
 DB_CONFIG_DELETE_REQUEST =
     Type: 'DELETE_TABLE'
     DeleteTable:
@@ -102,8 +111,6 @@ DB_CONFIG_DELETE_REPLY_ERROR =
 
 DB_CONFIG = "db-config"
 
-USER_NAME = "USER"
-PASSWORD  = "2423ldhlkvs"
 
 describe "DBConfig", ->
 
@@ -193,6 +200,11 @@ describe "DBConfig", ->
         it "should send good request", ->
             DBConfig.deleteTable PROVIDER, METADATA, null, cb
             requestStub.should.have.been.calledWithExactly DB_CONFIG, Const.ENDPOINT_TYPE.DB_CONFIG, (DBConfigProto.serialize DB_CONFIG_DELETE_REQUEST, "virtdb.interface.pb.DBConfigRequest"), sinon.match.func
+
+        it "should send good request is username is given", ->
+            DBConfig.deleteTable PROVIDER, METADATA, USER_NAME, cb
+            serializedMessage = DBConfigProto.serialize DB_CONFIG_DELETE_REQUEST_WITH_USER, "virtdb.interface.pb.DBConfigRequest"
+            requestStub.should.have.been.calledWithExactly DB_CONFIG, Const.ENDPOINT_TYPE.DB_CONFIG, serializedMessage, sinon.match.func
 
         it "should response null when no error", ->
             requestStub.yields null, (DBConfigProto.serialize DB_CONFIG_DELETE_REPLY_NO_ERROR, "virtdb.interface.pb.DBConfigReply")
