@@ -59,6 +59,16 @@ router.get "/endpoints"
         log.error V_(ex)
         throw ex
 
+router.delete "/data_provider/:provider/cache"
+    , auth.ensureAuthenticated
+    , timeout(Config.getCommandLineParameter("timeout"))
+, (req, res, next) ->
+    provider = req.params.provider
+    metadataHandler = new MetadataHandler
+    metadataHandler.emptyProviderCache provider
+    if not res.headersSent
+        res.status(200).send()
+
 router.post "/data_provider/meta_data/"
     , auth.ensureAuthenticated
     , validator(

@@ -108,6 +108,16 @@ module.exports = app.factory 'ServerConnector', ['$http', 'ErrorService', '$q', 
                 done(new Error(response))
             )
 
+        refreshTableList: (provider, onSuccess, onError) =>
+            $http.delete(@address + "/api/data_provider/#{provider}/cache")
+            .success( (response) ->
+                onSuccess? response.data
+            )
+            .error( (response, status) ->
+                ErrorService.errorHappened status, "Failed to refresh table list for:  #{provider}. (#{response})"
+                onError? response, status
+            )
+
         getTableList: (data, onSuccess, onError) =>
             data.id = generateRequestId()
 

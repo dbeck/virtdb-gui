@@ -17,19 +17,7 @@ TableItem = React.createClass(
             return (ev) =>
                 @props.click table
 
-        refreshButton = (table) ->
-            if not table.selected or not table.outdated
-                return null
-            R.span
-                className: 'glyphicon glyphicon-refresh'
-            , null
-
         children = []
-
-        # Refresh
-        # children.push R.td
-        #     key: "refresh" + @props.table.name
-        # , refreshButton @props.table
 
         # onoff
         children.push R.td

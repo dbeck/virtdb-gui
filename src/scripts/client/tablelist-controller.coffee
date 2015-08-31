@@ -32,6 +32,15 @@ module.exports = app.controller 'TableListController',
             @tablesToFilter = []
             @$scope.tableListFilter = ""
 
+        refresh: (provider) =>
+            refreshButton = document.getElementById('refresh')
+            originalClass = refreshButton.className
+            refreshButton.className = refreshButton.className + ' fa-spin'
+            resetButton = ->
+                refreshButton.className = originalClass
+
+            @ServerConnector.refreshTableList provider, resetButton, resetButton
+
         requestTableList: (provider) =>
             requestData =
                 tables: @tablesToFilter

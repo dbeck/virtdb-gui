@@ -273,12 +273,6 @@ th {
   -moz-osx-font-smoothing: grayscale;
 }
 
-i.table-pager {
-	color: #FB1155;
-	font-size: 55px;
-	line-height: 35px;
-}
-
 .glyphicon-asterisk:before {
   content: "\2a";
 }
@@ -1404,7 +1398,7 @@ pre code {
 }
 @media (min-width: 992px) {
   .container {
-    width: 970px;
+    width: 100%;
   }
 }
 @media (min-width: 1200px) {
