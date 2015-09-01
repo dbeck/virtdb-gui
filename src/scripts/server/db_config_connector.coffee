@@ -13,11 +13,10 @@ User = require './user'
 class DBConfig
 
     dbConfig = null
-    DB_CONFIG_CACHE_PREFIX = "db_config_tables"
 
     @setDBConfig: (name) ->
         dbConfig = name
-        emptyDBConfigCache()
+        Cache.emptyDBConfig()
 
     @getTables: (provider, username, onReady) ->
         try
@@ -163,7 +162,7 @@ class DBConfig
             error = collectError err, reply, "Error deleting table from db config: #{provider}/#{tableMeta.Tables[0].Name}"
             if not error?
                 log.info "table deleted from the db config", V_(tableMeta.Tables[0].Name), V_(provider)
-            Cache.delete cacheKey provider
+            Cache.delete Cache.generateDBConfigCacheKey provider
             log.debug "db config cache were emptied", V_(tableMeta.Tables[0].Name), V_(provider)
             callback? error
 
@@ -193,15 +192,9 @@ class DBConfig
             error = collectError err, reply, "Error adding table to db config: #{provider}/#{tableMeta.Tables[0].Name}"
             if not error?
                 log.info "table added to the db config", V_(tableMeta.Tables[0].Name), V_(provider)
-            Cache.delete cacheKey provider
+            Cache.delete Cache.generateDBConfigCacheKey provider
             log.debug "db config cache were emptied", V_(tableMeta.Tables[0].Name), V_(provider)
             callback? error
-
-    emptyDBConfigCache = () =>
-        keys = Cache.listKeys()
-        for key in keys
-            if key.indexOf(DB_CONFIG_CACHE_PREFIX) is 0
-                Cache.delete key
 
     checkMetadata = (metadata) ->
         if not metadata?
@@ -218,19 +211,16 @@ class DBConfig
             else
                 tableList.push table.Schema + "." + table.Name
         if tableList.length > 0
-            Cache.set (cacheKey provider), tableList
+            Cache.set (Cache.generateDBConfigCacheKey provider), tableList
         callback tableList
 
     replyFromCache = (provider, onReady) ->
-        tableList = Cache.get cacheKey provider
+        tableList = Cache.get Cache.generateDBConfigCacheKey provider
         if tableList? and util.isArray tableList
             log.trace "getting list of already added tables from cache.", V_(provider)
             onReady tableList
             return true
         return false
-
-    cacheKey = (provider) ->
-        return DB_CONFIG_CACHE_PREFIX + "_" + provider
 
     collectError = (err, reply, desc) ->
         error = null

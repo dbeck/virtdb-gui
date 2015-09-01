@@ -190,9 +190,9 @@ describe "DBConfig", ->
             cb.should.have.been.calledWith ERROR
 
         it "should empty cache when db config changed", ->
-            keyToDelete = "db_config_tables_" + PROVIDER
+            keyToDelete = "DBCONFIG$$$" + PROVIDER
             requestStub.yields null, (DBConfigProto.serialize DB_CONFIG_ADD_REPLY_NO_ERROR, "virtdb.interface.pb.DBConfigReply")
-            cacheListKeyStub.returns [keyToDelete, "db_config_tables_prov2", "db_es_prov3"]
+            cacheListKeyStub.returns [keyToDelete, "DBCONFIG$$$prov2", "db_es_prov3"]
             DBConfig.addTable PROVIDER, METADATA, null, cb
             cacheDelStub.should.have.been.calledWithExactly keyToDelete
 
@@ -221,9 +221,9 @@ describe "DBConfig", ->
             cb.should.have.been.calledWith ERROR
 
         it "should empty cache when db config changed", ->
-            keyToDelete = "db_config_tables_" + PROVIDER
+            keyToDelete = "DBCONFIG$$$" + PROVIDER
             requestStub.yields null, (DBConfigProto.serialize DB_CONFIG_DELETE_REPLY_NO_ERROR, "virtdb.interface.pb.DBConfigReply")
-            cacheListKeyStub.returns [keyToDelete, "db_config_tables_prov2", "db_es_prov3"]
+            cacheListKeyStub.returns [keyToDelete, "DBCONFIG$$$prov2", "db_es_prov3"]
             DBConfig.deleteTable PROVIDER, METADATA, null, cb
             cacheDelStub.should.have.been.calledWithExactly keyToDelete
 
@@ -306,9 +306,9 @@ describe "DBConfig", ->
             callback.should.have.been.calledWithExactly error, null
 
     it "should empty cache when db config changed", ->
-        cacheListKeyStub.returns ["db_config_tables_prov1", "db_config_tables_prov2", "db_es_prov3"]
+        cacheListKeyStub.returns ["DBCONFIG$$$prov1", "DBCONFIG$$$prov2", "db_es_prov3"]
         DBConfig.setDBConfig "valami_mas"
         cacheDelStub.should.have.been.calledTwice
-        cacheDelStub.should.have.been.calledWith "db_config_tables_prov1"
-        cacheDelStub.should.have.been.calledWith "db_config_tables_prov2"
+        cacheDelStub.should.have.been.calledWith "DBCONFIG$$$prov1"
+        cacheDelStub.should.have.been.calledWith "DBCONFIG$$$prov2"
 

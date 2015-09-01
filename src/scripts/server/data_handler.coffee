@@ -1,5 +1,5 @@
 DataConnection = require "./data_connection"
-MetadataHandler = require "./meta_data_handler"
+Metadata = require "./meta_data_handler"
 ColumnReceiver = require "./column_receiver"
 Const = (require "virtdb-connector").Const
 Endpoints = require "./endpoints"
@@ -16,8 +16,7 @@ class DataHandler
 
     getData: (loginToken, provider, tableName, count, onData) =>
         try
-            metadataHandler = MetadataHandler.createInstance()
-            metadataHandler.getTableMetadata provider, tableName, loginToken, (err, metadataMessage) =>
+            Metadata.getTableDescription provider, tableName, loginToken, (err, metadataMessage) =>
                 if err?
                     onData []
                     return
