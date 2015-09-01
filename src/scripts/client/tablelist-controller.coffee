@@ -33,11 +33,10 @@ module.exports = app.controller 'TableListController',
             @$scope.tableListFilter = ""
 
         refresh: (provider) =>
-            refreshButton = document.getElementById('refresh')
-            originalClass = refreshButton.className
-            refreshButton.className = refreshButton.className + ' fa-spin'
-            resetButton = ->
-                refreshButton.className = originalClass
+            @$scope.refreshing = true
+            resetButton = =>
+                @$scope.refreshing = false
+                @$scope.$broadcast "selectedProviderChanged", provider
 
             @ServerConnector.refreshTableList provider, resetButton, resetButton
 
