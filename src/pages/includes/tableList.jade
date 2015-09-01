@@ -11,7 +11,7 @@ div(ng-controller="TableListController as tableListCtrl")
                     span
                         a.table-list-icon(data-toggle="collapse", data-parent="#accordion", target="_self", href="#collapseFilter", ng-click="tableListCtrl.filterTableList()")
                             span(ng-class="{empty: tableListFilter == null || tableListFilter.length == 0}").glyphicon.glyphicon-filter.text-right.pull-right
-                        i.pull-right.fa.fa-refresh.table-list-icon#refresh(ng-class="{disabled: selectedProvider == null}", ng-click="tableListCtrl.refresh(selectedProvider)")
+                        i.pull-right.fa.fa-refresh.table-list-icon(ng-class="{disabled: selectedProvider == null, 'fa-spin': refreshing}", ng-click="tableListCtrl.refresh(selectedProvider)")
                         i.pull-right.fa.fa-caret-right.table-pager.table-list-icon(ng-class="{disabled: selectedProvider == null || tableListTo == tableListCount - 1}", ng-disabled="tableListTo == tableListCount - 1", ng-click="tableListCtrl.getNextTables()")
                         i.pull-right.fa.fa-caret-left.table-list-icon.table-pager(ng-class="{disabled: tableListFrom == 0}", ng-disabled="tableListFrom == 0", ng-click="tableListCtrl.getPreviousTables()")
         div.panel-group(id="accordion")

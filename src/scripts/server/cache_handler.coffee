@@ -63,8 +63,11 @@ class CacheHandler
 
     @parseCacheKeyOfMetadata: (key) ->
         if key.indexOf(METADATA_CACHE_PREFIX) is 0
-            parts = key.substring(METADATA_CACHE_PREFIX.length, key.length).split "_"
-            [parts[0], (JSON.parse parts[1])]
+            keyWithoutPrefix = key.substring METADATA_CACHE_PREFIX.length
+            separatorIndex = keyWithoutPrefix.indexOf('_')
+            provider = keyWithoutPrefix.substring 0, separatorIndex
+            request = keyWithoutPrefix.substring separatorIndex + 1
+            [provider, (JSON.parse request)]
         else
             null
 
