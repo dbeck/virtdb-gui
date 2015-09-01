@@ -1,7 +1,7 @@
 require("source-map-support").install()
 NodeCache = require "node-cache"
 Config = require "../src/scripts/server/config"
-CacheHandler = require "../src/scripts/server/cache_handler"
+Cache = require "../src/scripts/server/cache_handler"
 VirtDBConnector = require "virtdb-connector"
 log = VirtDBConnector.log
 
@@ -12,7 +12,7 @@ sinon = require "sinon"
 sinonChai = require("sinon-chai");
 chai.use sinonChai
 
-describe "CacheHandler", ->
+describe "Cache", ->
 
     sandbox = null
     clock = null
@@ -25,10 +25,10 @@ describe "CacheHandler", ->
         sandbox.stub VirtDBConnector.log, "trace"
         sandbox.stub VirtDBConnector.log, "error"
         clock.tick 100
-        CacheHandler._onNewCacheTTL 1
+        Cache._onNewCacheTTL 1
 
     afterEach =>
-        CacheHandler.reset()
+        Cache.reset()
         sandbox.restore()
         clock.restore()
 
@@ -40,9 +40,9 @@ describe "CacheHandler", ->
         OBJ = {}
         OBJ[KEY] = DATA
 
-        CacheHandler.set KEY, DATA
+        Cache.set KEY, DATA
         clock.tick 800
-        result = CacheHandler.get KEY
+        result = Cache.get KEY
         result.should.be.deep.equal DATA
 
     it "should store an array and give it back if we get it before ttl", ->
@@ -80,9 +80,9 @@ describe "CacheHandler", ->
         OBJ = {}
         OBJ[KEY] = DATA
 
-        CacheHandler.set KEY, DATA
+        Cache.set KEY, DATA
         clock.tick 200
-        result = CacheHandler.get KEY
+        result = Cache.get KEY
         result.should.deep.equal DATA
 
     it "should store large data and give it back if we get it before ttl", ->
@@ -104,9 +104,9 @@ describe "CacheHandler", ->
         OBJ = {}
         OBJ[KEY] = DATA
 
-        CacheHandler.set KEY, DATA
+        Cache.set KEY, DATA
         clock.tick 200
-        result = CacheHandler.get KEY
+        result = Cache.get KEY
         result.should.deep.equal DATA
 
     it "should return null if data requested after ttl", ->
@@ -114,22 +114,22 @@ describe "CacheHandler", ->
         DATA = "data"
         KEY = "key"
 
-        CacheHandler.set KEY, DATA
+        Cache.set KEY, DATA
         clock.tick 1500
-        result = CacheHandler.get KEY
+        result = Cache.get KEY
         should.not.exist result
 
     it "should use new ttl value", ->
-        CacheHandler._onNewCacheTTL 3
-        getSpy = sandbox.spy CacheHandler, "get"
-        CacheHandler.set "key", "value"
+        Cache._onNewCacheTTL 3
+        getSpy = sandbox.spy Cache, "get"
+        Cache.set "key", "value"
         clock.tick 2500
-        value = CacheHandler.get "key"
+        value = Cache.get "key"
         value.should.be.equal "value"
 
     it "should register for the parameter changes to the config", ->
         addCfgListStub = sandbox.stub Config, "addConfigListener"
-        CacheHandler.init()
+        Cache.init()
         addCfgListStub.should.have.been.calledWith Config.CACHE_TTL
 
     it "should call the key expiration listeners if there are some", ->
@@ -138,9 +138,9 @@ describe "CacheHandler", ->
         KEY1 = "KEY1"
         clock.tick 200
 
-        CacheHandler.addKeyExpirationListener KEY1, expListener1
-        CacheHandler.addKeyExpirationListener KEY1, expListener2
-        CacheHandler.set KEY1, "value"
+        Cache.addKeyExpirationListener KEY1, expListener1
+        Cache.addKeyExpirationListener KEY1, expListener2
+        Cache.set KEY1, "value"
         clock.tick 2000
 
         expListener1.should.have.been.calledOnce
@@ -148,18 +148,18 @@ describe "CacheHandler", ->
 
     it "should not crash when there are no any listener to key and it was expired", ->
         clock.tick 200
-        CacheHandler.set "key", "value"
+        Cache.set "key", "value"
         clock.tick 2000
 
     it "should delete key expiration listeners after they have been called", ->
         expListener1 = sandbox.spy()
         expListener2 = sandbox.spy()
         KEY1 = "KEY1"
-        CacheHandler.addKeyExpirationListener KEY1, expListener1
-        CacheHandler.addKeyExpirationListener KEY1, expListener2
-        CacheHandler.set KEY1, "value"
+        Cache.addKeyExpirationListener KEY1, expListener1
+        Cache.addKeyExpirationListener KEY1, expListener2
+        Cache.set KEY1, "value"
         clock.tick 2000
-        CacheHandler.set KEY1, "value"
+        Cache.set KEY1, "value"
         clock.tick 2000
         expListener1.should.have.been.calledOnce
         expListener2.should.have.been.calledOnce
@@ -171,10 +171,10 @@ describe "CacheHandler", ->
         KEY1 = "key1"
         KEY2 = "key2"
 
-        CacheHandler.set KEY1, DATA
-        CacheHandler.set KEY2, DATA
+        Cache.set KEY1, DATA
+        Cache.set KEY2, DATA
         clock.tick 300
-        keys = CacheHandler.listKeys()
+        keys = Cache.listKeys()
         keys.should.be.deep.equal [KEY1, KEY2]
 
     it "should delete the entry", ->
@@ -182,7 +182,18 @@ describe "CacheHandler", ->
         DATA = "data"
         KEY = "key"
 
-        CacheHandler.set KEY, DATA
-        CacheHandler.delete KEY
-        result = CacheHandler.get KEY
+        Cache.set KEY, DATA
+        Cache.delete KEY
+        result = Cache.get KEY
         should.not.exist result
+
+    it "should be able to store dbconfig and metadata keys and parse them while iterating over", ->
+        DATA_META = "meta"
+        DATA_DB_CONFIG = "dbconf"
+        KEY_META = Cache.generateCacheKeyForMetadata "oracle-cache", { some: "object" }
+        Cache.set KEY_META, DATA_META
+        KEY_DB_CONFIG = Cache.generateDBConfigCacheKey "sap-provider"
+        Cache.set KEY_DB_CONFIG, DATA_DB_CONFIG
+        for key in Cache.listKeys()
+            Cache.parseCacheKeyOfMetadata key
+

@@ -9,6 +9,8 @@ class CacheHandler
     cache = null
     ttl = 0 # seconds, 0 means unlimited
     keyExpirationListeners = {}
+    DB_CONFIG_CACHE_PREFIX = "DBCONFIG$$$"
+    METADATA_CACHE_PREFIX = "METADATA$$$"
 
     @reset: =>
         cache?._killCheckPeriod()
@@ -52,6 +54,25 @@ class CacheHandler
     @_onNewCacheTTL: (newTTL) =>
         ttl = newTTL
         createCache ttl
+
+    @generateDBConfigCacheKey: (provider) ->
+        DB_CONFIG_CACHE_PREFIX + provider
+
+    @generateCacheKeyForMetadata: (provider, request) ->
+        METADATA_CACHE_PREFIX + provider + "_" + JSON.stringify request
+
+    @parseCacheKeyOfMetadata: (key) ->
+        if key.indexOf(METADATA_CACHE_PREFIX) is 0
+            parts = key.substring(METADATA_CACHE_PREFIX.length, key.length).split "_"
+            [parts[0], (JSON.parse parts[1])]
+        else
+            null
+
+    @emptyDBConfig: () =>
+        keys = @listKeys()
+        for key in keys
+            if key.indexOf(DB_CONFIG_CACHE_PREFIX) is 0
+                @delete key
 
     createCache = (ttl) ->
         options = {}

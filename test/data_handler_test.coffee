@@ -1,5 +1,5 @@
 VirtDBConnector = require "virtdb-connector"
-MetadataHandler = require "../src/scripts/server/meta_data_handler"
+Metadata = require "../src/scripts/server/meta_data_handler"
 DataHandler = require "../src/scripts/server/data_handler"
 DataConnection = require "../src/scripts/server/data_connection"
 CacheHandler = require "../src/scripts/server/cache_handler"
@@ -53,10 +53,8 @@ describe "DataHandler", ->
         COLUMN = "column"
 
         onDataSpy = sinon.spy()
-        metadataHandler = sinon.createStubInstance MetadataHandler
-        metadataHandlerCreateInstanceStub = sandbox.stub MetadataHandler, "createInstance"
-        metadataHandlerCreateInstanceStub.returns metadataHandler
-        metadataHandler.getTableMetadata.callsArgWith 3, null, METADATA
+        getTableDescription = sandbox.stub Metadata, "getTableDescription"
+        getTableDescription.callsArgWith 3, null, METADATA
 
         dataConnection = sinon.createStubInstance DataConnection
         dataConnectionCreateInstanceStub = sandbox.stub DataConnection, "createInstance"
@@ -75,8 +73,8 @@ describe "DataHandler", ->
 
         dataHandler.getData TOKEN, PROVIDER, TABLE, COUNT, onDataSpy
 
-        metadataHandler.getTableMetadata.should.calledOnce
-        metadataHandler.getTableMetadata.should.calledWith PROVIDER, TABLE, TOKEN
+        getTableDescription.should.calledOnce
+        getTableDescription.should.calledWith PROVIDER, TABLE, TOKEN
         columnReceiverCreateInstanceStub.should.calledWithExactly onDataSpy, FIELDS
         dataConnection.getData.should.calledWith TOKEN, SCHEMA, TABLE, FIELDS, COUNT
         columnReceiver.add.should.calledWith COLUMN

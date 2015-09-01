@@ -6,7 +6,7 @@ User = require './user'
 auth = require './authentication'
 timeout = require "connect-timeout"
 Config = require "./config"
-MetadataHandler = require "./meta_data_handler"
+Metadata = require "./meta_data_handler"
 log = (require "virtdb-connector").log
 V_ = log.Variable
 
@@ -78,8 +78,7 @@ router.post "/tables"
     provider = req.body.provider
     try
         addTable = (token, username) ->
-            metadataHandler = new MetadataHandler
-            metadataHandler.getTableMetadata provider, table, token, (err, metaData) ->
+            Metadata.getTableDescription provider, table, token, (err, metaData) ->
                 if err?
                     res.status(500).send()
                     return
@@ -116,8 +115,7 @@ router.delete "/tables"
     provider = req.query.provider
     try
         deleteTable = (token, username) ->
-            metadataHandler = new MetadataHandler()
-            metadataHandler.getTableMetadata provider, table, token, (err, metaData) ->
+            Metadata.getTableDescription provider, table, token, (err, metaData) ->
                 if err?
                     res.status(500).send()
                     return

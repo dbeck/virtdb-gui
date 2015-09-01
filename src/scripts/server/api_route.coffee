@@ -16,7 +16,7 @@ auth = require './authentication'
 validator = require "./validator"
 
 DataHandler = require "./data_handler"
-MetadataHandler = require "./meta_data_handler"
+Metadata = require "./meta_data_handler"
 TokenManager = VirtDBConnector.TokenManager
 Credentials = require "./credentials"
 
@@ -64,8 +64,7 @@ router.delete "/data_provider/:provider/cache"
     , timeout(Config.getCommandLineParameter("timeout"))
 , (req, res, next) ->
     provider = req.params.provider
-    metadataHandler = new MetadataHandler
-    metadataHandler.emptyProviderCache provider
+    Metadata.emptyProviderCache provider
     if not res.headersSent
         res.status(200).send()
 
@@ -102,8 +101,7 @@ router.post "/data_provider/meta_data/"
 
     try
         token = req?.user?.token
-        metadataHandler = new MetadataHandler()
-        metadataHandler.getTableMetadata provider, table, token, onMetadata
+        Metadata.getTableDescription provider, table, token, onMetadata
     catch ex
         log.error V_(ex)
         throw ex
@@ -140,8 +138,7 @@ router.post "/data_provider/table_list"
 
     try
         token = req?.user?.token
-        metadataHandler = new MetadataHandler()
-        metadataHandler.getTableList provider, search, from, to, tablesToFilter, token, (err, result) ->
+        Metadata.getTableList provider, search, from, to, tablesToFilter, token, (err, result) ->
             if err?
                 res.status(500).send()
                 return
@@ -260,8 +257,7 @@ router.post "/set_config/:component"
         config = req.body
 
         if ConfigService.sendConfig component, config
-            metadataHandler = new MetadataHandler
-            metadataHandler.emptyProviderCache component
+            Metadata.emptyProviderCache component
             if not res.headersSent
                 res.status(200).send()
         else
