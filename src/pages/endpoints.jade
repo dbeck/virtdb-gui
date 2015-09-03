@@ -19,7 +19,7 @@ div.container
                 tbody
                     tr(
                     ng-repeat='component in componentList'
-                    ng-click="$parent.selectedComponent = component")
+                    ng-click="selectComponent(component)")
                         td.btn-success.btn-component(ng-class="{'selected-component': $parent.selectedComponent === component}")
                             span.glyphicon.glyphicon-hdd
                             span(text="{{component}}")  {{component}}
@@ -33,15 +33,15 @@ div.container
                             span.strong(ng-if="isRequired(item)") *
                             span.small(ng-if="isRange(item)") ( Range: {{getMinimum(item)}} - {{getMaximum(item)}} )
                         td
-                            input(type="number" name="{{item.Name}}" ng-if="isNumber(item)" ng-model="item.Data.Value.Value[0]" ng-required="isRequired(item)" ng-change="clearStatus()")
-                            input(type="text" name="{{item.Name}}" ng-if="!isNumber(item) && !isPassword(item)" ng-model="item.Data.Value.Value[0]" ng-required="isRequired(item)" ng-change="clearStatus()")
-                            input(type="password" name="{{item.Name}}" ng-if="isPassword(item)" ng-model="item.Data.Value.Value[0]" ng-required="isRequired(item)" ng-change="clearStatus()")
+                            input(type="number" name="{{item.Name}}" ng-if="isNumber(item)" ng-model="item.Data.Value.Value[0]" ng-required="isRequired(item)" ng-change="clearConfigSaveStatus()")
+                            input(type="text" name="{{item.Name}}" ng-if="!isNumber(item) && !isPassword(item)" ng-model="item.Data.Value.Value[0]" ng-required="isRequired(item)" ng-change="clearConfigSaveStatus()")
+                            input(type="password" name="{{item.Name}}" ng-if="isPassword(item)" ng-model="item.Data.Value.Value[0]" ng-required="isRequired(item)" ng-change="clearConfigSaveStatus()")
                 div
-                    button.btn.btn-save.btn-sm(ng-click="endpointController.sendConfig()" ng-class="{'btn-success': !failure, 'btn-danger': failure}")
+                    button.btn.btn-save.btn-sm(ng-click="endpointController.sendConfig()" ng-class="{'btn-success': !configSaveFailure, 'btn-danger': configSaveFailure}")
                         span Save
-                        i.pull-right.fa-right.fa.fa-refresh.fa-spin(ng-if="saving == true")
-                        i.pull-right.fa-right.fa.fa-check(ng-if="success == true")
-                        i.pull-right.fa-right.fa.fa-times(ng-if="failure == true")
+                        i.pull-right.fa-right.fa.fa-refresh.fa-spin(ng-if="configSaving == true")
+                        i.pull-right.fa-right.fa.fa-check(ng-if="configSaveSuccess == true")
+                        i.pull-right.fa-right.fa.fa-times(ng-if="configSaveFailure == true")
 
             div(ng-if="credentialTemplate.length > 0 && Features.Security")
                 h4 Credential
@@ -50,12 +50,16 @@ div.container
                         td
                             span.strong {{ field.Name }}
                         td
-                            input(type="text" ng-if="field.Type === 'STRING'" ng-model="field.Value" ng-required="true")
-                            input(type="email" ng-if="field.Type === 'EMAIL'" ng-model="field.Value" ng-required="true")
-                            input(type="password" ng-if="field.Type === 'PASSWORD'" ng-model="field.Value" ng-required="true")
-                            input(type="checkbox" ng-if="field.Type === 'BOOLEAN'" ng-model="field.Value" ng-true-value="true" ng-false-value="false")
+                            input(type="text" ng-if="field.Type === 'STRING'" ng-model="field.Value" ng-required="true" ng-change="clearCredSaveStatus()")
+                            input(type="email" ng-if="field.Type === 'EMAIL'" ng-model="field.Value" ng-required="true" ng-change="clearCredSaveStatus()")
+                            input(type="password" ng-if="field.Type === 'PASSWORD'" ng-model="field.Value" ng-required="true" ng-change="clearCredSaveStatus()")
+                            input(type="checkbox" ng-if="field.Type === 'BOOLEAN'" ng-model="field.Value" ng-true-value="true" ng-false-value="false" ng-change="clearCredSaveStatus()")
                 div
-                    button.btn-sm.btn-success(ng-click="endpointController.sendCredential()") Send credentials
+                    button.btn-sm(ng-click="endpointController.sendCredential() ng-class="{'btn-success': !credSaveFailure, 'btn-danger': credSaveFailure}")
+                        span Send credentials
+                        i.pull-right.fa-right.fa.fa-refresh.fa-spin(ng-if="credSaving == true")
+                        i.pull-right.fa-right.fa.fa-check(ng-if="credSaveSuccess == true")
+                        i.pull-right.fa-right.fa.fa-times(ng-if="credSaveFailure == true")
 
         div.col-md-3
             div.list-group

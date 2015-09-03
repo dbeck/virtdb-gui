@@ -27,15 +27,24 @@ class EndpointController
             minimum = item?.Data?.Minimum?.Value?[0]
             minimum ?= ""
             return minimum
-        $scope.clearStatus = ->
-            $scope.failure = false
-            $scope.success = false
-            $scope.saving = false
+        $scope.clearConfigSaveStatus = ->
+            $scope.configSaveFailure = false
+            $scope.configSaveSuccess = false
+            $scope.configSaving = false
+        $scope.clearCredSaveStatus = ->
+            $scope.credSaveFailure = false
+            $scope.credSaveSuccess = false
+            $scope.credSaving = false
         $scope.getMaximum = (item) ->
             maximum = item?.Data?.Maximum?.Value?[0]
             maximum ?= ""
             return maximum
-        $scope.clearStatus()
+        $scope.selectComponent = (component) ->
+            $scope.clearConfigSaveStatus()
+            $scope.clearCredSaveStatus()
+            $scope.$parent.selectedComponent = component
+        $scope.clearConfigSaveStatus()
+        $scope.clearCredSaveStatus()
 
         CurrentUser.get (user) ->
             $scope.user = user
@@ -47,12 +56,13 @@ class EndpointController
             @requestComponentCredential()
 
     requestComponentConfig: () =>
-        @$scope.saving = false
+        @$scope.configSaving = false
         if @$scope.selectedComponent?
             @ServerConnector.getConfig { selectedComponent: @$scope.selectedComponent}, (data) =>
                 @$scope.componentConfig = data
 
     requestComponentCredential: () =>
+        @$scope.credSaving = false
         if @$scope.selectedComponent?
             @ServerConnector.getCredential { selectedComponent: @$scope.selectedComponent}, (data) =>
                 @$scope.credentialTemplate = data
@@ -84,9 +94,9 @@ class EndpointController
                         @$scope.componentInfo.push infoRow
 
     sendConfig: =>
-        @$scope.saving = true
-        @$scope.failure = false
-        @$scope.success = false
+        @$scope.configSaving = true
+        @$scope.configSaveFailure = false
+        @$scope.configSaveSuccess = false
         for item in @$scope.componentConfig
             if item.Data.Value.Type == 'BOOL' and item.Data.Value.Value[0]?.toLowerCase?() == 'false'
                 item.Data.Value.Value[0] = false
@@ -97,17 +107,25 @@ class EndpointController
             componentConfig: @$scope.componentConfig
         , =>
             @ServerConnector.getSettings (data) =>
-                @$scope.saving = false
-                @$scope.success = true
+                @$scope.configSaving = false
+                @$scope.configSaveSuccess = true
                 @$rootScope.Settings = data
             @requestComponentConfig()
         , =>
-            @$scope.failure = true
+            @$scope.configSaveFailure = true
             @requestComponentConfig()
 
     sendCredential: =>
+        @$scope.credSaving = true
+        @$scope.credSaveFailure = false
+        @$scope.credSaveSuccess = false
         @ServerConnector.setCredential
             selectedComponent: @$scope.selectedComponent
             credentials: @$scope.credentialTemplate
         , =>
+            @$scope.credSaving = false
+            @$scope.credSaveSuccess = true
+            @requestComponentCredential()
+        ,
+            @$scope.credSaveFailure = true
             @requestComponentCredential()
