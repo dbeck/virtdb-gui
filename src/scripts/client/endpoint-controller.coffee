@@ -14,6 +14,9 @@ class EndpointController
         $scope.isNumber = (item) ->
             type = item?.Data?.Value?.Type
             return type in ['UINT32', 'UINT64', 'INT32', 'INT64']
+        $scope.isBool = (item) ->
+            type = item?.Data?.Value?.Type
+            return type is 'BOOL'
         $scope.isPassword = (item) ->
             value = item?.Data?.Value?.Value?[0]
             return value? and value.toString().toLowerCase() == 'password'
