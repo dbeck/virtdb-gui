@@ -19,7 +19,7 @@ div.navbar.navbar-default(ng-controller="FeatureController")
             ul.nav.navbar-nav.navbar-right(ng-controller="AdminController")
                 li.dropdown(ng-if="Features.Security && user.isAdmin")
                     a.dropdown-toggle(data-toggle="dropdown") Security
-                        span.badge(ng-if="waitingCertCount > 0") {{ waitingCertCount }}
+                        // span.badge(ng-if="waitingCertCount > 0") {{ waitingCertCount }}
                         strong.caret
                     ul.nav.nav-stacked.dropdown-menu(ng-if="Features.Security")
                         // li
