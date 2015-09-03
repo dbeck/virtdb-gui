@@ -12,12 +12,12 @@ getCredential = (token, sourceSystem, callback) ->
             return
         TokenManager.getSourceSystemToken token, sourceSystem, (err, sourceSystemToken) ->
             if err?
-                log.error "Error during getting source system token", (V_ sourceSystem), (V_ err)
+                log.warn "Error during getting source system token", (V_ sourceSystem), (V_ err)
                 callback null, template
                 return
             SourceSystemCredential.getCredential sourceSystem, sourceSystemToken, (err, credential) ->
                 if err?
-                    log.error "Error during getting credentials", (V_ sourceSystem), (V_ err)
+                    log.warn "Error during getting credentials", (V_ sourceSystem), (V_ err)
                     callback null, template
                     return
                 mergeTemplateCredential template, credential, callback
