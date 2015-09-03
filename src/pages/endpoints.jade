@@ -33,11 +33,15 @@ div.container
                             span.strong(ng-if="isRequired(item)") *
                             span.small(ng-if="isRange(item)") ( Range: {{getMinimum(item)}} - {{getMaximum(item)}} )
                         td
-                            input(type="number" name="{{item.Name}}" ng-if="isNumber(item)" ng-model="item.Data.Value.Value[0]" ng-required="isRequired(item)")
-                            input(type="text" name="{{item.Name}}" ng-if="!isNumber(item) && !isPassword(item)" ng-model="item.Data.Value.Value[0]" ng-required="isRequired(item)")
-                            input(type="password" name="{{item.Name}}" ng-if="isPassword(item)" ng-model="item.Data.Value.Value[0]" ng-required="isRequired(item)")
+                            input(type="number" name="{{item.Name}}" ng-if="isNumber(item)" ng-model="item.Data.Value.Value[0]" ng-required="isRequired(item)" ng-change="clearStatus()")
+                            input(type="text" name="{{item.Name}}" ng-if="!isNumber(item) && !isPassword(item)" ng-model="item.Data.Value.Value[0]" ng-required="isRequired(item)" ng-change="clearStatus()")
+                            input(type="password" name="{{item.Name}}" ng-if="isPassword(item)" ng-model="item.Data.Value.Value[0]" ng-required="isRequired(item)" ng-change="clearStatus()")
                 div
-                    button.btn.btn-success.btn-save.btn-sm(ng-click="endpointController.sendConfig()") Save
+                    button.btn.btn-save.btn-sm(ng-click="endpointController.sendConfig()" ng-class="{'btn-success': !failure, 'btn-danger': failure}")
+                        span Save
+                        i.pull-right.fa-right.fa.fa-refresh.fa-spin(ng-if="saving == true")
+                        i.pull-right.fa-right.fa.fa-check(ng-if="success == true")
+                        i.pull-right.fa-right.fa.fa-times(ng-if="failure == true")
 
             div(ng-if="credentialTemplate.length > 0 && Features.Security")
                 h4 Credential

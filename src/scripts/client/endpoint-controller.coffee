@@ -27,10 +27,15 @@ class EndpointController
             minimum = item?.Data?.Minimum?.Value?[0]
             minimum ?= ""
             return minimum
+        $scope.clearStatus = ->
+            $scope.failure = false
+            $scope.success = false
+            $scope.saving = false
         $scope.getMaximum = (item) ->
             maximum = item?.Data?.Maximum?.Value?[0]
             maximum ?= ""
             return maximum
+        $scope.clearStatus()
 
         CurrentUser.get (user) ->
             $scope.user = user
@@ -42,6 +47,7 @@ class EndpointController
             @requestComponentCredential()
 
     requestComponentConfig: () =>
+        @$scope.saving = false
         if @$scope.selectedComponent?
             @ServerConnector.getConfig { selectedComponent: @$scope.selectedComponent}, (data) =>
                 @$scope.componentConfig = data
@@ -78,6 +84,9 @@ class EndpointController
                         @$scope.componentInfo.push infoRow
 
     sendConfig: =>
+        @$scope.saving = true
+        @$scope.failure = false
+        @$scope.success = false
         for item in @$scope.componentConfig
             if item.Data.Value.Type == 'BOOL' and item.Data.Value.Value[0]?.toLowerCase?() == 'false'
                 item.Data.Value.Value[0] = false
@@ -88,9 +97,13 @@ class EndpointController
             componentConfig: @$scope.componentConfig
         , =>
             @ServerConnector.getSettings (data) =>
+                @$scope.saving = false
+                @$scope.success = true
                 @$rootScope.Settings = data
             @requestComponentConfig()
-        , @requestComponentConfig
+        , =>
+            @$scope.failure = true
+            @requestComponentConfig()
 
     sendCredential: =>
         @ServerConnector.setCredential
