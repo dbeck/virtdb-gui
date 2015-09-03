@@ -77,13 +77,14 @@ router.post "/tables"
     table = req.body.table
     provider = req.body.provider
     try
-        addTable = (token, username) ->
+        addTable = (token, username, addTableCallback) ->
             Metadata.getTableDescription provider, table, token, (err, metaData) ->
                 if err?
                     res.status(500).send()
                     return
                 DBConfig.addTable provider, metaData, username, (err) ->
                     if not err?
+                        addTableCallback?()
                         res.status(200).send()
                     else
                         res.status(500).send()
@@ -91,8 +92,8 @@ router.post "/tables"
         if Config.Features.Security
             User.getTableToken req.user, provider, (err, token) ->
                 if not err?
-                    addTable token, req.user.name
-                    DBConfig.addUserMapping provider, req.user.name, token
+                    addTable token, req.user.name, ->
+                        DBConfig.addUserMapping provider, req.user.name, token
         else
             addTable()
 
