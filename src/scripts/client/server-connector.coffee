@@ -168,18 +168,19 @@ module.exports = app.factory 'ServerConnector', ['$http', 'ErrorService', '$q', 
                 .error (response, status) ->
                     ErrorService.errorHappened status, "Failed to get credential template of component: #{data.selectedComponent} (#{response})"
 
-        setCredential: (data, onSuccess) =>
+        setCredential: (data, onSuccess, onError) =>
             $http.post @address + '/api/set_credential/' + data.selectedComponent, data.credentials
                 .success onSuccess
                 .error (response, status) ->
                     ErrorService.errorHappened status, "Failed to set credential: #{data.selectedComponent} (#{response})"
+                    onError?(response, status)
 
         setConfig: (data, onSuccess, onError) =>
             $http.post @address + '/api/set_config/' + data.selectedComponent, data.componentConfig
                 .success onSuccess
                 .error (response, status) ->
                     ErrorService.errorHappened status, "Failed to set configuration of component: #{data.selectedComponent}  (#{response})"
-                    onError(response, status)
+                    onError?(response, status)
 
         sendDBConfig: (data, onSuccess) =>
             $http.post(@address + "/api/db_config/tables", data)
