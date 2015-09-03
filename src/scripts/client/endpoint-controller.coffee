@@ -129,6 +129,6 @@ class EndpointController
             @$scope.credSaving = false
             @$scope.credSaveSuccess = true
             @requestComponentCredential()
-        ,
+        , =>
             @$scope.credSaveFailure = true
             @requestComponentCredential()
