@@ -55,7 +55,7 @@ div.container
                             input(type="password" ng-if="field.Type === 'PASSWORD'" ng-model="field.Value" ng-required="true" ng-change="clearCredSaveStatus()")
                             input(type="checkbox" ng-if="field.Type === 'BOOLEAN'" ng-model="field.Value" ng-true-value="true" ng-false-value="false" ng-change="clearCredSaveStatus()")
                 div
-                    button.btn-sm(ng-click="endpointController.sendCredential() ng-class="{'btn-success': !credSaveFailure, 'btn-danger': credSaveFailure}")
+                    button.btn-sm(ng-click="endpointController.sendCredential()" ng-class="{'btn-success': !credSaveFailure, 'btn-danger': credSaveFailure}")
                         span Send credentials
                         i.pull-right.fa-right.fa.fa-refresh.fa-spin(ng-if="credSaving == true")
                         i.pull-right.fa-right.fa.fa-check(ng-if="credSaveSuccess == true")
