@@ -1,6 +1,6 @@
 h3
     span.triangle
-    span Data
+    span Preview
     button.pull-right.btn.btn-sm.btn-info(ng-if="table !== null", ng-click='dataProvider.transposeData()')
         span.button-icon-container
             img.button-icon(src="/images/transpose_icon.png")
@@ -9,4 +9,5 @@ div.data-table
     virtdb-table(data="dataRows", header="dataHeader", callback="dataProvider.selectField", selected-field="field", transposed="dataProvider.transposed")
 div(ng-if="dataProvider.isLoadingTable")
     include spinner
+h6.pull-right(ng-if="dataRows.length == 20") Preview shows only the first 20 rows
 
