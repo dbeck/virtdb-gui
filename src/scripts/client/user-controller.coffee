@@ -99,7 +99,7 @@ userController = app.controller 'UserController',
                     getUserList ServerConnector, $scope
 
             $scope.initChangePassword = (id) ->
-                @$rootScope.editUser = @$scope.userList[id]
+                $rootScope.editUser = $scope.userList[id]
 
             CurrentUser.get  (user) =>
                 if user? and user isnt ""
