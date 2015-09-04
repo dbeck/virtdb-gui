@@ -1,6 +1,17 @@
 app = require './virtdb-app.js'
 tableListDirective = require './tablelist.js'
 
+ICON_HIDDEN = "transparent fa fa-check"
+ICON_SPINNER = "fa fa-spin fa-spinner"
+ICON_OK = "fa fa-check"
+ICON_ERROR = "fa fa-times error"
+
+hideIcon = (icon) ->
+    setTimeout ->
+        icon.className = ICON_HIDDEN
+        console.log "Icon hidden"
+    , 1000
+
 module.exports = app.controller 'TableListController',
     class TableListController
         @ITEMS_PER_PAGE = 50
@@ -139,13 +150,31 @@ module.exports = app.controller 'TableListController',
                         _table.outdated = true
 
         changeStatus: (table) =>
+            icon = document.getElementById("tableIcon#{table.name}")
+            icon.className = ICON_SPINNER
             data =
                 table: table.name
                 provider: @$scope.selectedProvider
             if table.configured
-                @ServerConnector.deleteDBConfig data, @requestConfiguredTables
+                @ServerConnector.deleteDBConfig data, =>
+                    icon.className = ICON_OK
+                    @requestConfiguredTables()
+                    hideIcon icon
+                , =>
+                    console.log "Error with dbConfig request"
+                    icon.className = ICON_ERROR
+                    console.log "Hiding icon"
+                    hideIcon icon
             else
-                @ServerConnector.sendDBConfig data, @requestConfiguredTables
+                @ServerConnector.sendDBConfig data, =>
+                    icon.className = ICON_OK
+                    @requestConfiguredTables()
+                    hideIcon icon
+                , =>
+                    console.log "Error with dbConfig request"
+                    icon.className = ICON_ERROR
+                    console.log "Hiding icon"
+                    hideIcon icon
 
         filterTableList: () =>
             @$scope.search = ""

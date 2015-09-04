@@ -22,22 +22,33 @@ TableItem = React.createClass(
         # onoff
         children.push R.td
             key: "onoff" + @props.table.name
-        , R.div {className: "switch"},
-            [
-                R.input
-                    key: "input-onoff" + @props.table.name
-                    onChange: checkHandler(@props.table)
-                    checked: @props.table.selected
-                    type: 'checkbox'
-                    name: 'switch'
-                    className: 'cmn-toggle cmn-toggle-round-flat'
-                    id: 'switch' + @props.table.name
-                , null
-            ,
-                R.label
-                    key: "label-onoff" + @props.table.name
-                    htmlFor: 'switch' + @props.table.name
-            ]
+            className: "switch-with-icon-cell"
+        , R.table
+            key: "inner" + @props.table.name
+        , R.tr {},
+        [
+            R.td {className: "switch-cell"}, R.span {className: "switch"},
+                [
+                    R.input
+                        key: "input-onoff" + @props.table.name
+                        onChange: checkHandler(@props.table)
+                        checked: @props.table.selected
+                        type: 'checkbox'
+                        name: 'switch'
+                        className: 'cmn-toggle cmn-toggle-round-flat'
+                        id: 'switch' + @props.table.name
+                    , null
+                ,
+                    R.label
+                        key: "label-onoff" + @props.table.name
+                        htmlFor: 'switch' + @props.table.name
+                ]
+        ,
+            # loading indicator
+            R.td {}, R.i
+                className: "transparent fa fa-check"
+                id: "tableIcon" + @props.table.name
+        ]
 
         children.push R.td
             name: @props.table.name

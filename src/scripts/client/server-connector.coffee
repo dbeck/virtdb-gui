@@ -182,18 +182,20 @@ module.exports = app.factory 'ServerConnector', ['$http', 'ErrorService', '$q', 
                     ErrorService.errorHappened status, "Failed to set configuration of component: #{data.selectedComponent}  (#{response})"
                     onError?(response, status)
 
-        sendDBConfig: (data, onSuccess) =>
+        sendDBConfig: (data, onSuccess, onError) =>
             $http.post(@address + "/api/db_config/tables", data)
             .success(onSuccess)
             .error( (response, status) =>
                     ErrorService.errorHappened status, "Failed to add table: #{data.table} (#{response})"
+                    onError?()
             )
 
-        deleteDBConfig: (data, onSuccess) =>
+        deleteDBConfig: (data, onSuccess, onError) =>
             $http.delete(@address + "/api/db_config/tables", {params: data})
             .success(onSuccess)
             .error( (response, status) =>
                     ErrorService.errorHappened status, "Failed to delete table: #{data.table} (#{response})"
+                    onError?()
             )
 
         getDBConfig: (data, onSuccess) =>
