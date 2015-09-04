@@ -36,6 +36,9 @@ userController = app.controller 'UserController',
                 if e.which is CHAR_C
                     $('#createUserModal').modal('show')
 
+            $scope.anyoneElse = (users) ->
+                return Object.keys(users).length > 1
+
             $scope.createUser = (editUserName, editUserPass1, editUserPass2, editUserIsAdmin) ->
                 nameErr = Validator.validateName editUserName
                 if nameErr?

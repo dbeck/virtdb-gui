@@ -1,62 +1,77 @@
-div.modal.fade(id="createUserModal" tabindex="-1" role="dialog" aria-labelledby="create-user-modal-label"
-    aria-hidden="true")
-        div.modal-dialog
-            div.modal-content
-                form(ng-submit="createUser(editUserName, editUserPass1, editUserPass2, editUserIsAdmin)")
-                    div.modal-header
-                        h4.modal-title(id="create-user-modal-label") Create user
-                    div.modal-body
-                        div.alert.alert-danger(ng-show="error") {{error}}
-                        div.form-group
-                            label(for="username") Username
-                            input.form-control#username(type="text" placeholder="Enter username"
-                            ng-model="editUserName" autofocus)
-                        div.form-group
-                            label(for="createUserPassword") Password
-                            input.form-control#createUserPassword(type="password" placeholder="Enter password"
-                            ng-model="editUserPass1")
-                        div.form-group
-                            label(for="createUserConfirmPassword") Confirm password
-                            input.form-control#createUserConfirmPassword(type="password" placeholder="Confirm password"
-                            ng-model="editUserPass2")
-                        div.checkbox
-                            label
-                                input(type="checkbox" ng-model="editUserIsAdmin")
-                                | Admin
-                    div.modal-footer
-                        button.btn.btn-default(type="button" data-dismiss="modal") Close
-                        input.btn.btn-primary(type="submit" value="Create user")
+div.modal.fade(id="createUserModal" tabindex="-1" role="dialog" aria-labelledby="create-user-modal-label" aria-hidden="true")
+    div.modal-dialog
+        div.modal-content
+            form(ng-submit="createUser(editUserName, editUserPass1, editUserPass2, editUserIsAdmin)")
+                div.modal-header
+                    h4.modal-title(id="create-user-modal-label") Create user
+                div.modal-body
+                    div.alert.alert-danger(ng-show="error") {{error}}
+                    div.form-group
+                        label(for="username") Username
+                        input.form-control#username(type="text" placeholder="Enter username"
+                        ng-model="editUserName" autofocus)
+                    div.form-group
+                        label(for="createUserPassword") Password
+                        input.form-control#createUserPassword(type="password" placeholder="Enter password"
+                        ng-model="editUserPass1")
+                    div.form-group
+                        label(for="createUserConfirmPassword") Confirm password
+                        input.form-control#createUserConfirmPassword(type="password" placeholder="Confirm password"
+                        ng-model="editUserPass2")
+                    div.checkbox
+                        label
+                            input(type="checkbox" ng-model="editUserIsAdmin")
+                            | Admin
+                div.modal-footer
+                    button.btn.btn-default(type="button" data-dismiss="modal") Close
+                    input.btn.btn-primary(type="submit" value="Create user")
 
-    div.modal.fade(id="deleteConfirmModal" tabindex="-1" role="dialog" aria-labelledby="delete-user-modal-label" aria-hidden="true")
-        div.modal-dialog
-            div.modal-content
-                form(ng-submit="deleteUser(editUserName)")
-                    div.modal-header
-                        h4.modal-title(id="delete-user-modal-label") Delete user
-                    div.modal-body
-                        div Are you sure you want to delete {{editUserName}}?
-                    div.modal-footer
-                        button.btn.btn-default(type="button" data-dismiss="modal") No
-                        input.btn.btn-primary(type="submit" value="Yes")
-
+div.modal.fade(id="deleteConfirmModal" tabindex="-1" role="dialog" aria-labelledby="delete-user-modal-label" aria-hidden="true")
+    div.modal-dialog
+        div.modal-content
+            form(ng-submit="deleteUser(editUserName)")
+                div.modal-header
+                    h4.modal-title(id="delete-user-modal-label") Delete user
+                div.modal-body
+                    div Are you sure you want to delete {{editUserName}}?
+                div.modal-footer
+                    button.btn.btn-default(type="button" data-dismiss="modal") No
+                    input.btn.btn-primary(type="submit" value="Yes")
+.container
+    .row
+        ul.breadcrumb
+            li.breadcrumb-icon
+                i.fa.fa-caret-right
+            li
+                a(href="/#/") home
+            li.active users
+    h4 You are logged in as {{userName}}
     div
-        button.btn.btn-default.btn-sm(data-toggle="modal" data-target="#createUserModal")
-            span.glyphicon.glyphicon-plus(aria-hidden="true")
-            |   Create user
-    table.table
-        thead
+        button.btn.btn-info.btn-sm(data-toggle="modal" data-target="#createUserModal")
+            i.fa.fa-pull-left.fa-plus.fa-lg.fa-fw
+            | Create user
+    table.table.table-users
+        thead(ng-if="anyoneElse(userList)")
             tr
                 th Name
                 th Admin
-                th
+                th Actions
         tbody
-            tr(ng-repeat="(id, user) in userList")
-                td {{user.Name}}
-                td(ng-if="user.Name !== userName")
+            tr(ng-repeat="(id, user) in userList" ng-if="user.Name !== userName")
+                td.user-name
+                    i.fa.fa-pull-left.fa-user.fa-lg
+                    | {{user.Name}}
+                td
                     div.switch
                         input.cmn-toggle.cmn-toggle-round-flat(ng-model="user.IsAdmin" id="change-admin-status-{{id}}" type="checkbox" ng-change="users.changeAdminStatus(id)")
                         label(for="change-admin-status-{{id}}")
                 td
-                    button.btn.btn-default.btn-sm(data-toggle="modal" data-target="#changePasswordModal" ng-click="users.initChangePassword(id)" ng-if="user.Name !== userName") Change password
-                    button.btn.btn-default.btn-sm(data-toggle="modal" data-target="#deleteConfirmModal" ng-click="initDeleteUser(id)" ng-if="user.Name !== userName") Delete
-                    button.btn.btn-default.btn-sm(data-toggle="modal" data-target="#user-to-db-modal" ng-click="users.initUserToDB(id)" ng-if="DBUserList !== null && DBUserList.indexOf(user.Name) === -1") Add to database
+                    button.btn.btn-save.btn-sm.btn-danger(data-toggle="modal" data-target="#deleteConfirmModal" ng-click="initDeleteUser(id)" ng-if="user.Name !== userName")
+                        i.fa.fa-pull-left.fa-trash-o.fa-lg.fa-fw
+                        | Delete
+                    button.btn.btn-save.btn-sm.btn-info(data-toggle="modal" data-target="#changePasswordModal" ng-click="users.initChangePassword(id)" ng-if="user.Name !== userName")
+                        i.fa.fa-pull-left.fa-pencil.fa-lg.fa-fw
+                        | Change password
+                    button.btn.btn-save.btn-sm.btn-info(data-toggle="modal" data-target="#user-to-db-modal" ng-click="users.initUserToDB(id)" ng-if="DBUserList !== null && DBUserList.indexOf(user.Name) === -1")
+                        i.fa.fa-pull-left.fa-database.fa-lg.fa-fw
+                        | Add to database
