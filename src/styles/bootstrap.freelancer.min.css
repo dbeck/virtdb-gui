@@ -2070,8 +2070,8 @@ th.info {
   color: #fff !important;
   background: #3Fa9F5 !important;
 }
-table-list  table {
-	border-right: 2px dotted #999;
+table-list>table {
+	border-right: 1px solid #999;
 }
 .table {
   width: 100%;
