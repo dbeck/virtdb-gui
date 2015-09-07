@@ -18,7 +18,7 @@ class EndpointController
             type = item?.Data?.Value?.Type
             return type is 'BOOL'
         $scope.isPassword = (item) ->
-            item.Name?.toString.().toLowerCase() == 'password'
+            item.Name?.toString().toLowerCase() == 'password'
         $scope.isRequired = (item) ->
             return item?.Data?.Required?.Value?[0]
         $scope.isRange = (item) ->
