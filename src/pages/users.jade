@@ -37,6 +37,27 @@ div.modal.fade(id="deleteConfirmModal" tabindex="-1" role="dialog" aria-labelled
                 div.modal-footer
                     button.btn.btn-default(type="button" data-dismiss="modal") No
                     input.btn.btn-primary(type="submit" value="Yes")
+
+div.modal.fade(id="user-to-db-modal" tabindex="-1" role="dialog" aria-labelledby="user-to-db-modal-label" aria-hidden="true")
+    div.modal-dialog
+        div.modal-content
+            div.modal-header
+                h4.modal-title(id="user-to-db-modal-label") Add {{editUserName}} to the database
+            div.modal-body
+                div.alert.alert-danger(ng-show="error") {{error.message}}
+                div Adding an existing user to the database requires changing its password.
+                form
+                    div.form-group
+                        label(for="password") Password
+                        input.form-control(type="password" placeholder="Enter password" id="password"
+                        ng-model="editUserPass1" autofocus)
+                    div.form-group
+                        label(for="confirm-password") Confirm password
+                        input.form-control(type="password" placeholder="Confirm password" id="confirm-password"
+                        ng-model="editUserPass2")
+            div.modal-footer
+                button.btn.btn-default(data-dismiss="modal") Close
+                button.btn.btn-primary(ng-click="addUserToDB()") Add
 .container
     .row
         ul.breadcrumb
@@ -63,15 +84,15 @@ div.modal.fade(id="deleteConfirmModal" tabindex="-1" role="dialog" aria-labelled
                     | {{user.Name}}
                 td
                     div.switch
-                        input.cmn-toggle.cmn-toggle-round-flat(ng-model="user.IsAdmin" id="change-admin-status-{{id}}" type="checkbox" ng-change="users.changeAdminStatus(id)")
+                        input.cmn-toggle.cmn-toggle-round-flat(ng-model="user.IsAdmin" id="change-admin-status-{{id}}" type="checkbox" ng-change="changeAdminStatus(id)")
                         label(for="change-admin-status-{{id}}")
                 td
-                    button.btn.btn-save.btn-sm.btn-danger(data-toggle="modal" data-target="#deleteConfirmModal" ng-click="initDeleteUser(id)" ng-if="user.Name !== userName")
+                    button.btn.btn-save.btn-sm.btn-danger(data-toggle="modal" data-target="#deleteConfirmModal" ng-click="initDeleteUser(id)")
                         i.fa.fa-pull-left.fa-trash-o.fa-lg.fa-fw
                         | Delete
-                    button.btn.btn-save.btn-sm.btn-info(data-toggle="modal" data-target="#changePasswordModal" ng-click="users.initChangePassword(id)" ng-if="user.Name !== userName")
+                    button.btn.btn-save.btn-sm.btn-info(data-toggle="modal" data-target="#changePasswordModal" ng-click="initChangePassword(id)")
                         i.fa.fa-pull-left.fa-pencil.fa-lg.fa-fw
                         | Change password
-                    button.btn.btn-save.btn-sm.btn-info(data-toggle="modal" data-target="#user-to-db-modal" ng-click="users.initUserToDB(id)" ng-if="DBUserList !== null && DBUserList.indexOf(user.Name) === -1")
+                    button.btn.btn-save.btn-sm.btn-info(data-toggle="modal" data-target="#user-to-db-modal" ng-click="initUserToDB(id)" ng-if="DBUserList !== null && DBUserList.indexOf(user.Name) === -1")
                         i.fa.fa-pull-left.fa-database.fa-lg.fa-fw
                         | Add to database
