@@ -23,8 +23,8 @@ div.modal.fade(id="createUserModal" tabindex="-1" role="dialog" aria-labelledby=
                             input(type="checkbox" ng-model="editUserIsAdmin")
                             | Admin
                 div.modal-footer
-                    button.btn.btn-default(type="button" data-dismiss="modal") Close
-                    input.btn.btn-primary(type="submit" value="Create user")
+                    button.btn.btn-default.btn-rounded(type="button" data-dismiss="modal") Close
+                    input.btn.btn-primary.btn-rounded(type="submit" value="Create user")
 
 div.modal.fade(id="deleteConfirmModal" tabindex="-1" role="dialog" aria-labelledby="delete-user-modal-label" aria-hidden="true")
     div.modal-dialog
@@ -35,8 +35,8 @@ div.modal.fade(id="deleteConfirmModal" tabindex="-1" role="dialog" aria-labelled
                 div.modal-body
                     div Are you sure you want to delete {{editUserName}}?
                 div.modal-footer
-                    button.btn.btn-default(type="button" data-dismiss="modal") No
-                    input.btn.btn-primary(type="submit" value="Yes")
+                    button.btn.btn-default.btn-rounded(type="button" data-dismiss="modal") No
+                    input.btn.btn-primary.btn-rounded(type="submit" value="Yes")
 
 div.modal.fade(id="user-to-db-modal" tabindex="-1" role="dialog" aria-labelledby="user-to-db-modal-label" aria-hidden="true")
     div.modal-dialog
@@ -56,8 +56,8 @@ div.modal.fade(id="user-to-db-modal" tabindex="-1" role="dialog" aria-labelledby
                         input.form-control(type="password" placeholder="Confirm password" id="confirm-password"
                         ng-model="editUserPass2")
             div.modal-footer
-                button.btn.btn-default(data-dismiss="modal") Close
-                button.btn.btn-primary(ng-click="addUserToDB()") Add
+                button.btn.btn-default.btn-rounded(data-dismiss="modal") Close
+                button.btn.btn-primary.btn-rounded(ng-click="addUserToDB()") Add
 .container
     .row
         ul.breadcrumb
