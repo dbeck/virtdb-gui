@@ -30,7 +30,13 @@ module.exports = app.controller 'ChangeUserPassword',
                     $scope.error = err.message
                     return
                 $scope.error = null
-                sendUpdateUserMessage $scope.name, password, ServerConnector
+                sendUpdateUserMessage $scope.name, password, ServerConnector,
+                    () ->
+                        $('#changePasswordModal').modal("hide")
+                    ,
+                    () ->
+                        $scope.error = "Password change failed"
+
 
         setEditUser = (rootScope, scope, CurrentUser) ->
             if not rootScope.editUser?
@@ -44,12 +50,9 @@ module.exports = app.controller 'ChangeUserPassword',
             scope.passwordConfirm = ''
             scope.error = ""
 
-        sendUpdateUserMessage = (username, password, ServerConnector) ->
+        sendUpdateUserMessage = (username, password, ServerConnector, onSucces, onError) ->
             data =
                 name: username
                 password: password
-            ServerConnector.updateUser data, finishUpdate
-
-        finishUpdate = ->
-            $('#changePasswordModal').modal("hide")
+            ServerConnector.updateUser data, onSucces, onError
 

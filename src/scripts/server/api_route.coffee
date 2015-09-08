@@ -280,6 +280,8 @@ router.post "/get_diag"
         throw ex
 
 router.use (err, req, res, next) =>
+    if req?.body?.password?
+        req.body.password = "************"
     log.error V_(req.url), V_(req.body), V_(err.message)
     VirtDBConnector.MonitoringService.bumpStatistic "HTTP error happened"
     res.status(if err.status? then err.status else 500).send(err.message)

@@ -44,7 +44,7 @@ div.modal.fade(id="user-to-db-modal" tabindex="-1" role="dialog" aria-labelledby
             div.modal-header
                 h4.modal-title(id="user-to-db-modal-label") Add {{editUserName}} to the database
             div.modal-body
-                div.alert.alert-danger(ng-show="error") {{error.message}}
+                div.alert.alert-danger(ng-show="error") {{error}}
                 div Adding an existing user to the database requires changing its password.
                 form
                     div.form-group

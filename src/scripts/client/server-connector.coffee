@@ -95,10 +95,11 @@ module.exports = app.factory 'ServerConnector', ['$http', 'ErrorService', '$q', 
                 done(new Error(response))
             )
 
-        updateUser: (data, done) =>
-            $http.put(@address + "/api/user/" + data.name, data).success(done)
+        updateUser: (data, onSuccess, onError) =>
+            $http.put(@address + "/api/user/" + data.name, data).success(onSuccess)
             .error( (response, status) =>
                 ErrorService.errorHappened status, "Failed to update user information of #{data.name}. (#{response})"
+                onError()
             )
 
         createUser: (data, done) =>
@@ -214,12 +215,12 @@ module.exports = app.factory 'ServerConnector', ['$http', 'ErrorService', '$q', 
                 onSuccess null
             )
 
-        addUserToDB: (data, onSuccess) =>
+        addUserToDB: (data, onSuccess, onError) =>
             $http.post @address + "/api/db_config/users", data
             .success(onSuccess)
             .error( (response, status) =>
                 ErrorService.errorHappened status, "Failed to add user to the host database: (#{response})"
-                onSuccess null
+                onError()
             )
 
         getLogs: (data, onDiagMessage) =>
