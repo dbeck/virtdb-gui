@@ -10,6 +10,7 @@ head
     link(href='https://fonts.googleapis.com/css?family=Montserrat:400,700', rel='stylesheet', type='text/css', media="none", onload="if(media!='all')media='all'")
     link(href='https://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic', rel='stylesheet', type='text/css', media="none", onload="if(media!='all')media='all'")
     link(rel='stylesheet', href='../styles/style.css')
+    link(rel='stylesheet', href='../styles/loginpage.css')
     script(type='text/javascript' src='../libs/jquery.js')
     script(type='text/javascript' src='../libs/angular.js')
     script(type='text/javascript' src='../libs/react.js')
@@ -19,7 +20,7 @@ head
     script(type='text/javascript' src='../libs/alert.js')
     script(type='text/javascript' src='../libs/angular-route.js')
     script(type='text/javascript' src='../scripts/dist/virtdb.js')
-        
+
 body
     div.navbar.navbar-default
         div.container-fluid
@@ -30,12 +31,15 @@ body
         h1 Login
         div
             form#loginForm(ng-submit='user.login()')
-                div
-                    label Username
-                    input#usernameInput(type="text", name="username", ng-model="username" autofocus)
-                div
-                    label Password
-                    input#passwordInput(type="password", name="password", ng-model="password")
+                div#loginLabels
+                    div
+                        label Username
+                    div.input-field
+                        input#usernameInput(type="text", name="username", ng-model="username" autofocus)
+                    div
+                        label Password
+                    div.input-field
+                        input#passwordInput(type="password", name="password", ng-model="password")
                 div
                     span
-                        input#submitInput(type="submit", value="Log In")
+                        input#submitInput(type="submit", value="Log in")
