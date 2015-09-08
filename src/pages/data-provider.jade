@@ -6,4 +6,5 @@ div
         div(ng-class="{'col-md-6': table !== null && metaData !== null, 'col-md-8': table === null || metaData === null}")
             include includes/dataView
         div.col-md-2(ng-if="table !== null && metaData !== null")
-            include includes/metaView
+            .metadata
+                include includes/metaView
