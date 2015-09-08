@@ -83,8 +83,10 @@ userController = app.controller 'UserController',
                 $scope.editUserIsAdmin = $scope.userList[id].IsAdmin
                 $scope.editUserPass1 = ""
                 $scope.editUserPass2 = ""
+                $scope.error = ""
 
             $scope.addUserToDB = () ->
+                $scope.error = ""
                 err = Validator.validatePassword $scope.editUserPass1, $scope.editUserPass2
                 if err?
                     $scope.error = err.message
@@ -94,9 +96,14 @@ userController = app.controller 'UserController',
                     name: $scope.editUserName
                     password: $scope.editUserPass1
                     isAdmin: $scope.editUserIsAdmin
-                ServerConnector.addUserToDB data, () =>
-                    $('#user-to-db-modal').modal("hide")
-                    getUserList ServerConnector, $scope
+                ServerConnector.addUserToDB data,
+                    () ->
+                        $('#user-to-db-modal').modal("hide")
+                        getUserList ServerConnector, $scope
+                    ,
+                    () ->
+                        $scope.error = "Something went wrong during addig user to db."
+
 
             $scope.initChangePassword = (id) ->
                 $rootScope.editUser = $scope.userList[id]

@@ -2,8 +2,8 @@ zmq = require "zmq"
 util = require "util"
 Cache = require "./cache_handler"
 
-VirtDB = require "virtdb-connector"
 Config = require "./config"
+VirtDB = require "virtdb-connector"
 Const = VirtDB.Const
 log = VirtDB.log
 V_ = log.Variable
@@ -56,7 +56,7 @@ class DBConfig
     @addUserMapping: (provider, username, token, callback) ->
         err = checkDBConfig()
         if err?
-            callback err, null
+            callback? err, null
             log.error V_ err
             return
 
@@ -73,7 +73,7 @@ class DBConfig
     @createUser: (username, password, callback) ->
         err = checkDBConfig()
         if err?
-            callback err, null
+            callback? err, null
             log.error V_ err
             return
 
@@ -90,7 +90,7 @@ class DBConfig
     @updateUser: (username, password, callback) ->
         err = checkDBConfig()
         if err?
-            callback err, null
+            callback? err, null
             log.error V_ err
             return
 
@@ -106,7 +106,7 @@ class DBConfig
     @deleteUser: (username, callback) ->
         err = checkDBConfig()
         if err?
-            callback err, null
+            callback? err, null
             log.error V_ err
             return
 
@@ -139,13 +139,13 @@ class DBConfig
     @deleteTable: (provider, tableMeta, username, callback) ->
         err = checkDBConfig()
         if err?
-            callback err
+            callback? err
             log.error V_ err
             return
 
         err = checkMetadata(tableMeta)
         if err?
-            callback err
+            callback? err
             log.error V_ err
             return
 
@@ -169,13 +169,13 @@ class DBConfig
     @addTable: (provider, tableMeta, username, callback) ->
         err = checkDBConfig()
         if err?
-            callback err
+            callback? err
             log.error V_ err
             return
 
         err = checkMetadata(tableMeta)
         if err?
-            callback err
+            callback? err
             log.error V_ err
             return
 
