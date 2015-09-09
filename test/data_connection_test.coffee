@@ -16,11 +16,12 @@ sinonChai = require("sinon-chai");
 chai.use sinonChai
 
 QUERY_ADDRESSES = ["query_addr1", "query_addr2"]
-COLUMN_ADDRESSES = ["column_addr1", "column_addr2"]
+COLUMN_ADDRESSES = ["column_addr1", "column_addr2", "column_addr3"]
 
 describe "DataConnection", ->
 
     sandbox = null
+    getNextQueryIdStub = null
 
     beforeEach =>
         sandbox = sinon.sandbox.create()
@@ -28,6 +29,7 @@ describe "DataConnection", ->
         sandbox.stub VirtDBConnector.log, "debug"
         sandbox.stub VirtDBConnector.log, "trace"
         sandbox.stub VirtDBConnector.log, "error"
+        getNextQueryIdStub = sandbox.stub(QueryIdGenerator, "getNextQueryId")
 
     afterEach =>
         sandbox.restore()
@@ -61,14 +63,14 @@ describe "DataConnection", ->
         ON_MSG = () ->
         QUERY_ID = 42
 
+        getNextQueryIdStub.returns QUERY_ID
         fakeSocket = sandbox.stub zmq, "socket"
         fakeSocket.returns fakeZmqSocket
 
         zmqMock = sandbox.mock fakeZmqSocket
-        zmqMock.expects("connect").calledWith COLUMN_ADDRESSES[0]
-        zmqMock.expects("connect").calledWith COLUMN_ADDRESSES[1]
+        zmqMock.expects("connect").withExactArgs(COLUMN_ADDRESSES[0]).once()
         zmqMock.expects("subscribe").calledWith QUERY_ID
-        zmqMock.expects("setsockopt").calledWith "ZMQ_RCVHWM", 100000
+        zmqMock.expects("setsockopt").calledWith zmq.ZMQ_RCVHWM, 100000
         zmqMock.expects("on").calledWithExactly "message", ON_MSG
 
         conn = new DataConnection QUERY_ADDRESSES, COLUMN_ADDRESSES
@@ -77,6 +79,31 @@ describe "DataConnection", ->
 
         fakeSocket.should.have.been.deep.calledWith Const.ZMQ_SUB
         zmqMock.verify()
+
+    it "should init column socket on first available address", ->
+        fakeZmqSocket = sinon.createStubInstance zmq.Socket
+
+        ON_MSG = () ->
+        QUERY_ID = 42
+
+        getNextQueryIdStub.returns QUERY_ID
+        fakeSocket = sandbox.stub zmq, "socket"
+        fakeSocket.returns fakeZmqSocket
+
+        fakeZmqSocket.connect.onFirstCall().throws("Failed to connect!")
+        fakeZmqSocket.connect.onSecondCall().returns()
+
+        conn = new DataConnection QUERY_ADDRESSES, COLUMN_ADDRESSES
+        sandbox.stub(conn, "_onColumnMessage", ON_MSG)
+        conn._initColumnSocket(QUERY_ID)
+
+        fakeZmqSocket.subscribe.withArgs(QUERY_ID).should.have.been.calledOnce
+        fakeZmqSocket.setsockopt.withArgs(zmq.ZMQ_RCVHWM, 100000).should.have.been.calledOnce
+        fakeZmqSocket.connect.withArgs(COLUMN_ADDRESSES[0]).should.have.been.calledOnce
+        fakeZmqSocket.connect.withArgs(COLUMN_ADDRESSES[1]).should.have.been.calledOnce
+        fakeZmqSocket.connect.withArgs(COLUMN_ADDRESSES[2]).should.have.not.been.called
+
+        fakeSocket.should.have.been.deep.calledWith Const.ZMQ_SUB
 
     it "should getData when schema is given", ->
         TOKEN = "token"
@@ -100,7 +127,7 @@ describe "DataConnection", ->
 
         initQuerySocketStub = sandbox.stub conn, "_initQuerySocket"
         initColumnSocketStub = sandbox.stub conn, "_initColumnSocket"
-        sandbox.stub(QueryIdGenerator, "getNextQueryId").returns QUERY_ID
+        getNextQueryIdStub.returns QUERY_ID
         dataSerializeStub = sandbox.stub Proto.data, "serialize"
         dataSerializeStub.returns SERIALIZED_MSG
         sendStub = sandbox.stub()
@@ -138,7 +165,7 @@ describe "DataConnection", ->
 
         initQuerySocketStub = sandbox.stub conn, "_initQuerySocket"
         initColumnSocketStub = sandbox.stub conn, "_initColumnSocket"
-        sandbox.stub(QueryIdGenerator, "getNextQueryId").returns QUERY_ID
+        getNextQueryIdStub.returns QUERY_ID
         dataSerializeStub = sandbox.stub Proto.data, "serialize"
         dataSerializeStub.returns SERIALIZED_MSG
         sendStub = sandbox.stub()
@@ -175,7 +202,7 @@ describe "DataConnection", ->
 
         initQuerySocketStub = sandbox.stub conn, "_initQuerySocket"
         initColumnSocketStub = sandbox.stub conn, "_initColumnSocket"
-        sandbox.stub(QueryIdGenerator, "getNextQueryId").returns QUERY_ID
+        getNextQueryIdStub.returns QUERY_ID
         dataSerializeStub = sandbox.stub Proto.data, "serialize"
         dataSerializeStub.returns SERIALIZED_MSG
         sendStub = sandbox.stub()
