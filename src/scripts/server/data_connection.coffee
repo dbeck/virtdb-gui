@@ -18,18 +18,17 @@ class DataConnection
     _querySocket: null
     _columnSocket: null
     _onColumn: null
-    _queryId: null
 
     constructor: (@_queryAddresses, @_columnAddresses, @_name) ->
 
     getData: (loginToken, schema, table, fields, count, onData) =>
         @_onColumn = onData
-        @_queryId = QueryIdGenerator.getNextQueryId()
-        @_initColumnSocket(@_queryId)
+        queryId = QueryIdGenerator.getNextQueryId()
+        @_initColumnSocket(queryId)
         @_initQuerySocket()
         schema ?= ""
         queryMessage =
-            QueryId: @_queryId
+            QueryId: queryId
             Table: table
             Fields: fields
             Limit: count
@@ -66,14 +65,20 @@ class DataConnection
             log.error V_(ex)
             throw ex
 
-    _initColumnSocket: () =>
+    _initColumnSocket: (queryId) =>
         try
             @_columnSocket = zmq.socket(Const.ZMQ_SUB)
-            @_columnSocket.subscribe @_queryId
+            @_columnSocket.subscribe queryId
             @_columnSocket.setsockopt zmq.ZMQ_RCVHWM, 100000
             @_columnSocket.on "message", @_onColumnMessage
             for addr in @_columnAddresses
-                @_columnSocket.connect addr
+                try
+                    @_columnSocket.connect addr
+                    # Only go for the first successful connection for this specific provider.
+                    return
+                catch ex
+                    log.warn "Failed to initiate column socket for:", addr
+            throw "Failed to connect any of the column addresses!"
         catch ex
             log.error V_(ex)
             throw ex
