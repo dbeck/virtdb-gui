@@ -24,11 +24,11 @@ class ColumnReceiver
     add: (column, onFinished) =>
         columnName = column.Name
         unless @_expected columnName
-            log.trace "Received data on unexpected column:", V_(columnName), V_(column.QueryId)
+            log.warn "Received data on unexpected column:", V_(columnName), V_(column.QueryId)
             return
 
         if @_finishedColumns[columnName]?
-            log.trace "Unexpected column data on column:", V_(columnName), "(End of data has already been reported earlier.)", V_(column.QueryId)
+            log.warn "Unexpected column data on column:", V_(columnName), "(End of data has already been reported earlier.)", V_(column.QueryId)
             return
 
         @_add columnName, FieldData.get column
