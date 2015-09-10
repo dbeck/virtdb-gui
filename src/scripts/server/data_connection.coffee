@@ -80,8 +80,8 @@ class DataConnection
                     # Only go for the first successful connection for this specific provider.
                     return
                 catch ex
-                    log.warn "Failed to initiate column socket for:", V_ addr
-            throw "Failed to connect any of the column addresses!"
+                    log.warn "Failed to initiate column socket for:", V_(addr)
+            throw new Error "Failed to connect any of the column addresses!"
         catch ex
             log.error V_(ex)
             throw ex
@@ -92,7 +92,8 @@ class DataConnection
                 try
                     @_columnSocket.disconnect addr
                 catch ex
-                    log.error "Failed to disconnect column socket for address:", V_ addr
+                    log.error "Failed to disconnect column socket for address:", V_(addr)
+        @_connectedColumnAddresses = []
         @_columnAddresses = null
         @_columnSocket?.close()
         @_columnSocket = null
