@@ -1,11 +1,6 @@
-zmq = require "zmq"
-fs = require "fs"
 VirtDB = require "virtdb-connector"
-Const = VirtDB.Const
 log = VirtDB.log
 V_ = log.Variable
-lz4 = require "lz4"
-QueryIdGenerator = require "./query_id_generator"
 
 DataProto = (require "virtdb-proto").data
 CommonProto = (require "virtdb-proto").common
