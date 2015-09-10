@@ -19,6 +19,7 @@ userController = app.controller 'UserController',
             @$scope.userName = ""
             @$scope.isAdmin = false
             @$scope.userList = []
+            @$scope.loginError = null
 
             $('#user-to-db-modal').on 'shown.bs.modal', ->
                 $('[autofocus]', this).focus()
