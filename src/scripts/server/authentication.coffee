@@ -19,7 +19,7 @@ class Authentication
         if not config.Features.Security or req.isAuthenticated()
             return next()
         if req.baseUrl == '/api'
-            res.status(401).send()
+            res.sendStatus 401
         else
             res.redirect '/login'
 
@@ -38,6 +38,17 @@ class Authentication
         app.use passport.session()
 
     @authenticate: (req, res, next) =>
-        return passport.authenticate('local', { successRedirect: '/', failureRedirect: '/login'})(req, res, next)
+        return passport.authenticate('local', (err, user, info) ->
+            if err?
+                res.sendStatus 401
+                return
+            unless user
+                res.sendStatus 401
+                return
+            req.login user, (err) ->
+                if err?
+                    return next err
+                return res.redirect "/"
+        )(req, res, next)
 
 module.exports = Authentication

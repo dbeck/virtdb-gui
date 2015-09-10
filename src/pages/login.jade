@@ -29,19 +29,15 @@ body.login-page
             .navbar-header
                 a.navbar-brand(href='/')
                     img.logo(src="/images/final_logo_ws_compressed.png", width="125")
-    #loginFormContainer.container(ng-controller="UserController as user")
+    div#loginFormContainer(ng-controller="UserController as user")
+        div.alert.alert-danger(ng-if="loginError !== null") {{loginError}}
         h1 Login
         div
-            form#loginForm(ng-submit='user.login()')
-                div#loginLabels
-                    div
-                        label Username
-                    div.input-field
-                        input#usernameInput(type="text", name="username", ng-model="username" autofocus)
-                    div
-                        label Password
-                    div.input-field
-                        input#passwordInput(type="password", name="password", ng-model="password")
-                div
-                    span
-                        input#submitInput(type="submit", value="Log in")
+            form
+                div.form-group
+                    label.control-label(for="usernameInput") Username
+                    input#usernameInput.form-control(type="text", name="username", ng-model="username" ng-change="loginError = null" autofocus)
+                div.form-group
+                    label.control-label(for="passwordInput") Password
+                    input#passwordInput.form-control(type="password", name="password", ng-model="password" ng-change="loginError = null")
+                button.btn.btn-default(ng-click='user.login()') Log in
