@@ -23,6 +23,7 @@ describe "DataConnection", ->
     sandbox = null
     getNextQueryIdStub = null
     QUERY_ID = null
+    logErrorStub = null
 
     beforeEach =>
         sandbox = sinon.sandbox.create()
@@ -30,7 +31,7 @@ describe "DataConnection", ->
         sandbox.stub VirtDBConnector.log, "debug"
         sandbox.stub VirtDBConnector.log, "trace"
         sandbox.stub VirtDBConnector.log, "warn"
-        sandbox.stub VirtDBConnector.log, "error"
+        logErrorStub = sandbox.stub VirtDBConnector.log, "error"
         getNextQueryIdStub = sandbox.stub(QueryIdGenerator, "getNextQueryId")
         QUERY_ID = "42"
         getNextQueryIdStub.returns QUERY_ID
@@ -110,6 +111,20 @@ describe "DataConnection", ->
         initColumnSocketSpy.should.throw()
         conn._closeColumnSocket()
         fakeZmqSocket.disconnect.should.have.not.been.called
+
+    it "should survive disconnection failure and log an error", ->
+        fakeZmqSocket = sinon.createStubInstance zmq.Socket
+        fakeZmqSocket.connect.returns()
+        fakeZmqSocket.disconnect.throws('Disconnection failure')
+
+        fakeSocket = sandbox.stub zmq, "socket"
+        fakeSocket.returns fakeZmqSocket
+
+        conn = new DataConnection QUERY_ADDRESSES, COLUMN_ADDRESSES
+        conn._initColumnSocket(QUERY_ID)
+        conn._closeColumnSocket()
+
+        logErrorStub.should.have.been.calledOnce
 
     it "should getData when schema is given", ->
         TOKEN = "token"
