@@ -82,28 +82,6 @@ describe "DataConnection", ->
         fakeSocket.should.have.been.deep.calledWith Const.ZMQ_SUB
         zmqMock.verify()
 
-    it "should init column socket on first available address", ->
-        fakeZmqSocket = sinon.createStubInstance zmq.Socket
-        ON_MSG = () ->
-
-        fakeSocket = sandbox.stub zmq, "socket"
-        fakeSocket.returns fakeZmqSocket
-
-        fakeZmqSocket.connect.onFirstCall().throws("Failed to connect!")
-        fakeZmqSocket.connect.onSecondCall().returns()
-
-        conn = new DataConnection QUERY_ADDRESSES, COLUMN_ADDRESSES
-        sandbox.stub(conn, "_onColumnMessage", ON_MSG)
-        conn._initColumnSocket(QUERY_ID)
-
-        fakeZmqSocket.subscribe.withArgs(QUERY_ID).should.have.been.calledOnce
-        fakeZmqSocket.setsockopt.withArgs(zmq.ZMQ_RCVHWM, 100000).should.have.been.calledOnce
-        fakeZmqSocket.connect.withArgs(COLUMN_ADDRESSES[0]).should.have.been.calledOnce
-        fakeZmqSocket.connect.withArgs(COLUMN_ADDRESSES[1]).should.have.been.calledOnce
-        fakeZmqSocket.connect.withArgs(COLUMN_ADDRESSES[2]).should.have.not.been.called
-
-        fakeSocket.should.have.been.deep.calledWith Const.ZMQ_SUB
-
     it "should only close previously connected socket", ->
         fakeZmqSocket = sinon.createStubInstance zmq.Socket
         fakeSocket = sandbox.stub zmq, "socket"
