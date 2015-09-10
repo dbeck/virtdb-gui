@@ -83,7 +83,7 @@ class DataConnection
             try
                 @_columnSocket.disconnect @_connectedColumnAddress
             catch ex
-                log.error "Failed to disconnect column socket for address:", V_(addr)
+                log.error "Failed to disconnect column socket for address:", V_(@_connectedColumnAddress)
         @_columnAddresses = null
         @_columnSocket?.close()
         @_columnSocket = null
