@@ -9,6 +9,7 @@ moment = require "moment"
 log = (require "virtdb-connector").log
 V_ = log.Variable
 Endpoints = require "./endpoints"
+ZmqSubConnector = require "./zmq_sub_connector"
 
 DiagProto = Proto.diag
 
@@ -36,9 +37,8 @@ class DiagConnector
             @_logRecordSocket.setsockopt zmq.ZMQ_RCVHWM, 100000
             for level in @LEVELS
                 @_logRecordSocket.subscribe @LOG_LEVELS[level] + " "
-            for addr in Endpoints.getLogRecordAddress()
-                @_logRecordSocket.connect addr
             @_records = []
+            ZmqSubConnector.connectToFirstAvailable @_logRecordSocket, Endpoints.getLogRecordAddress()
         catch ex
             console.error "couldn't find address for diag service!"
             console.error ex

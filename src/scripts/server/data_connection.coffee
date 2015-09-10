@@ -6,6 +6,7 @@ log = VirtDB.log
 V_ = log.Variable
 lz4 = require "lz4"
 QueryIdGenerator = require "./query_id_generator"
+ZmqSubConnector = require "./zmq_sub_connector"
 
 DataProto = (require "virtdb-proto").data
 CommonProto = (require "virtdb-proto").common
@@ -15,13 +16,12 @@ class DataConnection
 
     _queryAddresses: null
     _columnAddresses: null
-    _connectedColumnAddresses: null
+    _connectedColumnAddress: null
     _querySocket: null
     _columnSocket: null
     _onColumn: null
 
     constructor: (@_queryAddresses, @_columnAddresses, @_name) ->
-        @_connectedColumnAddresses = []
 
     getData: (loginToken, schema, table, fields, count, onData) =>
         @_onColumn = onData
@@ -73,27 +73,17 @@ class DataConnection
             @_columnSocket.subscribe queryId
             @_columnSocket.setsockopt zmq.ZMQ_RCVHWM, 100000
             @_columnSocket.on "message", @_onColumnMessage
-            for addr in @_columnAddresses
-                try
-                    @_columnSocket.connect addr
-                    @_connectedColumnAddresses.push addr
-                    # Only go for the first successful connection for this specific provider.
-                    return
-                catch ex
-                    log.warn "Failed to initiate column socket for:", V_(addr)
-            throw new Error "Failed to connect any of the column addresses!"
+            @_connectedColumnAddress = ZmqSubConnector.connectToFirstAvailable @_columnSocket, @_columnAddresses
         catch ex
             log.error V_(ex)
             throw ex
 
     _closeColumnSocket: =>
-        if @_columnAddresses?
-            for addr in @_connectedColumnAddresses
-                try
-                    @_columnSocket.disconnect addr
-                catch ex
-                    log.error "Failed to disconnect column socket for address:", V_(addr)
-        @_connectedColumnAddresses = []
+        if @_connectedColumnAddress?
+            try
+                @_columnSocket.disconnect @_connectedColumnAddress
+            catch ex
+                log.error "Failed to disconnect column socket for address:", V_(@_connectedColumnAddress)
         @_columnAddresses = null
         @_columnSocket?.close()
         @_columnSocket = null
