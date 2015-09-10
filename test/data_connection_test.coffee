@@ -22,14 +22,18 @@ describe "DataConnection", ->
 
     sandbox = null
     getNextQueryIdStub = null
+    QUERY_ID = null
 
     beforeEach =>
         sandbox = sinon.sandbox.create()
         sandbox.stub VirtDBConnector.log, "info"
         sandbox.stub VirtDBConnector.log, "debug"
         sandbox.stub VirtDBConnector.log, "trace"
+        sandbox.stub VirtDBConnector.log, "warn"
         sandbox.stub VirtDBConnector.log, "error"
         getNextQueryIdStub = sandbox.stub(QueryIdGenerator, "getNextQueryId")
+        QUERY_ID = "42"
+        getNextQueryIdStub.returns QUERY_ID
 
     afterEach =>
         sandbox.restore()
@@ -61,9 +65,7 @@ describe "DataConnection", ->
             setsockopt: () ->
 
         ON_MSG = () ->
-        QUERY_ID = 42
 
-        getNextQueryIdStub.returns QUERY_ID
         fakeSocket = sandbox.stub zmq, "socket"
         fakeSocket.returns fakeZmqSocket
 
@@ -82,11 +84,8 @@ describe "DataConnection", ->
 
     it "should init column socket on first available address", ->
         fakeZmqSocket = sinon.createStubInstance zmq.Socket
-
         ON_MSG = () ->
-        QUERY_ID = 42
 
-        getNextQueryIdStub.returns QUERY_ID
         fakeSocket = sandbox.stub zmq, "socket"
         fakeSocket.returns fakeZmqSocket
 
@@ -105,9 +104,37 @@ describe "DataConnection", ->
 
         fakeSocket.should.have.been.deep.calledWith Const.ZMQ_SUB
 
+    it "should only close previously connected socket", ->
+        fakeZmqSocket = sinon.createStubInstance zmq.Socket
+        fakeSocket = sandbox.stub zmq, "socket"
+        fakeSocket.returns fakeZmqSocket
+
+        fakeZmqSocket.connect.onFirstCall().throws("Failed to connect!")
+        fakeZmqSocket.connect.onSecondCall().returns()
+
+        conn = new DataConnection QUERY_ADDRESSES, COLUMN_ADDRESSES
+        conn._initColumnSocket(QUERY_ID)
+        conn._closeColumnSocket()
+
+        fakeZmqSocket.disconnect.withArgs(COLUMN_ADDRESSES[0]).should.have.not.been.called
+        fakeZmqSocket.disconnect.withArgs(COLUMN_ADDRESSES[1]).should.have.been.calledOnce
+        fakeZmqSocket.disconnect.withArgs(COLUMN_ADDRESSES[2]).should.have.not.been.called
+
+    it "should close no sockets if all connect attempts failed earlier", ->
+        fakeZmqSocket = sinon.createStubInstance zmq.Socket
+        fakeSocket = sandbox.stub zmq, "socket"
+        fakeSocket.returns fakeZmqSocket
+
+        fakeZmqSocket.connect.throws("Failed to connect!")
+
+        conn = new DataConnection QUERY_ADDRESSES, COLUMN_ADDRESSES
+        initColumnSocketSpy = sandbox.spy(conn, "_initColumnSocket")
+        initColumnSocketSpy.should.throw()
+        conn._closeColumnSocket()
+        fakeZmqSocket.disconnect.should.have.not.been.called
+
     it "should getData when schema is given", ->
         TOKEN = "token"
-        QUERY_ID = "42"
         ON_DATA = () ->
             console.log "DATA_ARRIVED!!!!"
         TABLE = "table"
@@ -127,7 +154,6 @@ describe "DataConnection", ->
 
         initQuerySocketStub = sandbox.stub conn, "_initQuerySocket"
         initColumnSocketStub = sandbox.stub conn, "_initColumnSocket"
-        getNextQueryIdStub.returns QUERY_ID
         dataSerializeStub = sandbox.stub Proto.data, "serialize"
         dataSerializeStub.returns SERIALIZED_MSG
         sendStub = sandbox.stub()
@@ -145,7 +171,6 @@ describe "DataConnection", ->
 
     it "should getData when schema is null", ->
         TOKEN = "token"
-        QUERY_ID = "42"
         ON_DATA = () ->
             console.log "DATA_ARRIVED!!!!"
         TABLE = "table"
@@ -165,7 +190,6 @@ describe "DataConnection", ->
 
         initQuerySocketStub = sandbox.stub conn, "_initQuerySocket"
         initColumnSocketStub = sandbox.stub conn, "_initColumnSocket"
-        getNextQueryIdStub.returns QUERY_ID
         dataSerializeStub = sandbox.stub Proto.data, "serialize"
         dataSerializeStub.returns SERIALIZED_MSG
         sendStub = sandbox.stub()
@@ -183,7 +207,6 @@ describe "DataConnection", ->
 
     it "should getData when schema and token are null", ->
         TOKEN = undefined
-        QUERY_ID = "42"
         ON_DATA = () ->
             console.log "DATA_ARRIVED!!!!"
         TABLE = "table"
@@ -202,7 +225,6 @@ describe "DataConnection", ->
 
         initQuerySocketStub = sandbox.stub conn, "_initQuerySocket"
         initColumnSocketStub = sandbox.stub conn, "_initColumnSocket"
-        getNextQueryIdStub.returns QUERY_ID
         dataSerializeStub = sandbox.stub Proto.data, "serialize"
         dataSerializeStub.returns SERIALIZED_MSG
         sendStub = sandbox.stub()
