@@ -31,7 +31,7 @@ describe "ZmqSubConnector", ->
     afterEach =>
         sandbox.restore()
 
-    it "should init column socket on first available address", ->
+    it "should connect to first address available", ->
         fakeZmqSocket.connect.onFirstCall().throws("Failed to connect!")
         fakeZmqSocket.connect.onSecondCall().returns()
 
@@ -42,10 +42,9 @@ describe "ZmqSubConnector", ->
         fakeZmqSocket.connect.withArgs(COLUMN_ADDRESSES[2]).should.have.not.been.called
 
 
-    it "should close no sockets if all connect attempts failed earlier", ->
+    it "should throw exception if all connect attempts fail", ->
         fakeZmqSocket = sinon.createStubInstance zmq.Socket
         fakeZmqSocket.connect.throws("Failed to connect!")
-
         ( ->
             ZmqSubConnector.connectToFirstAvailable(fakeZmqSocket, COLUMN_ADDRESSES).should.equal COLUMN_ADDRESSES[1]
         ).should.throw()
