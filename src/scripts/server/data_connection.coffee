@@ -15,11 +15,13 @@ class DataConnection
 
     _queryAddresses: null
     _columnAddresses: null
+    _connectedColumnAddresses: null
     _querySocket: null
     _columnSocket: null
     _onColumn: null
 
     constructor: (@_queryAddresses, @_columnAddresses, @_name) ->
+        @_connectedColumnAddresses = []
 
     getData: (loginToken, schema, table, fields, count, onData) =>
         @_onColumn = onData
@@ -74,10 +76,11 @@ class DataConnection
             for addr in @_columnAddresses
                 try
                     @_columnSocket.connect addr
+                    @_connectedColumnAddresses.push addr
                     # Only go for the first successful connection for this specific provider.
                     return
                 catch ex
-                    log.warn "Failed to initiate column socket for:", addr
+                    log.warn "Failed to initiate column socket for:", V_ addr
             throw "Failed to connect any of the column addresses!"
         catch ex
             log.error V_(ex)
@@ -85,8 +88,11 @@ class DataConnection
 
     _closeColumnSocket: =>
         if @_columnAddresses?
-            for addr in @_columnAddresses
-                @_columnSocket.disconnect addr
+            for addr in @_connectedColumnAddresses
+                try
+                    @_columnSocket.disconnect addr
+                catch ex
+                    log.error "Failed to disconnect column socket for address:", V_ addr
         @_columnAddresses = null
         @_columnSocket?.close()
         @_columnSocket = null
