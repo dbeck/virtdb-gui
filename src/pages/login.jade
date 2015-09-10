@@ -30,7 +30,7 @@ body.login-page
                 a.navbar-brand(href='/')
                     img.logo(src="/images/final_logo_ws_compressed.png", width="125")
     div#loginFormContainer(ng-controller="UserController as user")
-        div.alert.alert-danger(ng-if="loginError !== null") {{loginError}}
+        div.alert.alert-danger.ng-cloak(ng-if="loginError") {{loginError}}
         h1 Login
         div
             form
