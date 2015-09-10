@@ -72,14 +72,13 @@ module.exports = app.factory 'ServerConnector', ['$http', 'ErrorService', '$q', 
                 onSuccess null
             )
 
-        login: (username, password, done) =>
+        login: (username, password, onSuccess, onError) ->
             data =
                 username: username
                 password: password
-            $http.post(@address + "/login", data).success(done)
-            .error( (response, status) =>
-                ErrorService.errorHappened status, "Failed to loging user #{data.username}"
-            )
+            $http.post(@address + "/login", data)
+            .success(onSuccess)
+            .error(onError)
 
         getUserList: (onSuccess) =>
             $http.get(@address + "/api/user/list").success(onSuccess)

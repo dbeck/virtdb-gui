@@ -125,8 +125,12 @@ userController = app.controller 'UserController',
                 scope.DBUserList = dbUsers
 
         login: =>
-            @ServerConnector.login @$scope.username, @$scope.password, ->
-                window.location = '/'
+            @$scope.loginError = null
+            @ServerConnector.login @$scope.username, @$scope.password,
+                () =>
+                    window.location = '/'
+                ,() =>
+                    @$scope.loginError = "Invalid username or password!"
 
         initCreateUser = (scope) ->
             scope.$apply ->
