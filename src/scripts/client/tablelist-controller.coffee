@@ -142,7 +142,7 @@ module.exports = app.controller 'TableListController',
             for table in configuredTableList
                 configuredTableHash[table] = true
             for _table in @tableList
-                isConfigured = configuredTableHash[_table]?
+                isConfigured = configuredTableHash[_table.name]?
                 if isConfigured
                     @$scope.configuredCounter += 1
                 _table.configured = isConfigured
