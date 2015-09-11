@@ -38,16 +38,12 @@ class DBConfig
                 message.QueryTables.UserName = username
 
             Protocol.sendDBConfig dbConfig, message, (err, msg) ->
-                try
-                    if err?
-                        throw err
-                    if msg?.QueryTables?.Tables?.length > 0
-                        makeTableListResponse provider, msg.QueryTables.Tables, onReady
-                    else
-                        onReady []
-                catch ex
-                    log.error V_(ex)
-                    throw ex
+                error = collectError err, msg, "Error while listing added tables for: #{provider}"
+                if not error and msg?.QueryTables?.Tables?.length > 0
+                    makeTableListResponse provider, msg.QueryTables.Tables, onReady
+                else
+                    onReady []
+                    return
             return
         catch ex
             log.error V_(ex)
