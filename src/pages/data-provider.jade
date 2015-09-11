@@ -3,8 +3,8 @@ div
     div.row
         div.col-md-4
             include includes/tableList
-        div(ng-class="{'col-md-6': table !== null && metaData !== null, 'col-md-8': table === null || metaData === null}")
+        div(ng-class="{'col-md-5': table !== null && metaData !== null, 'col-md-8': table === null || metaData === null}")
             include includes/dataView
-        div.col-md-2(ng-if="table !== null && metaData !== null")
+        div.col-md-3(ng-if="table !== null && metaData !== null")
             .metadata
                 include includes/metaView
