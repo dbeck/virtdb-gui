@@ -138,16 +138,16 @@ module.exports = app.controller 'TableListController',
 
         onConfiguredTables: (configuredTableList) =>
             @$scope.configuredCounter = 0
+            configuredTableHash = {}
+            for table in configuredTableList
+                configuredTableHash[table] = true
             for _table in @tableList
-                _table.configured = false
-                _table.selected = false
-                _table.outdated = false
-                for table in configuredTableList
-                    if table is _table.name
-                        @$scope.configuredCounter += 1
-                        _table.configured = true
-                        _table.selected = true
-                        _table.outdated = true
+                isConfigured = configuredTableHash[_table]?
+                if isConfigured
+                    @$scope.configuredCounter += 1
+                _table.configured = isConfigured
+                _table.selected = isConfigured
+                _table.outdated = isConfigured
 
         changeStatus: (table) =>
             icon = document.getElementById("tableIcon#{table.name}")
