@@ -10,6 +10,8 @@ Metadata = require "./meta_data_handler"
 log = (require "virtdb-connector").log
 V_ = log.Variable
 
+materializedTables = []
+
 router.get "/users"
 , auth.ensureAuthenticated
 , timeout(Config.getCommandLineParameter("timeout"))
@@ -59,7 +61,14 @@ router.get "/tables"
         if Config.Features.Security
             username = req.user.name
         DBConfig.getTables provider, username, (tableList) =>
-            res.json tableList
+            response = []
+            for table in tableList
+                isMat = (materializedTables.indexOf table) > -1
+                response.push
+                    name: table
+                    materialized: isMat
+            console.log "response", response
+            res.json response
     catch ex
         log.error V_(ex)
         throw ex
@@ -131,6 +140,47 @@ router.delete "/tables"
                     deleteTable token, req.user.name
         else
             deleteTable()
+    catch ex
+        log.error V_(ex)
+        throw ex
+
+router.post "/tables/materialize"
+, auth.ensureAuthenticated
+, validator(
+        provider:
+            required: true
+        table:
+            required: true
+    )
+, timeout(Config.getCommandLineParameter("timeout"))
+, (req, res, next) ->
+    table = req.body.table
+    provider = req.body.provider
+    try
+        if materializedTables.indexOf table > -1
+            materializedTables.push table
+        res.sendStatus 200
+    catch ex
+        log.error V_(ex)
+        throw ex
+
+router.delete "/tables/materialize"
+, auth.ensureAuthenticated
+, validator(
+        provider:
+            required: true
+        table:
+            required: true
+    , "query")
+, timeout(Config.getCommandLineParameter("timeout"))
+, (req, res, next) ->
+    table = req.query.table
+    provider = req.query.provider
+    try
+        i = materializedTables.indexOf table
+            if i > -1
+                materializedTables.splice i, 1
+        res.sendStatus 200
     catch ex
         log.error V_(ex)
         throw ex

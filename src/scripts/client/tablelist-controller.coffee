@@ -9,7 +9,6 @@ ICON_ERROR = "fa fa-times error"
 hideIcon = (icon) ->
     setTimeout ->
         icon.className = ICON_HIDDEN
-        console.log "Icon hidden"
     , 1000
 
 module.exports = app.controller 'TableListController',
@@ -137,19 +136,27 @@ module.exports = app.controller 'TableListController',
             return
 
         onConfiguredTables: (configuredTableList) =>
+            console.log configuredTableList
             @$scope.configuredCounter = 0
+            @$scope.materializedCounter = 0
             configuredTableHash = {}
+            materializedTableHash = {}
             for table in configuredTableList
-                configuredTableHash[table] = true
+                configuredTableHash[table.name] = true
+                materializedTableHash[table.name] = table.materialized
             for _table in @tableList
                 isConfigured = configuredTableHash[_table.name]?
+                isMaterialized = materializedTableHash[_table.name]? and materializedTableHash[_table.name]
                 if isConfigured
                     @$scope.configuredCounter += 1
+                if isMaterialized
+                    @$scope.materializedCounter += 1
                 _table.configured = isConfigured
                 _table.selected = isConfigured
                 _table.outdated = isConfigured
+                _table.materialized = isMaterialized
 
-        changeStatus: (table) =>
+        changeDbConfigStatus: (table) =>
             icon = document.getElementById("tableIcon#{table.name}")
             icon.className = ICON_SPINNER
             data =
@@ -163,7 +170,6 @@ module.exports = app.controller 'TableListController',
                 , =>
                     console.log "Error with dbConfig request"
                     icon.className = ICON_ERROR
-                    console.log "Hiding icon"
                     hideIcon icon
             else
                 @ServerConnector.sendDBConfig data, =>
@@ -173,7 +179,31 @@ module.exports = app.controller 'TableListController',
                 , =>
                     console.log "Error with dbConfig request"
                     icon.className = ICON_ERROR
-                    console.log "Hiding icon"
+                    hideIcon icon
+
+        changeMaterializeStatus: (table) =>
+            icon = document.getElementById("tableIcon#{table.name}")
+            icon.className = ICON_SPINNER
+            data =
+                table: table.name
+                provider: @$scope.selectedProvider
+            if table.materialized
+                @ServerConnector.deleteMaterialization data, =>
+                    icon.className = ICON_OK
+                    @requestConfiguredTables()
+                    hideIcon icon
+                , =>
+                    console.log "Error with dbConfig materialization request"
+                    icon.className = ICON_ERROR
+                    hideIcon icon
+            else
+                @ServerConnector.addMaterialization data, =>
+                    icon.className = ICON_OK
+                    @requestConfiguredTables()
+                    hideIcon icon
+                , =>
+                    console.log "Error with dbConfig materialization request"
+                    icon.className = ICON_ERROR
                     hideIcon icon
 
         filterTableList: () =>
