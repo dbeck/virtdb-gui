@@ -203,9 +203,13 @@ class DBConfig
         tableList = []
         for table in tables
             if not table.Schema? or table.Schema is ""
-                tableList.push table.Name
+                tableList.push
+                    name: table.Name
+                    materialized: table.Properties[0].Value.BoolValue[0]
             else
-                tableList.push table.Schema + "." + table.Name
+                tableList.push
+                    name: table.Schema + "." + table.Name
+                    materialized: table.Properties[0].Value.BoolValue[0]
         if tableList.length > 0
             Cache.set (Cache.generateDBConfigCacheKey provider), tableList
         callback tableList

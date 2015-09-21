@@ -60,15 +60,8 @@ router.get "/tables"
         username = null
         if Config.Features.Security
             username = req.user.name
-        DBConfig.getTables provider, username, (tableList) =>
-            response = []
-            for table in tableList
-                isMat = (materializedTables.indexOf table) > -1
-                response.push
-                    name: table
-                    materialized: isMat
-            console.log "response", response
-            res.json response
+        DBConfig.getTables provider, username, (list) ->
+            res.json list
     catch ex
         log.error V_(ex)
         throw ex
@@ -86,26 +79,21 @@ router.post "/tables"
     table = req.body.table
     provider = req.body.provider
     try
-        addTable = (token, username, addTableCallback) ->
-            Metadata.getTableDescription provider, table, token, (err, metaData) ->
-                if err?
-                    res.status(500).send()
-                    return
-                DBConfig.addTable provider, metaData, username, (err) ->
-                    if not err?
-                        addTableCallback?()
-                        res.status(200).send()
-                    else
-                        res.status(500).send()
-
         if Config.Features.Security
             User.getTableToken req.user, provider, (err, token) ->
                 if not err?
-                    addTable token, req.user.name, ->
-                        DBConfig.addUserMapping provider, req.user.name, token
+                    addTable provider, table, token, req.user.name, false, (err) ->
+                        unless err?
+                            res.sendStatus 200
+                            DBConfig.addUserMapping provider, req.user.name, token
+                            return
+                        res.sendStatus 500
         else
-            addTable()
-
+            addTable provider, table, null, null, false, (err) ->
+                if err?
+                    res.sendStatus 500
+                else
+                    res.sendStatus 200
         return
     catch ex
         log.error V_(ex)
@@ -124,22 +112,20 @@ router.delete "/tables"
     table = req.query.table
     provider = req.query.provider
     try
-        deleteTable = (token, username) ->
-            Metadata.getTableDescription provider, table, token, (err, metaData) ->
-                if err?
-                    res.status(500).send()
-                    return
-                DBConfig.deleteTable provider, metaData, username, (err) ->
-                    if not err?
-                        res.status(200).send()
-                    else
-                        res.status(500).send()
         if Config.Features.Security
             User.getTableToken req.user, provider, (err, token) ->
                 if not err?
-                    deleteTable token, req.user.name
+                    deleteTable provider, table, token, req.user.name, false, (err) ->
+                        if err?
+                            res.sendStatus 500
+                        else
+                            res.sendStatus 200
         else
-            deleteTable()
+            deleteTable provider, table, null, null, false, (err) ->
+                if err?
+                    res.sendStatus 500
+                else
+                    res.sendStatus 200
     catch ex
         log.error V_(ex)
         throw ex
@@ -157,9 +143,22 @@ router.post "/tables/materialize"
     table = req.body.table
     provider = req.body.provider
     try
-        if materializedTables.indexOf table > -1
-            materializedTables.push table
-        res.sendStatus 200
+        if Config.Features.Security
+            User.getTableToken req.user, provider, (err, token) ->
+                if not err?
+                    addTable provider, table, token, req.user.name, true, (err) ->
+                        unless err?
+                            res.sendStatus 200
+                            DBConfig.addUserMapping provider, req.user.name, token
+                            return
+                        res.sendStatus 500
+        else
+            addTable provider, table, null, null, true, (err) ->
+                if err?
+                    res.sendStatus 500
+                else
+                    res.sendStatus 200
+        return
     catch ex
         log.error V_(ex)
         throw ex
@@ -177,12 +176,48 @@ router.delete "/tables/materialize"
     table = req.query.table
     provider = req.query.provider
     try
-        i = materializedTables.indexOf table
-            if i > -1
-                materializedTables.splice i, 1
-        res.sendStatus 200
+        if Config.Features.Security
+            User.getTableToken req.user, provider, (err, token) ->
+                if not err?
+                    deleteTable provider, table, token, req.user.name, true, (err) ->
+                        if err?
+                            res.sendStatus 500
+                        else
+                            res.sendStatus 200
+        else
+            deleteTable provider, table, null, null, true, (err) ->
+                if err?
+                    res.sendStatus 500
+                else
+                    res.sendStatus 200
     catch ex
         log.error V_(ex)
         throw ex
+
+addTable = (provider, table, token, username, materialize, addTableCallback) ->
+    Metadata.getTableDescription provider, table, token, (err, metaData) ->
+        if err?
+            log.error "Couldn't add table because error happened during getting metadata.", (V_ err)
+            addTableCallback err
+            return
+        metaData.Tables[0].Properties.push
+            Key: "materialize"
+            Value:
+                Type: "BOOL"
+                BoolValue: [materialize]
+        DBConfig.addTable provider, metaData, username, addTableCallback
+
+deleteTable = (provider, table, token, username, materialize, deleteTableCallback) ->
+    Metadata.getTableDescription provider, table, token, (err, metaData) ->
+        if err?
+            log.error "Couldn't delete table because error happened during getting metadata.", (V_ err)
+            deleteTableCallback err
+            return
+        metaData.Tables[0].Properties.push
+            Key: "materialize"
+            Value:
+                Type: "BOOL"
+                BoolValue: [materialize]
+        DBConfig.deleteTable provider, metaData, username, deleteTableCallback
 
 module.exports = router

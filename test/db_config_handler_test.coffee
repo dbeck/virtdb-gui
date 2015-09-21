@@ -29,6 +29,12 @@ TABLE_SCHEMA3 = 'data3'
 TABLE_METADATA1 =
     Name: TABLE_NAME1
     Schema: TABLE_SCHEMA1
+    Properties: [
+        Key: "materialized"
+        Value:
+            Type: "BOOL"
+            BoolValue: [false]
+    ]
     Fields: [
         Name: "Field3"
         Desc:
@@ -39,6 +45,12 @@ TABLE_METADATA1 =
 TABLE_METADATA2 =
     Name: TABLE_NAME2
     Schema: TABLE_SCHEMA2
+    Properties: [
+        Key: "materialized"
+        Value:
+            Type: "BOOL"
+            BoolValue: [false]
+    ]
     Fields: [
         Name: "Field2"
         Desc:
@@ -49,6 +61,12 @@ TABLE_METADATA2 =
 TABLE_METADATA3 =
     Name: TABLE_NAME3
     Schema: TABLE_SCHEMA3
+    Properties: [
+        Key: "materialized"
+        Value:
+            Type: "BOOL"
+            BoolValue: [false]
+    ]
     Fields: [
         Name: "Field3"
         Desc:
@@ -151,7 +169,10 @@ describe "DBConfig", ->
              cacheGetStub.returns null
              requestStub.yields null, (DBConfigProto.serialize DB_CONFIG_REPLY1, "virtdb.interface.pb.DBConfigReply")
              DBConfig.getTables PROVIDER, null, cb
-             cacheSetStub.should.have.been.calledWithExactly sinon.match.string, ["#{TABLE_SCHEMA1}.#{TABLE_NAME1}"]
+             cacheSetStub.should.have.been.calledWithExactly sinon.match.string, [
+                 name: "#{TABLE_SCHEMA1}.#{TABLE_NAME1}"
+                 materialized: false
+             ]
 
         it "should return the cached data if it is available", ->
             result = ["#{TABLE_SCHEMA1}.#{TABLE_NAME1}"]
@@ -165,13 +186,25 @@ describe "DBConfig", ->
             requestStub.yields null, (DBConfigProto.serialize DB_CONFIG_REPLY1, "virtdb.interface.pb.DBConfigReply")
             DBConfig.getTables PROVIDER, null, cb
             requestStub.should.have.been.calledOnce
-            cb.should.have.been.calledWithExactly ["#{TABLE_SCHEMA1}.#{TABLE_NAME1}"]
+            cb.should.have.been.calledWithExactly [
+                name: "#{TABLE_SCHEMA1}.#{TABLE_NAME1}"
+                materialized: false
+            ]
 
         it "should return the received data if it is not available from cache: one table: 3 table", ->
             cacheGetStub.returns null
             requestStub.yields null, (DBConfigProto.serialize DB_CONFIG_REPLY2, "virtdb.interface.pb.DBConfigReply")
             DBConfig.getTables PROVIDER, null, cb
-            cb.should.have.been.calledWithExactly ["#{TABLE_SCHEMA1}.#{TABLE_NAME1}","#{TABLE_SCHEMA2}.#{TABLE_NAME2}","#{TABLE_SCHEMA3}.#{TABLE_NAME3}",]
+            cb.should.have.been.calledWithExactly [
+                name: "#{TABLE_SCHEMA1}.#{TABLE_NAME1}"
+                materialized: false
+            ,
+                name: "#{TABLE_SCHEMA2}.#{TABLE_NAME2}"
+                materialized: false
+            ,
+                name: "#{TABLE_SCHEMA3}.#{TABLE_NAME3}"
+                materialized: false
+            ]
 
     describe "addTable", ->
 
