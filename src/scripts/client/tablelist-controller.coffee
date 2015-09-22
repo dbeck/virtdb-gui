@@ -136,7 +136,6 @@ module.exports = app.controller 'TableListController',
             return
 
         onConfiguredTables: (configuredTableList) =>
-            console.log configuredTableList
             @$scope.configuredCounter = 0
             @$scope.materializedCounter = 0
             configuredTableHash = {}
