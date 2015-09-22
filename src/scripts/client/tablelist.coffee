@@ -13,11 +13,25 @@ TableItem = React.createClass(
             return (ev) =>
                 @props.check table
 
+        changeMaterialization = (table) =>
+            return (ev) =>
+                @props.materialize table
+
         clickHandler = (table) =>
             return (ev) =>
                 @props.click table
 
         children = []
+
+        children.push R.td
+            key: "materialization-wrap" + @props.table.name
+            className: "materialization-" + @props.table.name
+        , R.input
+            key: "materialize-input" + @props.table.name
+            onChange: changeMaterialization @props.table
+            checked: @props.table.materialized
+            disabled: not @props.table.selected
+            type: 'checkbox'
 
         # onoff
         children.push R.td
@@ -70,7 +84,8 @@ TableList = React.createClass(
                     table: table
                     click: @props.click
                     check: @props.check
-                    selected: table.name == @props.selectedTable
+                    materialize: @props.materialize
+                    selected: table.name is @props.selectedTable
         return React.DOM.table {className: 'table'}, React.DOM.tbody null, children
 )
 
@@ -80,23 +95,28 @@ tableListDirective = ->
         data: "="
         table: "="
         check: "="
+        materialize: "="
         click: "="
         configuredCounter: "="
+        materializedCounter: "="
     link: (scope, el, attrs) ->
-        display = (data, table, check, click) ->
+        display = (data, table, check, materialize, click) ->
             if data?
                 React.render(
                     React.createElement TableList,
                         data: data
                         selectedTable: table
                         check: check
+                        materialize: materialize
                         click: click
                 , el[0])
         scope.$watch 'data', (newValue, oldValue) ->
-            display newValue, scope.table, scope.check, scope.click
+            display newValue, scope.table, scope.check, scope.materialize, scope.click
         scope.$watch 'table', (newValue, oldValue) ->
-            display scope.data, newValue, scope.check, scope.click
+            display scope.data, newValue, scope.check, scope.materialize, scope.click
         scope.$watch 'configuredCounter', (newValue, oldValue) ->
-            display scope.data, scope.table, scope.check, scope.click
+            display scope.data, scope.table, scope.check, scope.materialize, scope.click
+        scope.$watch 'materializedCounter', (newValue, oldValue) ->
+            display scope.data, scope.table, scope.check, scope.materialize, scope.click
 
 module.exports = tableListDirective

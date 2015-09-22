@@ -206,6 +206,22 @@ module.exports = app.factory 'ServerConnector', ['$http', 'ErrorService', '$q', 
                 onSuccess []
             )
 
+        addMaterialization: (data, onSuccess, onError) =>
+            $http.post(@address + "/api/db_config/tables/materialize", data)
+            .success(onSuccess)
+            .error( (response, status) =>
+                    ErrorService.errorHappened status, "Failed to add table materialization: #{data.table} (#{response})"
+                    onError?()
+            )
+
+        deleteMaterialization: (data, onSuccess, onError) =>
+            $http.delete(@address + "/api/db_config/tables/materialize", {params: data})
+            .success(onSuccess)
+            .error( (response, status) =>
+                    ErrorService.errorHappened status, "Failed to delete table materialization: #{data.table} (#{response})"
+                    onError?()
+            )
+
         getDBUsers: (onSuccess) =>
             $http.get @address + "/api/db_config/users"
             .success(onSuccess)
