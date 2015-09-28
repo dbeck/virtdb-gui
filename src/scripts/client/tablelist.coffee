@@ -77,10 +77,19 @@ TableItem = React.createClass(
 TableList = React.createClass(
     displayName: 'TableList'
     render: ->
-        children = []
+        tableBody = null
+        tableHead = null
         if this.props.data?
+            tableHeadCells = []
+            if this.props.features.Materialization
+                tableHeadCells.push R.th {}, "Materialized"
+            tableHeadCells.push R.th {}, "Added"
+            tableHeadCells.push R.th {}, "Table"
+            tableHead = R.thead {}, (R.tr {}, tableHeadCells)
+
+            tableRows = []
             for table,index in this.props.data
-                children.push React.createElement TableItem,
+                tableRows.push React.createElement TableItem,
                     key: index
                     table: table
                     click: @props.click
@@ -88,7 +97,8 @@ TableList = React.createClass(
                     materialize: @props.materialize
                     selected: table.name is @props.selectedTable
                     features: @props.features
-        return React.DOM.table {className: 'table'}, React.DOM.tbody null, children
+            tableBody = R.tbody null, tableRows
+        return R.table {className: 'table'}, [tableHead, tableBody]
 )
 
 tableListDirective = ->
