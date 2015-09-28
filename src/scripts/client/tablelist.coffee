@@ -23,15 +23,16 @@ TableItem = React.createClass(
 
         children = []
 
-        children.push R.td
-            key: "materialization-wrap" + @props.table.name
-            className: "materialization-" + @props.table.name
-        , R.input
-            key: "materialize-input" + @props.table.name
-            onChange: changeMaterialization @props.table
-            checked: @props.table.materialized
-            disabled: not @props.table.selected
-            type: 'checkbox'
+        if @props.features.Materialization
+            children.push R.td
+                key: "materialization-wrap" + @props.table.name
+                className: "materialization-" + @props.table.name
+            , R.input
+                key: "materialize-input" + @props.table.name
+                onChange: changeMaterialization @props.table
+                checked: @props.table.materialized
+                disabled: not @props.table.selected
+                type: 'checkbox'
 
         # onoff
         children.push R.td
@@ -76,17 +77,28 @@ TableItem = React.createClass(
 TableList = React.createClass(
     displayName: 'TableList'
     render: ->
-        children = []
+        tableBody = null
+        tableHead = null
         if this.props.data?
+            tableHeadCells = []
+            if this.props.features.Materialization
+                tableHeadCells.push R.th {}, "Materialized"
+            tableHeadCells.push R.th {}, "Added"
+            tableHeadCells.push R.th {}, "Table"
+            tableHead = R.thead {}, (R.tr {}, tableHeadCells)
+
+            tableRows = []
             for table,index in this.props.data
-                children.push React.createElement TableItem,
+                tableRows.push React.createElement TableItem,
                     key: index
                     table: table
                     click: @props.click
                     check: @props.check
                     materialize: @props.materialize
                     selected: table.name is @props.selectedTable
-        return React.DOM.table {className: 'table'}, React.DOM.tbody null, children
+                    features: @props.features
+            tableBody = R.tbody null, tableRows
+        return R.table {className: 'table'}, [tableHead, tableBody]
 )
 
 tableListDirective = ->
@@ -99,8 +111,10 @@ tableListDirective = ->
         click: "="
         configuredCounter: "="
         materializedCounter: "="
+        selectedTable: "="
+        features: "="
     link: (scope, el, attrs) ->
-        display = (data, table, check, materialize, click) ->
+        display = (data, table, check, materialize, click, features) ->
             if data?
                 React.render(
                     React.createElement TableList,
@@ -109,14 +123,15 @@ tableListDirective = ->
                         check: check
                         materialize: materialize
                         click: click
+                        features: features
                 , el[0])
         scope.$watch 'data', (newValue, oldValue) ->
-            display newValue, scope.table, scope.check, scope.materialize, scope.click
+            display newValue, scope.table, scope.check, scope.materialize, scope.click, scope.features
         scope.$watch 'table', (newValue, oldValue) ->
-            display scope.data, newValue, scope.check, scope.materialize, scope.click
+            display scope.data, newValue, scope.check, scope.materialize, scope.click, scope.features
         scope.$watch 'configuredCounter', (newValue, oldValue) ->
-            display scope.data, scope.table, scope.check, scope.materialize, scope.click
+            display scope.data, scope.table, scope.check, scope.materialize, scope.click, scope.features
         scope.$watch 'materializedCounter', (newValue, oldValue) ->
-            display scope.data, scope.table, scope.check, scope.materialize, scope.click
+            display scope.data, scope.table, scope.check, scope.materialize, scope.click, scope.features
 
 module.exports = tableListDirective
