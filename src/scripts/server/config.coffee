@@ -67,6 +67,7 @@ catch ex
         Installer: false
         Security: false
         Monitoring: true
+        Materialization: false
 
 DB_CONFIG_SERVICE = "DatabaseConfigService/ComponentName"
 CACHE_TTL = "Cache/TTL"

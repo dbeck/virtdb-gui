@@ -24,7 +24,7 @@ div(ng-controller="TableListController as tableListCtrl")
             input.form-control(type="text" ng-model="search" ng-change="tableListCtrl.searchTableNames()" id="searchInput")
             i.glyphicon.glyphicon-search
         div
-            table-list(ng-if="!tableListCtrl.isLoading", data="tableListCtrl.tableList", table="table", check="tableListCtrl.changeDbConfigStatus", materialize="tableListCtrl.changeMaterializeStatus", click="tableListCtrl.selectTable", configured-counter="configuredCounter", materialized-counter="materializedCounter", selected-table="tableListCtrl.selectedTable")
+            table-list(ng-if="!tableListCtrl.isLoading", data="tableListCtrl.tableList", table="table", check="tableListCtrl.changeDbConfigStatus", materialize="tableListCtrl.changeMaterializeStatus", click="tableListCtrl.selectTable", configured-counter="configuredCounter", materialized-counter="materializedCounter", selected-table="tableListCtrl.selectedTable" features="Features")
             div(ng-if="tableListCtrl.isLoading")
                 include spinner
 
