@@ -49,6 +49,7 @@ class DataConnection
     close: =>
         @_closeQuerySocket()
         @_closeColumnSocket()
+        VirtDB.MonitoringService.restore()
 
     _closeQuerySocket: =>
         if @_queryAddresses?
