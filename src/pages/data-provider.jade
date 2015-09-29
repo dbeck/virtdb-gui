@@ -1,4 +1,13 @@
 include includes/providerList
+div.modal.fadex#refreshMatViewCommand(tabindex="-1" role="dialog" aria-labelledby="changePasswordModalLabel" ng-if="Features.MaterializationSqlCommand")
+    div.modal-dialog
+        div.modal-content
+            div.modal-header
+                div To refresh the materialization use this command:
+            div.modal-body
+                code REFRESH MATERIALIZED VIEW {{matViewPath}};
+            div.modal-footer
+                button.btn.btn-default.btn-sm.btn-rounded(data-dismiss="modal") Close
 div
     div.row
         div.col-md-4
