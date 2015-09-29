@@ -17,7 +17,7 @@ COLUMN_ADDRESSES = ["column_addr1", "column_addr2", "column_addr3"]
 describe "ZmqSubConnector", ->
 
     sandbox = null
-    fakeZmqSocket = null
+    socket = null
 
     beforeEach =>
         sandbox = sinon.sandbox.create()
@@ -26,25 +26,25 @@ describe "ZmqSubConnector", ->
         sandbox.stub VirtDBConnector.log, "trace"
         sandbox.stub VirtDBConnector.log, "warn"
         sandbox.stub VirtDBConnector.log, "error"
-        fakeZmqSocket = sinon.createStubInstance zmq.Socket
+        socket = zmq.socket("sub")
+        sandbox.stub socket, "connect"
 
     afterEach =>
         sandbox.restore()
 
     it "should connect to first address available", ->
-        fakeZmqSocket.connect.onFirstCall().throws("Failed to connect!")
-        fakeZmqSocket.connect.onSecondCall().returns()
+        socket.connect.onFirstCall().throws("Failed to connect!")
+        socket.connect.onSecondCall().returns()
 
-        ZmqSubConnector.connectToFirstAvailable(fakeZmqSocket, COLUMN_ADDRESSES).should.equal COLUMN_ADDRESSES[1]
+        ZmqSubConnector.connectToFirstAvailable(socket, COLUMN_ADDRESSES).should.equal COLUMN_ADDRESSES[1]
 
-        fakeZmqSocket.connect.withArgs(COLUMN_ADDRESSES[0]).should.have.been.calledOnce
-        fakeZmqSocket.connect.withArgs(COLUMN_ADDRESSES[1]).should.have.been.calledOnce
-        fakeZmqSocket.connect.withArgs(COLUMN_ADDRESSES[2]).should.have.not.been.called
+        socket.connect.withArgs(COLUMN_ADDRESSES[0]).should.have.been.calledOnce
+        socket.connect.withArgs(COLUMN_ADDRESSES[1]).should.have.been.calledOnce
+        socket.connect.withArgs(COLUMN_ADDRESSES[2]).should.have.not.been.called
 
 
     it "should throw exception if all connect attempts fail", ->
-        fakeZmqSocket = sinon.createStubInstance zmq.Socket
-        fakeZmqSocket.connect.throws("Failed to connect!")
+        socket.connect.throws("Failed to connect!")
         ( ->
-            ZmqSubConnector.connectToFirstAvailable(fakeZmqSocket, COLUMN_ADDRESSES).should.equal COLUMN_ADDRESSES[1]
+            ZmqSubConnector.connectToFirstAvailable(socket, COLUMN_ADDRESSES).should.equal COLUMN_ADDRESSES[1]
         ).should.throw()

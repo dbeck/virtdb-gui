@@ -6,8 +6,10 @@
   "private": true,
   "scripts": {
     "start": "node app.js",
-    "test": "mocha --compilers=coffee:coffee-script/register -R spec test/*.coffee"
+    "test": "mocha --compilers=coffee:coffee-script/register -R spec test/*.coffee",
+    "clean-install": "rm -rf node_modules && npm install"
   },
+  "pre-commit": ["clean-install", "test"],
   "repository": {
     "type": "git",
     "url": "https://github.com/starschema/virtdb-gui"
