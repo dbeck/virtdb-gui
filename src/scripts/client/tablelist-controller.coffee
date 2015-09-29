@@ -1,5 +1,6 @@
 app = require './virtdb-app.js'
 tableListDirective = require './tablelist.js'
+CurrentUser = require './current-user'
 
 ICON_HIDDEN = "transparent fa fa-check"
 ICON_SPINNER = "fa fa-spin fa-spinner"
@@ -15,8 +16,9 @@ module.exports = app.controller 'TableListController',
     class TableListController
         @ITEMS_PER_PAGE = 50
 
-        constructor: ($scope, $timeout, ServerConnector) ->
+        constructor: ($scope, $timeout, $rootScope, CurrentUser, ServerConnector) ->
             @$scope = $scope
+            @$rootScope = $rootScope
             @$timeout = $timeout
             @ServerConnector = ServerConnector
             @$scope.tableListCount = 0
@@ -24,6 +26,7 @@ module.exports = app.controller 'TableListController',
             @tableListPosition = 0
             @$scope.$on "selectedProviderChanged", @providerChanged
             @tableListEndTimerPromise = null
+            @CurrentUser = CurrentUser
 
         providerChanged: (event, provider) =>
             @resetProviderLevelView()
@@ -199,6 +202,10 @@ module.exports = app.controller 'TableListController',
                 @ServerConnector.addMaterialization data, =>
                     icon.className = ICON_OK
                     @requestConfiguredTables()
+                    if @$rootScope.Features.MaterializationSqlCommand
+                        @CurrentUser.get (user) =>
+                            @$rootScope.matViewPath = "#{user.name}_#{@$scope.selectedProvider}_#{table.name}"
+                        $('#refreshMatViewCommand').modal("show")
                     hideIcon icon
                 , =>
                     console.log "Error with dbConfig materialization request"
