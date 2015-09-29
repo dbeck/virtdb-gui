@@ -22,6 +22,7 @@ describe "UserManager", ->
 
     afterEach =>
         sandbox.restore()
+        VirtDBConnector.MonitoringService.restore()
 
     describe "createUser", ->
 

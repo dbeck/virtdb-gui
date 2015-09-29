@@ -30,6 +30,7 @@ describe "ZmqSubConnector", ->
         sandbox.stub socket, "connect"
 
     afterEach =>
+        socket.close()
         sandbox.restore()
 
     it "should connect to first address available", ->

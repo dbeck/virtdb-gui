@@ -11,7 +11,7 @@ chai.should()
 expect = chai.expect
 
 sinon = require "sinon"
-sinonChai = require("sinon-chai");
+sinonChai = require("sinon-chai")
 
 chai.use sinonChai
 
@@ -159,6 +159,8 @@ describe "DataConnection", ->
         sendStub.should.have.been.calledOnce
         sendStub.should.have.been.calledWith SERIALIZED_MSG
 
+        conn.close()
+
     it "should getData when schema is null", ->
         TOKEN = "token"
         ON_DATA = () ->
@@ -194,6 +196,7 @@ describe "DataConnection", ->
         dataSerializeStub.should.have.been.calledWithExactly(QUERY_MSG, "virtdb.interface.pb.Query")
         sendStub.should.have.been.calledOnce
         sendStub.should.have.been.calledWith SERIALIZED_MSG
+        conn.close()
 
     it "should getData when schema and token are null", ->
         TOKEN = undefined
@@ -229,6 +232,7 @@ describe "DataConnection", ->
         dataSerializeStub.should.have.been.calledWithExactly(QUERY_MSG, "virtdb.interface.pb.Query")
         sendStub.should.have.been.calledOnce
         sendStub.should.have.been.calledWith SERIALIZED_MSG
+        conn.close()
 
     it "should handle column message when it is not compressed", ->
         MSG = "msg"
