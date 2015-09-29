@@ -84,41 +84,38 @@ describe "DataConnection", ->
         zmqMock.verify()
 
     it "should only close previously connected socket", ->
-        fakeZmqSocket = sinon.createStubInstance zmq.Socket
-        fakeSocket = sandbox.stub zmq, "socket"
-        fakeSocket.returns fakeZmqSocket
-
-        fakeZmqSocket.connect.onFirstCall().throws("Failed to connect!")
-        fakeZmqSocket.connect.onSecondCall().returns()
+        socket = zmq.socket "sub"
+        (sandbox.stub zmq, "socket").returns socket
+        sandbox.stub socket, "connect"
+        sandbox.stub socket, "disconnect"
+        socket.connect.onFirstCall().throws("Failed to connect!")
+        socket.connect.onSecondCall().returns()
 
         conn = new DataConnection QUERY_ADDRESSES, COLUMN_ADDRESSES
         conn._initColumnSocket(QUERY_ID)
         conn._closeColumnSocket()
 
-        fakeZmqSocket.disconnect.withArgs(COLUMN_ADDRESSES[0]).should.have.not.been.called
-        fakeZmqSocket.disconnect.withArgs(COLUMN_ADDRESSES[1]).should.have.been.calledOnce
-        fakeZmqSocket.disconnect.withArgs(COLUMN_ADDRESSES[2]).should.have.not.been.called
+        socket.disconnect.withArgs(COLUMN_ADDRESSES[0]).should.have.not.been.called
+        socket.disconnect.withArgs(COLUMN_ADDRESSES[1]).should.have.been.calledOnce
+        socket.disconnect.withArgs(COLUMN_ADDRESSES[2]).should.have.not.been.called
 
     it "should close no sockets if all connect attempts failed earlier", ->
-        fakeZmqSocket = sinon.createStubInstance zmq.Socket
-        fakeSocket = sandbox.stub zmq, "socket"
-        fakeSocket.returns fakeZmqSocket
-
-        fakeZmqSocket.connect.throws("Failed to connect!")
+        socket = zmq.socket "sub"
+        (sandbox.stub zmq, "socket").returns socket
+        sandbox.stub socket, "disconnect"
+        (sandbox.stub socket, "connect").throws("Failed to connect!")
 
         conn = new DataConnection QUERY_ADDRESSES, COLUMN_ADDRESSES
         initColumnSocketSpy = sandbox.spy(conn, "_initColumnSocket")
         initColumnSocketSpy.should.throw()
         conn._closeColumnSocket()
-        fakeZmqSocket.disconnect.should.have.not.been.called
+        socket.disconnect.should.have.not.been.called
 
     it "should survive disconnection failure and log an error", ->
-        fakeZmqSocket = sinon.createStubInstance zmq.Socket
-        fakeZmqSocket.connect.returns()
-        fakeZmqSocket.disconnect.throws('Disconnection failure')
-
-        fakeSocket = sandbox.stub zmq, "socket"
-        fakeSocket.returns fakeZmqSocket
+        socket = zmq.socket "sub"
+        (sandbox.stub zmq, "socket").returns socket
+        (sandbox.stub socket, "connect").returns()
+        (sandbox.stub socket, "disconnect").throws 'Disconnection failure'
 
         conn = new DataConnection QUERY_ADDRESSES, COLUMN_ADDRESSES
         conn._initColumnSocket(QUERY_ID)

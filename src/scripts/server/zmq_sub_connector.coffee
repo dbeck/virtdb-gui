@@ -2,9 +2,6 @@ VirtDB = require "virtdb-connector"
 log = VirtDB.log
 V_ = log.Variable
 
-DataProto = (require "virtdb-proto").data
-CommonProto = (require "virtdb-proto").common
-
 ZmqSubConnector =
     connectToFirstAvailable: (zmqSocket, addresses) ->
         for addr in addresses
