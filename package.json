@@ -9,7 +9,7 @@
     "test": "mocha --compilers=coffee:coffee-script/register -R spec test/*.coffee",
     "clean-install": "rm -rf node_modules && npm install"
   },
-  "pre-commit": ["clean-install", "test"],
+  "pre-commit": ["test"],
   "repository": {
     "type": "git",
     "url": "https://github.com/starschema/virtdb-gui"
