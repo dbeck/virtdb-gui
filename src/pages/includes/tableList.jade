@@ -1,0 +1,30 @@
+div(ng-controller="TableListController as tableListCtrl")
+    .filter-container
+        table.container
+            tr
+                td
+                    h3 
+                        span.triangle
+                        span Tables
+                        span.table-list-count(ng-if="tableListCount != null")  ({{tableListCount}})
+                td(align="right")
+                    span
+                        a.table-list-icon(data-toggle="collapse", data-parent="#accordion", target="_self", href="#collapseFilter", ng-click="tableListCtrl.filterTableList()")
+                            span(ng-class="{empty: tableListFilter == null || tableListFilter.length == 0}").glyphicon.glyphicon-filter.text-right.pull-right
+                        i.pull-right.fa.fa-refresh.table-list-icon(ng-class="{disabled: selectedProvider == null, 'fa-spin': refreshing}", ng-click="tableListCtrl.refresh(selectedProvider)")
+                        i.pull-right.fa.fa-caret-right.table-pager.table-list-icon(ng-class="{disabled: selectedProvider == null || tableListTo == tableListCount - 1}", ng-disabled="tableListTo == tableListCount - 1", ng-click="tableListCtrl.getNextTables()")
+                        i.pull-right.fa.fa-caret-left.table-list-icon.table-pager(ng-class="{disabled: tableListFrom == 0}", ng-disabled="tableListFrom == 0", ng-click="tableListCtrl.getPreviousTables()")
+        div.panel-group(id="accordion")
+            div.panel.panel-default
+                div.panel-collapse.collapse(id="collapseFilter")
+                    div.panel-body
+                        p
+                            textarea.form-control(ng-model="tableListFilter" rows=10 ng-change="tableListCtrl.checkTableFilter()")
+        div.right-inner-addon
+            input.form-control(type="text" ng-model="search" ng-change="tableListCtrl.searchTableNames()" id="searchInput")
+            i.glyphicon.glyphicon-search
+        div
+            table-list(ng-if="!tableListCtrl.isLoading", data="tableListCtrl.tableList", table="table", check="tableListCtrl.changeDbConfigStatus", materialize="tableListCtrl.changeMaterializeStatus", click="tableListCtrl.selectTable", configured-counter="configuredCounter", materialized-counter="materializedCounter", selected-table="tableListCtrl.selectedTable" features="Features")
+            div(ng-if="tableListCtrl.isLoading")
+                include spinner
+

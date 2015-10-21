@@ -1,86 +1,19 @@
+include includes/providerList
+div.modal.fadex#refreshMatViewCommand(tabindex="-1" role="dialog" aria-labelledby="changePasswordModalLabel" ng-if="Features.MaterializationSqlCommand")
+    div.modal-dialog
+        div.modal-content
+            div.modal-header
+                div To refresh the materialization use this command:
+            div.modal-body
+                code REFRESH MATERIALIZED VIEW {{matViewPath}};
+            div.modal-footer
+                button.btn.btn-default.btn-sm.btn-rounded(data-dismiss="modal") Close
 div
-    div.panel.panel-default
-        div.panel-heading
-            div.panel-title Data providers
-        div.panel-body
-            button.btn.btn-default(ng-repeat="_provider in dataProvider.providers" ng-click="dataProvider.selectProvider(_provider)" ng-class="{active: provider == _provider}") {{_provider}}
     div.row
         div.col-md-4
-            h3 Tables
-            div.panel-group(id="accordion")
-                div.panel.panel-default
-                    div.panel-heading
-                        h4.panel-title
-                            a(data-toggle="collapse" data-parent="#accordion" target="_self" href="#collapseFilter") Filter
-                    div.panel-collapse.collapse(id="collapseFilter")
-                        div.panel-body
-                            p
-                                textarea.form-control(ng-model="tableListFilter" rows=10 ng-change="dataProvider.checkTableFilter()")
-                            p
-                                button.btn.btn-default(ng-click="dataProvider.filterTableList()") Filter
-            div.row
-                div.col-md-3
-                    div.input-group
-                        div.input-group-btn
-                            button.btn.btn-default(ng-click="dataProvider.getPreviousTables()")
-                                span.glyphicon.glyphicon-chevron-left
-                            button.btn.btn-default(ng-click="dataProvider.getNextTables()")
-                                span.glyphicon.glyphicon-chevron-right
-                div.col-md-9
-                    div.input-group
-                        span.input-group-addon
-                            span.glyphicon.glyphicon-search
-                        input.form-control(type="text" ng-model="search" ng-change="dataProvider.searchTableNames()" id="searchInput")
-            p
-            p Count: {{tableListCount}} Displaying: {{tableListFrom}} - {{tableListTo}}
-            p {{selectionCounter}} table selected for adding to db config
-            p
-                label Select All
-                    input(type="checkbox" ng-model="isAllTableSelected" ng-change="dataProvider.selectAllTableChanged()")
-
-            table.table
-                tr(ng-repeat="_table in dataProvider.tableList" ng-class="{info: table == _table.name}")
-                    td
-                        input(type="checkbox" ng-model="_table.selected" ng-disabled="_table.configured" ng-change="dataProvider.tableSelectionChanged()")
-                    td(ng-click="dataProvider.selectTable(_table.name)") {{_table.name}}
-            p
-                button.btn.ntn-default(ng-click='dataProvider.addTablesToDBConfig()') Add
-        div.col-md-6
-            h3 Data
-            div.data-table
-                button(ng-click='dataProvider.transposeData()') transpose
-                table.table.table-bordered(ng-hide='dataProvider.isHeaderColumn')
-                    tr
-                        th(
-                            ng-repeat='_field in dataHeader'
-                            ng-click="dataProvider.selectField(_field)"
-                            ng-class="{info: field === _field}") {{_field}}
-                    tr(ng-repeat='row in dataRows')
-                        td(
-                            ng-repeat="(index, _field) in row track by $index"
-                            ng-init="fieldName = dataHeader[index]"
-                            ng-click="dataProvider.selectField(fieldName)"
-                            ng-class="{'null-value': _field === 'null', info: field === fieldName}"
-                        ) {{_field}}
-                table.table.table-bordered(ng-show='dataProvider.isHeaderColumn')
-                    tr(
-                        ng-repeat="(index, header) in dataHeader"
-                        ng-click="dataProvider.selectField(header)"
-                        ng-class="{info: field == header}")
-                        th {{header}}
-                        td(ng-repeat='row in dataRows track by $index' ng-class="{'null-value': row[index] === 'null'}") {{row[index]}}
-        div.col-md-2
-            h3 Meta data
-                h4 Description
-                table.table
-                    tr(ng-repeat="(key, value) in metaData.Desc")
-                        td {{key}}
-                        td {{value}}
-                h4 Comments
-                div.container(ng-repeat="comment in metaData.Comments")
-                    div {{comment.Text}}
-                h4 Properties
-                table.table
-                    tr(ng-repeat="(key, value) in metaData.Properties")
-                        td {{key}}
-                        td {{value.Value[0]}}
+            include includes/tableList
+        div(ng-class="{'col-md-5': table !== null && metaData !== null, 'col-md-8': table === null || metaData === null}")
+            include includes/dataView
+        div.col-md-3(ng-if="table !== null && metaData !== null")
+            .metadata
+                include includes/metaView

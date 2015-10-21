@@ -1,20 +1,31 @@
-app = angular.module 'virtdb'
-app.controller 'DiagnosticsController',
+app = require './virtdb-app.js'
+diagTableDirective = require './diag-table.js'
+
+dgController = app.controller 'DiagnosticsController',
     class DiagnosticsController
 
         @REQUEST_INTERVAL = 2000
         logEntries: null
         lastLogRequestTime: null
         @MAX_DISPLAYED_DIAG_MSG = 2000
+        requestIntervalPromise: null
 
-        constructor: (@$rootScope, @$scope, @$http, @$interval, @ServerConnector) ->
+        constructor: ($rootScope, $scope, $http, $interval, ServerConnector) ->
+            @$rootScope = $rootScope
+            @$scope = $scope
+            @$http = $http
+            @$interval = $interval
+            @ServerConnector = ServerConnector
             @logEntries = []
             @lastLogRequestTime = 0
             @startLogReceiving()
+            @$scope.$on '$destroy', () =>
+                if @requestIntervalPromise?
+                    @$interval.cancel @requestIntervalPromise
 
         startLogReceiving: () =>
             @requestLogs()
-            @$interval @requestLogs, DiagnosticsController.REQUEST_INTERVAL
+            @requestIntervalPromise = @$interval @requestLogs, DiagnosticsController.REQUEST_INTERVAL
 
         requestLogs: () =>
             data =
@@ -41,6 +52,8 @@ app.controller 'DiagnosticsController',
                     else
                         parts.push part.name + "=" + part.value
                 log.message = parts.join ", "
-                @logEntries.push log
+                @logEntries.unshift log
                 if @logEntries.length > DiagnosticsController.MAX_DISPLAYED_DIAG_MSG
-                    @logEntries.splice 0,1
+                    @logEntries.splice -1,1
+
+dgController.directive 'diagTable', diagTableDirective

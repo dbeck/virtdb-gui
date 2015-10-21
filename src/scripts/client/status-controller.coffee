@@ -1,5 +1,6 @@
-app = angular.module 'virtdb'
-app.controller 'StatusController',
+app = require './virtdb-app.js'
+
+module.exports = app.controller 'StatusController',
     class StatusController
 
         @REQUEST_INTERVAL = 2000
@@ -8,17 +9,29 @@ app.controller 'StatusController',
         statusMessages: null
         incomingMessages: null
         lastStatusRequestTime: null
+        requestPromise: null
+        processPromise: null
 
-        constructor: (@$rootScope, @$scope, @$http, @$interval, @ServerConnector) ->
+        constructor: ($rootScope, $scope, $http, $interval, ServerConnector) ->
+            @$rootScope = $rootScope
+            @$scope = $scope
+            @$http = $http
+            @$interval = $interval
+            @ServerConnector = ServerConnector
             @statusMessages = []
             @incomingMessages = []
             @lastStatusRequestTime = 0
             @startTimers()
+            @$scope.$on "$destroy", () =>
+                if @requestPromise?
+                    @$interval.cancel @requestPromise
+                if @processPromise?
+                    @$interval.cancel @processPromise
 
         startTimers: () =>
-            @$interval @processIncomingMessages, 500
+            @processPromise = @$interval @processIncomingMessages, 500
             @requestStatuses()
-            @$interval @requestStatuses, DiagnosticsController.REQUEST_INTERVAL
+            @requestPromise = @$interval @requestStatuses, StatusController.REQUEST_INTERVAL
 
         cleanObsoleteDones: () =>
             copyStatusMessages = @statusMessages.slice 0
@@ -52,12 +65,14 @@ app.controller 'StatusController',
                         log[part.name] = part.value
                     @incomingMessages.push log
 
+        isValid = (message) ->
+            return message.component? and message.table_name? and message.status? and message.row_count? and message.seconds?
+
         processIncomingMessages: () =>
             @cleanObsoleteDones()
             while @incomingMessages.length > 0
-                msg = @incomingMessages[0]
-                @incomingMessages.splice 0,1
-                if not @isStatusObsolete msg
+                msg = @incomingMessages.shift()
+                if not @isStatusObsolete(msg) and isValid(msg)
                     @placeStatusMessage msg
 
         placeStatusMessage: (newStatus) =>

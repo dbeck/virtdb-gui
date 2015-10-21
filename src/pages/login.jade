@@ -1,0 +1,43 @@
+doctype html
+html(ng-app='virtdb')
+head
+    title= title
+    link(rel='stylesheet', href='../styles/bootstrap.freelancer.min.css')
+    link(rel='stylesheet', href='../styles/freelancer.css')
+    link(rel='stylesheet', href='../styles/spinner.css')
+    link(rel='stylesheet', href='../styles/onoffbutton.css')
+    link(href='../styles/font-awesome.freelancer.min.css', rel='stylesheet', type='text/css')
+    link(href='https://fonts.googleapis.com/css?family=Montserrat:400,700', rel='stylesheet', type='text/css', media="none", onload="if(media!='all')media='all'")
+    link(href='https://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic', rel='stylesheet', type='text/css', media="none", onload="if(media!='all')media='all'")
+    link(rel='stylesheet', href='../styles/style.css')
+    link(rel='stylesheet', href='../styles/loginpage.css')
+    script(type='text/javascript' src='../libs/jquery.js')
+    script(type='text/javascript' src='../libs/angular.js')
+    script(type='text/javascript' src='../libs/react.js')
+    script(type='text/javascript' src='../libs/ngReact.js')
+    script(type='text/javascript' src='../libs/collapse.js')
+    script(type='text/javascript' src='../libs/transition.js')
+    script(type='text/javascript' src='../libs/alert.js')
+    script(type='text/javascript' src='../libs/angular-route.js')
+    script(type='text/javascript' src='../scripts/dist/virtdb.js')
+    meta(name='viewport', content='width=device-width, initial-scale=1, maximum-scale=1')
+
+
+body.login-page
+    div.navbar.navbar-default
+        div.container-fluid
+            .navbar-header
+                a.navbar-brand(href='/')
+                    img.logo(src="/images/final_logo_ws_compressed.png", width="125")
+    div#loginFormContainer(ng-controller="UserController as user")
+        div.alert.alert-danger.ng-cloak(ng-if="loginError") {{loginError}}
+        h1 Login
+        div
+            form
+                div.form-group
+                    label.control-label(for="usernameInput") Username
+                    input#usernameInput.form-control(type="text", name="username", ng-model="username" ng-change="loginError = null" autofocus)
+                div.form-group
+                    label.control-label(for="passwordInput") Password
+                    input#passwordInput.form-control(type="password", name="password", ng-model="password" ng-change="loginError = null")
+                button.btn.btn-default(ng-click='user.login()') Log in

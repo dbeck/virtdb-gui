@@ -1,181 +1,289 @@
-express = require "express"
-router = express.Router()
-util = require "util"
-DataProvider = require "./data_provider_connector"
-DBConfig = require "./db_config_connector"
+require './monitoring'
+require './certificates'
+router = require './router'
 Config = require "./config"
+
 VirtDBConnector = require "virtdb-connector"
 VirtDBLoader = require "./virtdb_loader"
 KeyValue = require "./key_value"
 ConfigService = require "./config_service"
-EndpointService = require "./endpoint_service"
 DiagConnector = require "./diag_connector"
 timeout = require "connect-timeout"
-ok = require "okay"
 log = VirtDBConnector.log
 V_ = log.Variable
+Endpoints = require "./endpoints"
+auth = require './authentication'
+validator = require "./validator"
 
-require('source-map-support').install()
+DataHandler = require "./data_handler"
+Metadata = require "./meta_data_handler"
+TokenManager = VirtDBConnector.TokenManager
+Credentials = require "./credentials"
 
 router.use require 'express-domain-middleware'
 
+router.all "/*", (req, res, next) =>
+    VirtDBConnector.MonitoringService.bumpStatistic "HTTP API request arrived"
+    next()
+
+router.use '/user', (require './user_router')
+router.use '/db_config', (require './db_config_router')
+
 # GET home page.
-router.get "/", timeout(Config.getCommandLineParameter("timeout")), (req, res, next) ->
+router.get "/"
+    , auth.ensureAuthenticated
+    , timeout(Config.getCommandLineParameter("timeout"))
+, (req, res, next) ->
     res.json "{message: virtdb api}"
     return
 
-router.get "/endpoints", timeout(Config.getCommandLineParameter("timeout")), (req, res, next) ->
-    serviceConfig = EndpointService.getInstance()
+router.get "/features", (req, res) ->
+    res.json Config.Features
+
+router.get "/settings", (req, res) ->
+    res.json Config.Settings
+
+router.get "/authmethods"
+    , timeout(Config.getCommandLineParameter("timeout"))
+, (req, res, next) ->
+    res.json auth.methods
+
+router.get "/endpoints"
+    , auth.ensureAuthenticated
+    , timeout(Config.getCommandLineParameter("timeout"))
+, (req, res, next) ->
     try
         if not res.headersSent
-            res.json serviceConfig.getEndpoints()
+            res.json Endpoints.getCompleteEndpointList()
     catch ex
         log.error V_(ex)
         throw ex
 
-router.post "/data_provider/meta_data/", timeout(Config.getCommandLineParameter("timeout")), (req, res, next) ->
+router.delete "/data_provider/:provider/cache"
+    , auth.ensureAuthenticated
+    , timeout(Config.getCommandLineParameter("timeout"))
+, (req, res, next) ->
+    provider = req.params.provider
+    Metadata.emptyProviderCache provider
+    if not res.headersSent
+        res.status(200).send()
+
+router.post "/data_provider/meta_data/"
+    , auth.ensureAuthenticated
+    , validator(
+        provider:
+            required: true
+        table:
+            required: true
+    )
+    , timeout(Config.getCommandLineParameter("timeout"))
+, (req, res, next) ->
     provider = req.body.provider
     table = req.body.table
-    id = Number req.body.id
+    id = if req.body.id? then Number req.body.id else 0
+    onMetadata = (err, metadataMessage) ->
+        if err?
+            res.status(500).send()
+            return
+        metaData = metadataMessage.Tables[0]
+        if not res.headersSent
+            for field in metaData.Fields
+                properties = {}
+                for prop in field.Properties
+                    formattedProp = KeyValue.toJSON prop
+                    for key, value of formattedProp
+                        properties[key] = value
+                field.Properties = properties
+            response =
+                data: metaData
+                id: id
+            res.json response
 
     try
-        DataProvider.getTableMeta provider, table, (metaData) ->
-            log.debug "Try to send, response to meta data request:", metaData.Name
-            if not res.headersSent
-                metaDataResponse = JSON.parse JSON.stringify metaData
-                for field in metaDataResponse.Fields
-                    properties = {}
-                    for prop in field.Properties
-                        formattedProp = KeyValue.toJSON prop
-                        for key, value of formattedProp
-                            properties[key] = value
-                    field.Properties = properties
-                response =
-                    data: metaDataResponse
-                    id: id
-                res.json response
+        token = req?.user?.token
+        Metadata.getTableDescription provider, table, token, onMetadata
     catch ex
         log.error V_(ex)
         throw ex
 
-router.post "/data_provider/table_list", timeout(Config.getCommandLineParameter("timeout")), (req, res, next) =>
+router.get "/data_provider/list"
+    , auth.ensureAuthenticated
+    , timeout(Config.getCommandLineParameter("timeout"))
+, (req, res, next) ->
+    try
+        if not res.headersSent
+            res.json Endpoints.getDataProviders()
+    catch ex
+        log.error V_(ex)
+        throw ex
+
+router.post "/data_provider/table_list"
+    , auth.ensureAuthenticated
+    , validator(
+        provider:
+            required: true
+        from:
+            required: true
+        to:
+            required: true
+    )
+    , timeout(Config.getCommandLineParameter("timeout"))
+, (req, res, next) =>
     provider = req.body.provider
     from = Number req.body.from
     to = Number req.body.to
     search = req.body.search
-    id = Number req.body.id
+    id = if req.body.id? then Number req.body.id else 0
     tablesToFilter = req.body.tables
+
     try
-        DataProvider.getTableNames provider, search, from, to, tablesToFilter, (result) ->
-            if not res.headersSent
-                response =
-                    data: result
-                    id: id
-                res.json response
+        token = req?.user?.token
+        Metadata.getTableList provider, search, from, to, tablesToFilter, token, (err, result) ->
+            if err?
+                res.status(500).send()
                 return
-    catch ex
-        log.error V_(ex)
-        throw ex
-
-router.post "/data_provider/data", timeout(Config.getCommandLineParameter("timeout")), (req, res, next) ->
-    try
-        provider = req.body.provider
-        table = req.body.table
-        count = req.body.count
-        id = Number req.body.id
-        DataProvider.getData provider, table, count, (data) =>
+            response =
+                data: result
+                id: id
             if not res.headersSent
-                response =
-                    data: data
-                    id: id
                 res.json response
-    catch ex
-        log.error V_(ex)
-        throw ex
-
-router.post "/db_config/get", timeout(Config.getCommandLineParameter("timeout")), (req, res, next) ->
-    provider = req.body.provider
-    try
-        DBConfig.getTables provider, (tableList) =>
-            res.json tableList
-    catch ex
-        log.error V_(ex)
-        throw ex
-
-router.post "/db_config/add", timeout(Config.getCommandLineParameter("timeout")), (req, res, next) ->
-    table = req.body.table
-    provider = req.body.provider
-
-    try
-        DataProvider.getTableMeta provider, table, (metaData) ->
-            DBConfig.addTable(provider, metaData)
-            res.status(200).send()
             return
     catch ex
         log.error V_(ex)
         throw ex
 
-router.get "/get_config/:component", timeout(Config.getCommandLineParameter("timeout")), (req, res, next) =>
+
+router.post "/data_provider/data"
+    , auth.ensureAuthenticated
+    , validator(
+        provider:
+            required: true
+        table:
+            required: true
+        count:
+            required: true
+            validate: (value) ->
+                value > 0 and value <= 100
+    )
+    , timeout(Config.getCommandLineParameter("timeout"))
+, (req, res, next) ->
+    try
+        dataHandler = null
+        req.on 'timeout', ->
+            dataHandler?.cleanup()
+        provider = req.body.provider
+        table = req.body.table
+        count = req.body.count
+        id = if req.body.id? then Number req.body.id else 0
+        onData = (data) ->
+            if not res.headersSent
+                if data.length is 0
+                    res.json {
+                        id: id
+                        data: []
+                    }
+                    return
+                dataRows = []
+                firstColumn = data[0].Data
+                if firstColumn.length > 0
+                    for i in [0..firstColumn.length-1]
+                        dataRows.push data.map( (column) ->
+                            fieldValue = column?.Data[i]
+                            fieldValue ?= "null"
+                        )
+                res.json {
+                    id: id
+                    data: dataRows
+                }
+
+        token = req?.user?.token
+        dataHandler = new DataHandler
+        dataHandler.getData token, provider, table, count, onData
+    catch ex
+        log.error V_(ex)
+        throw ex
+
+router.get "/get_credential/:component"
+    , auth.ensureAuthenticated
+    , timeout(Config.getCommandLineParameter("timeout"))
+, (req, res, next) =>
+    try
+        component = req.params.component
+        Credentials.getCredential req.user.token, component, (err, credential) ->
+            if err?
+                log.error "Error during getting credential", (V_ component), (V_ err)
+                res.json {}
+                return
+            res.json credential
+    catch ex
+        log.error V_(ex)
+        throw ex
+
+router.post "/set_credential/:component"
+    , auth.ensureAuthenticated
+    , timeout(Config.getCommandLineParameter("timeout"))
+, (req, res, next) =>
+    try
+        component = req.params.component
+        Credentials.setCredential req.user.token, component, req.body, (err) ->
+            if err?
+                log.error "Cannot set credential", (V_ component), (V_ err)
+            res.json {}
+    catch ex
+        log.error V_(ex)
+        throw ex
+
+router.get "/get_config/:component"
+    , auth.ensureAuthenticated
+    , timeout(Config.getCommandLineParameter("timeout"))
+, (req, res, next) =>
     try
         component = req.params.component
         ConfigService.getConfig component, (config) =>
-            template = {}
-            if config.ConfigData.length isnt 0
-                newObject = VirtDBConnector.Convert.ToObject VirtDBConnector.Convert.ToNew config
-                for scope in config.ConfigData
-                    if scope.Key is ""
-                        resultArray = []
-                        for child in scope.Children
-                            item =
-                                Name: child.Key
-                                Data: {}
-                            for variable in child.Children
-                                convertedVariable = KeyValue.toJSON variable
-                                item.Data[variable.Key] = convertedVariable[variable.Key]
-                            resultArray.push item
-                        convertedTemplate = (KeyValue.toJSON scope)[""]
-                        for item in resultArray
-                            item.Data.Value.Value.push newObject[item.Data.Scope.Value[0]]?[item.Name]
-                        res.json resultArray
+            if config?
+                res.json config
             else
                 res.json {}
     catch ex
         log.error V_(ex)
         throw ex
 
-router.post "/set_config/:component", timeout(Config.getCommandLineParameter("timeout")), (req, res, next) =>
+router.post "/set_config/:component"
+    , auth.ensureAuthenticated
+    , timeout(Config.getCommandLineParameter("timeout"))
+, (req, res, next) =>
     try
         component = req.params.component
         config = req.body
 
-        scopedConfig = {}
-        scopedConfig[""] = {}
-        for item in config
-            scopedConfig[""][item.Name] = item.Data
-            scope = item.Data.Scope.Value[0]
-            scopedConfig[scope] ?= {}
-            scopedConfig[scope][item.Name] ?= JSON.parse(JSON.stringify(item.Data.Value))
-            item.Data.Value.Value = []
-
-        configMessage =
-            Name: component
-            ConfigData: KeyValue.parseJSON(scopedConfig)
-
-        ConfigService.sendConfig configMessage
-        if not res.headersSent
-            res.status(200).send()
+        if ConfigService.sendConfig component, config
+            Metadata.emptyProviderCache component
+            if not res.headersSent
+                res.status(200).send()
+        else
+            res.status(400).send("Invalid config.")
 
     catch ex
         log.error V_(ex)
         throw ex
 
-router.post "/get_diag", timeout(Config.getCommandLineParameter("timeout")), (req, res, next) =>
-    from = Number req.body.from
-    levels = req.body.levels
-    res.json DiagConnector.getRecords from, levels
+router.post "/get_diag"
+    , auth.ensureAuthenticated
+    , timeout(Config.getCommandLineParameter("timeout"))
+, (req, res, next) =>
+    try
+        from = Number req.body.from
+        levels = req.body.levels
+        res.json DiagConnector.getRecords from, levels
+    catch ex
+        log.error V_(ex)
+        throw ex
 
 router.use (err, req, res, next) =>
-    log.error V_(req.url), V_(req.body), V_(err)
+    if req?.body?.password?
+        req.body.password = "************"
+    log.error V_(req.url), V_(req.body), V_(err.message)
+    VirtDBConnector.MonitoringService.bumpStatistic "HTTP error happened"
     res.status(if err.status? then err.status else 500).send(err.message)
 
 module.exports = router

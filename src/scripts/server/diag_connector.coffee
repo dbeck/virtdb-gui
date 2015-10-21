@@ -1,19 +1,26 @@
 Config = require "./config"
 zmq = require "zmq"
 fs = require "fs"
-protobuf = require "node-protobuf"
-FieldData = require "./fieldData"
-
-EndpointService = require "./endpoint_service"
-FieldData = require "./fieldData"
-Const = (require "virtdb-connector").Constants
+Proto = require "virtdb-proto"
+VirtDB = require 'virtdb-connector'
+Const = VirtDB.Const
 util = require "util"
 moment = require "moment"
 log = (require "virtdb-connector").log
 V_ = log.Variable
+Endpoints = require "./endpoints"
+ZmqSubConnector = require "./zmq_sub_connector"
 
-DiagProto = new protobuf(fs.readFileSync("common/proto/diag.pb.desc"))
+DiagProto = Proto.diag
+
 class DiagConnector
+
+    @LOG_LEVELS =
+        VIRTDB_INFO: 1
+        VIRTDB_ERROR: 2
+        VIRTDB_SIMPLE_TRACE: 3
+        VIRTDB_SCOPED_TRACE: 4
+        VIRTDB_STATUS: 5
 
     @_records: null
     @_logRecordSocket: null
@@ -24,15 +31,14 @@ class DiagConnector
     @connect: (diagServiceName) =>
         try
             @LEVELS = ["VIRTDB_STATUS", "VIRTDB_ERROR", "VIRTDB_INFO"]
-            if Config.getCommandLineParameter("trace") then @LEVELS.push "VIRTDB_SIMPLE_TRACE"
-
-            addresses = EndpointService.getInstance().getComponentAddresses diagServiceName
-            logRecordAddress = addresses[Const.ENDPOINT_TYPE.LOG_RECORD][Const.SOCKET_TYPE.PUB_SUB][0]
+            # if Config.getCommandLineParameter("trace") is true then @LEVELS = @LEVELS.concat ["VIRTDB_SIMPLE_TRACE", "VIRTDB_SCOPED_TRACE"]
             @_logRecordSocket = zmq.socket(Const.ZMQ_SUB)
             @_logRecordSocket.on "message", @_onRecord
-            @_logRecordSocket.connect(logRecordAddress)
-            @_logRecordSocket.subscribe Const.EVERY_CHANNEL
+            @_logRecordSocket.setsockopt zmq.ZMQ_RCVHWM, 100000
+            for level in @LEVELS
+                @_logRecordSocket.subscribe @LOG_LEVELS[level] + " "
             @_records = []
+            ZmqSubConnector.connectToFirstAvailable @_logRecordSocket, Endpoints.getLogRecordAddress()
         catch ex
             console.error "couldn't find address for diag service!"
             console.error ex
@@ -40,34 +46,39 @@ class DiagConnector
 
     @getRecords = (from, levels) =>
         records = []
-        if @_records.length > 0
+        if @_records?.length > 0
             for rec in @_records
                 if rec.time >= from and rec.level in levels
-                    records.push rec
+                    records.unshift rec
         return records
 
     @_onRecord: (channel, data) =>
         try
-            record = DiagProto.parse data, "virtdb.interface.pb.LogRecord"
+            try
+                record = DiagProto.parse data, "virtdb.interface.pb.LogRecord"
+            catch ex
+                VirtDB.MonitoringService.requestError Const.DIAG_SERVICE, Const.REQUEST_ERROR.INVALID_REQUEST, ex.toString()
+                throw ex
+            VirtDB.MonitoringService.bumpStatistic "Diag message received"
             processedRecord = @_processLogRecord record
-            if processedRecord.level in @LEVELS
-                @_records.push processedRecord
+            if not processedRecord?
+                return
+            @_records.unshift processedRecord
             if @_records.length > DiagConnector.MAX_STORED_MESSAGE_COUNT
-                @_records.splice 0, 1
-
+                @_records.splice -1, 1
         catch ex
             log.debug "Couldn't process diag message", V_(ex), V_(record)
 
     @_processLogRecord: (record) =>
         logRecord = {}
+        header =  record.Headers[0]
+        logRecord.level = header.Level
         logRecord.process = @_processProcessInfo record
         logRecord.time = (new Date).getTime()
         logRecord.entry = []
-        header =  record.Headers[0]
         for _data in record.Data when _data.HeaderSeqNo is header.SeqNo
             data = _data
             break
-        logRecord.level = header.Level
         logRecord.location =
                 file: @_findSymbolValue(record.Symbols, header.FileNameSymbol)
                 function: @_findSymbolValue(record.Symbols, header.FunctionNameSymbol)
@@ -76,15 +87,21 @@ class DiagConnector
         index = 0
         for part in header.Parts
             if part.IsVariable && part.HasData
-                _part =
-                    name: @_findSymbolValue record.Symbols, part.PartSymbol
-                    value: @_findValue data.Values[index]
+                _part = {}
+                _part["name"] = @_findSymbolValue record.Symbols, part.PartSymbol
+                if data?.EndScope? and data?.EndScope is true
+                    _part["value"] = null
+                else
+                    _part["value"] = @_findValue data.Values[index]
                 index++
                 logRecord.parts.push _part
             else if part.HasData
-                _part =
-                    name: null
-                    value: @_findValue data.Values[index]
+                _part = {}
+                _part["name"] = null
+                if data?.EndScope? and data?.EndScope is true
+                    _part["value"] = null
+                else
+                    _part["value"] = @_findValue data.Values[index]
                 index++
                 logRecord.parts.push _part
             else if part.PartSymbol?

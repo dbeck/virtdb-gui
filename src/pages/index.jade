@@ -2,47 +2,27 @@ doctype html
 html(ng-app='virtdb')
 head
     title= title
-    link(rel='stylesheet', href='../libs/bootstrap.css')
+    link(rel='stylesheet', href='../styles/bootstrap.freelancer.min.css')
+    link(rel='stylesheet', href='../styles/freelancer.css')
+    link(rel='stylesheet', href='../styles/spinner.css')
+    link(rel='stylesheet', href='../styles/onoffbutton.css')
+    link(href='../styles/font-awesome.freelancer.min.css', rel='stylesheet', type='text/css')
+    link(href='https://fonts.googleapis.com/css?family=Montserrat:400,700', rel='stylesheet', type='text/css', media="none", onload="if(media!='all')media='all'")
+    link(href='https://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic', rel='stylesheet', type='text/css', media="none", onload="if(media!='all')media='all'")
     link(rel='stylesheet', href='../styles/style.css')
+    
     script(type='text/javascript' src='../libs/jquery.js')
+    script(type='text/javascript' src='../libs/bootstrap.js')
     script(type='text/javascript' src='../libs/angular.js')
+    script(type='text/javascript' src='../libs/react.js')
+    script(type='text/javascript' src='../libs/ngReact.js')
     script(type='text/javascript' src='../libs/collapse.js')
     script(type='text/javascript' src='../libs/transition.js')
     script(type='text/javascript' src='../libs/alert.js')
     script(type='text/javascript' src='../libs/angular-route.js')
-    script(type='text/javascript' src='../scripts/virtdb-app.js')
-    script(type='text/javascript' src='../scripts/data-provider.js')
-    script(type='text/javascript' src='../scripts/requests.js')
-    script(type='text/javascript' src='../scripts/endpoint-controller.js')
-    script(type='text/javascript' src='../scripts/config-controller.js')
-    script(type='text/javascript' src='../scripts/server-connector.js')
-    script(type='text/javascript' src='../scripts/error-controller.js')
-    script(type='text/javascript' src='../scripts/error-service.js')
-    script(type='text/javascript' src='../scripts/diagnostics-controller.js')
-    script(type='text/javascript' src='../scripts/status-controller.js')
+    script(type='text/javascript' src='../scripts/dist/virtdb.js')
 
 body
-    div.navbar.navbar-inverse
-        div.container
-            div.navbar-header
-                a.navbar-brand VirtDB
-            div.collaps.navbar-collapse
-                ul.nav.navbar-nav
-                    li
-                        a(href='#data-providers') Data sources
-                    li
-                        a(href='#component-config') Component config
-                    li
-                        a(href='#status') Status
-                    li
-                        a(href='#diag') Diagnostics
-
+    include includes/navbar
     div.container-fluid(ng-controller="ErrorController as errors")
-    // - div.container-fluid(ng-controller="ErrorController as errors" ng-hide="errors.errorList.length === 0")
-        div.alert.alert-danger.alert-dismissible.fade.in(role="alert" ng-repeat="error in errors.errorList track by $index")
-            button.close(data-dismiss="alert" ng-click="errors.removeError(error)")
-                span(aria-hidden="true")&times;
-            strong Error!
-            |   {{error}}
-
-    div.container-fluid(ng-View)
+    div.container-fluid#content(ng-View)

@@ -1,0 +1,6 @@
+div.panel.panel-default.provider-list(ng-controller="ProviderController as providerCtrl")
+    div.panel-body
+        button.provider.btn.btn-success(name="{{_provider}}" ng-repeat="_provider in providerCtrl.providers" ng-click="providerCtrl.selectProvider(_provider)" ng-class="{active: providerCtrl.isSelected(_provider)}")
+            span.button-icon-container
+                img.button-icon(src="/images/arrow_right.png")
+            span  {{_provider}}

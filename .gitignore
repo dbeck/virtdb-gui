@@ -27,7 +27,23 @@ bower_components
 
 # Compiled files
 static
-src/scripts/server/out
+server/*
+*.js
+*.js.map
+
+#test report
+test_report.xml
+cobertura-coverage.xml
 
 # ide files
 .idea/
+tags
+*.swp
+
+# build tmp files
+build-result/
+
+# settings
+*.json
+.virtdb/
+ssl/

@@ -1,0 +1,55 @@
+//body
+//  background-image: url("../images/login_page_background.png")
+//  background-repeat no-repeat
+//  background-attachment fixed
+//  background-size 1920px 1080px
+//  //min-height: 100%
+//  background-position: -300px -200px
+
+.login-page
+  height 100%
+  margin 0
+  color white
+  background-color #3496F1 /* uses a solid blue color at worst */
+  //background-image url("../images/login_page_background.png")
+  //background radial-gradient(circle at 220px 330px, #3496F1, #266FB7, #061933) no-repeat fixed
+  // Quicker gradient, deep blue starts sooner
+  //background: radial-gradient(circle at 220px 330px, #3496F2, #2771BA, #164171, #0E2C51, #061933) no-repeat fixed
+
+#loginFormContainer
+  position relative
+  width 300px
+
+  input
+    color black
+
+  h1
+    color white
+    font-size 22px
+
+  .btn
+    background-color #0A5CAD
+    text-align center
+    padding 6px
+    padding-left 25px
+    padding-right 25px
+    border-style none
+
+  label
+    font-size 14px
+
+  .form-group:first-of-type
+      padding-top 30px
+  .form-group:last-of-type
+      padding-bottom 30px
+
+@media (min-device-width: 768px)
+  #loginFormContainer
+    top 80px
+    left 100px
+    min-height 80%
+    h1
+      font-size 18px
+    .input-field
+      padding-bottom 14px
+

@@ -1,10 +1,14 @@
-app = angular.module 'virtdb'
-app.controller 'ErrorController',
+app = require './virtdb-app.js'
+
+module.exports = app.controller 'ErrorController',
         class ErrorController
 
             errorList: null
 
-            constructor: (@$timeout, @$scope, @ErrorService) ->
+            constructor: ($timeout, $scope, ErrorService) ->
+                @$timeout = $timeout
+                @$scope = $scope
+                @ErrorService = ErrorService
                 # @ErrorService.addErrorListener(@onError)
                 @errorList = []
 

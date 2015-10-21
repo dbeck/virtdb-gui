@@ -1,12 +1,10 @@
-div
-    table.table
-        tr
-            th Time
-            th Component
-            th Location
-            th Message
-        tr(ng-repeat="entry in diag.logEntries | orderBy:'time':true" ng-class='{"text-danger": entry.level === "ERROR", "text-info": entry.level === "INFO", "text-muted": entry.level === "SIMPLE_TRACE"}')
-            td {{entry.time | date:'medium'}}
-            td {{entry.component}}
-            td {{entry.file}}:{{entry.line}}:{{entry.function}}
-            td {{entry.message}}
+.container
+    .row
+        ul.breadcrumb
+            li.breadcrumb-icon
+                i.fa.fa-caret-right
+            li
+                a(href="/#/") home
+            li.active log
+    .diag-item
+        diag-table(data="diag.logEntries")

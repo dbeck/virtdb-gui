@@ -1,0 +1,54 @@
+base-size = 16px
+size = base-size + 4px
+
+.cmn-toggle
+    position absolute
+    margin-left -9999px
+    visibility hidden
+    & + label
+        display block
+        position relative
+        cursor pointer
+        outline none
+        user-select none
+
+input
+    &.cmn-toggle-round-flat
+        & + label
+            filter FlipH
+            padding 2px
+            width size * 2 + 4px
+            height 15px
+            background-color #f0f0f0
+            border-radius 1px
+            transition background 0.4s
+            &:before
+                top 2px
+                left 2px
+                bottom 2px
+                right 2px
+                background-color #f0f0f0
+                border-radius size
+                transition background 0.4s
+            &:after
+                top 0px
+                left 0px
+                bottom 0px
+                width 10px
+                background-color #999999
+                border-radius 1px
+                transition margin 0.4s, background 0.4s
+        &:checked
+            & + label
+                background-color #e5f4fa
+                &:after
+                    margin-right 2px
+                    width 16px
+                    left 24px
+                    background-color #3fa9f5
+
+input.cmn-toggle-round-flat + label:before,
+input.cmn-toggle-round-flat + label:after
+    display block
+    position absolute
+    content ""

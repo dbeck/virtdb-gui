@@ -1,19 +1,124 @@
-app = angular.module 'virtdb'
-app.factory 'ServerConnector', ['$http', 'ErrorService', '$q', ($http, ErrorService, $q) ->
+app = require './virtdb-app.js'
+module.exports = app.factory 'ServerConnector', ['$http', 'ErrorService', '$q', ($http, ErrorService, $q) ->
     new class ServerConnector
 
         constructor: () ->
             @address = ""
             @pendingRequestIds = {}
 
+        getFeatures: (onSuccess) ->
+            $http.get @address + "/api/features"
+            .success(onSuccess)
+            .error (response, status) ->
+                ErrorService.errorHappened status, "Failed to get list of enabled features. (#{response})"
+
+        getSettings: (onSuccess) ->
+            $http.get @address + "/api/settings"
+            .success(onSuccess)
+            .error (response, status) ->
+                ErrorService.errorHappened status, "Failed to get configuration. (#{response})"
+
+        getCertificates: (onSuccess) ->
+            $http.get @address + "/api/certificate"
+                .success(onSuccess)
+                .error (response, status) ->
+                    ErrorService.errorHappened status, "Failed to get list of certificates. (#{response})"
+
+        getMonitoring: (onSuccess) ->
+            $http.get @address + "/api/monitoring"
+                .success(onSuccess)
+                .error (response, status) ->
+                    ErrorService.errorHappened status, "Failed to get monitoring information. (#{response})"
+
+        approveCertificate: (authCode, component, onSuccess) ->
+            data =
+                authCode: authCode
+            $http.put @address + "/api/certificate/#{encodeURIComponent(component.ComponentName)}", data
+                .success(onSuccess)
+                .error (response, status) ->
+                    ErrorService.errorHappened status, "Failed to approve certificate of #{component.ComponentName}. (#{response})"
+
+        removeCertificate: (component, onSuccess) ->
+            $http.delete(@address + "/api/certificate/#{encodeURIComponent(component.ComponentName)}/#{encodeURIComponent(component.PublicKey)}")
+                .success(onSuccess)
+                .error (response, status) =>
+                    ErrorService.errorHappened status, "Failed to remove certificate of #{component.ComponentName}. (#{response})"
+
         getEndpoints: (onSuccess, onError) =>
             $http.get(@address + "/api/endpoints").success(onSuccess)
             .error(
                 (response, status) =>
-                    ErrorService.errorHappened "Couldn't get endpoint list from server! response: " + response
+                    ErrorService.errorHappened status, "Failed to get component list. (#{response})"
             )
 
-        getTableList: (data, onSuccess) =>
+        getDataProviders: (onSuccess) =>
+            $http.get(@address + "/api/data_provider/list").success(onSuccess)
+            .error( (response, status) =>
+                ErrorService.errorHappened status, "Failed to get data provider list. (#{response})"
+                onSuccess []
+            )
+
+        getAuthenticationMethods: (onSuccess) =>
+            $http.get(@address + "/api/authmethods").success(onSuccess)
+            .error( (response, status) =>
+                ErrorService.errorHappened status, "Failed to get authentication methods. (#{response})"
+                onSuccess []
+            )
+
+        getCurrentUser: (onSuccess) =>
+            $http.get(@address + "/api/user").success(onSuccess)
+            .error( (response, status) =>
+                ErrorService.errorHappened status, "Failed to get user information. (#{response})"
+                onSuccess null
+            )
+
+        login: (username, password, onSuccess, onError) ->
+            data =
+                username: username
+                password: password
+            $http.post(@address + "/login", data)
+            .success(onSuccess)
+            .error(onError)
+
+        getUserList: (onSuccess) =>
+            $http.get(@address + "/api/user/list").success(onSuccess)
+            .error( (response, status) =>
+                ErrorService.errorHappened status, "Failed to get user list. (#{response})"
+                onSuccess []
+            )
+
+        deleteUser: (data, done) =>
+            $http.delete(@address + "/api/user/" + data).success(done)
+            .error( (response, status) =>
+                ErrorService.errorHappened status, "Failed to delete user #{data.name}. (#{response})"
+                done(new Error(response))
+            )
+
+        updateUser: (data, onSuccess, onError) =>
+            $http.put(@address + "/api/user/" + data.name, data).success(onSuccess)
+            .error( (response, status) =>
+                ErrorService.errorHappened status, "Failed to update user information of #{data.name}. (#{response})"
+                onError()
+            )
+
+        createUser: (data, done) =>
+            $http.post(@address + "/api/user", data).success(done)
+            .error( (response, status) =>
+                ErrorService.errorHappened status, "Failed to create user #{data.name}. (#{response})"
+                done(new Error(response))
+            )
+
+        refreshTableList: (provider, onSuccess, onError) =>
+            $http.delete(@address + "/api/data_provider/#{provider}/cache")
+            .success( (response) ->
+                onSuccess? response.data
+            )
+            .error( (response, status) ->
+                ErrorService.errorHappened status, "Failed to refresh table list for:  #{provider}. (#{response})"
+                onError? response, status
+            )
+
+        getTableList: (data, onSuccess, onError) =>
             data.id = generateRequestId()
 
             $http.post(@address + "/api/data_provider/table_list", data, {timeout: @createCanceler data.id})
@@ -21,8 +126,9 @@ app.factory 'ServerConnector', ['$http', 'ErrorService', '$q', ($http, ErrorServ
                 onSuccess response.data
             )
             .error( (response, status) =>
-                ErrorService.errorHappened "Couldn't get table list! " + JSON.stringify(data) + " response: " + response
-                onSuccess null
+                if status not in [0, 503]
+                    ErrorService.errorHappened status, "Failed to get table list for #{data.provider}. (#{response})"
+                onError response, status
             )
             return data.id
 
@@ -33,7 +139,7 @@ app.factory 'ServerConnector', ['$http', 'ErrorService', '$q', ($http, ErrorServ
                 onSuccess response.data
             )
             .error( (response, status) =>
-                ErrorService.errorHappened "Couldn't get meta data! " + JSON.stringify(data) + " response: " + response
+                ErrorService.errorHappened status, "Failed to get table information. (#{response})"
                 onSuccess []
             )
             return data.id
@@ -45,31 +151,98 @@ app.factory 'ServerConnector', ['$http', 'ErrorService', '$q', ($http, ErrorServ
                 onSuccess response.data
             )
             .error( (response, status) =>
-                ErrorService.errorHappened "Couldn't get data! " + JSON.stringify(data) + " response: " + response
+                ErrorService.errorHappened status, "Failed to get table data. (#{response})"
                 onSuccess []
             )
             return data.id
 
-        sendDBConfig: (data, onSuccess) =>
-            $http.post(@address + "/api/db_config/add", data)
+        getConfig: (data, onSuccess) =>
+            $http.get @address + '/api/get_config/' + data.selectedComponent
+                .success onSuccess
+                .error (response, status) ->
+                    ErrorService.errorHappened status, "Failed to get configuration of component: #{data.selectedComponent} (#{response})"
+
+        getCredential: (data, onSuccess) =>
+            $http.get @address + '/api/get_credential/' + data.selectedComponent
+                .success onSuccess
+                .error (response, status) ->
+                    ErrorService.errorHappened status, "Failed to get credential template of component: #{data.selectedComponent} (#{response})"
+
+        setCredential: (data, onSuccess, onError) =>
+            $http.post @address + '/api/set_credential/' + data.selectedComponent, data.credentials
+                .success onSuccess
+                .error (response, status) ->
+                    ErrorService.errorHappened status, "Failed to set credential: #{data.selectedComponent} (#{response})"
+                    onError?(response, status)
+
+        setConfig: (data, onSuccess, onError) =>
+            $http.post @address + '/api/set_config/' + data.selectedComponent, data.componentConfig
+                .success onSuccess
+                .error (response, status) ->
+                    ErrorService.errorHappened status, "Failed to set configuration of component: #{data.selectedComponent}  (#{response})"
+                    onError?(response, status)
+
+        sendDBConfig: (data, onSuccess, onError) =>
+            $http.post(@address + "/api/db_config/tables", data)
             .success(onSuccess)
             .error( (response, status) =>
-                    ErrorService.errorHappened "Couldn't add table to db config! " + JSON.stringify(data) + " response: " + response
+                    ErrorService.errorHappened status, "Failed to add table: #{data.table} (#{response})"
+                    onError?()
+            )
+
+        deleteDBConfig: (data, onSuccess, onError) =>
+            $http.delete(@address + "/api/db_config/tables", {params: data})
+            .success(onSuccess)
+            .error( (response, status) =>
+                    ErrorService.errorHappened status, "Failed to delete table: #{data.table} (#{response})"
+                    onError?()
             )
 
         getDBConfig: (data, onSuccess) =>
-            $http.post(@address + "/api/db_config/get", data)
+            $http.get(@address + "/api/db_config/tables", {params: data})
             .success(onSuccess)
             .error( (response, status) =>
-                ErrorService.errorHappened "Couldn't get table list from db config! " + JSON.stringify(data) + " response: " + response
+                ErrorService.errorHappened status, "Failed to retreive list of added tables from host database for: #{data.provider} (#{response})"
                 onSuccess []
+            )
+
+        addMaterialization: (data, onSuccess, onError) =>
+            $http.post(@address + "/api/db_config/tables/materialize", data)
+            .success(onSuccess)
+            .error( (response, status) =>
+                    ErrorService.errorHappened status, "Failed to add table materialization: #{data.table} (#{response})"
+                    onError?()
+            )
+
+        deleteMaterialization: (data, onSuccess, onError) =>
+            $http.delete(@address + "/api/db_config/tables/materialize", {params: data})
+            .success(onSuccess)
+            .error( (response, status) =>
+                    ErrorService.errorHappened status, "Failed to delete table materialization: #{data.table} (#{response})"
+                    onError?()
+            )
+
+        getDBUsers: (onSuccess) =>
+            $http.get @address + "/api/db_config/users"
+            .success(onSuccess)
+            .error( (response, status) =>
+                ErrorService.errorHappened status, "Failed to retreive list of database users from host database: (#{response})"
+                onSuccess null
+            )
+
+        addUserToDB: (data, onSuccess, onError) =>
+            $http.post @address + "/api/db_config/users", data
+            .success(onSuccess)
+            .error( (response, status) =>
+                ErrorService.errorHappened status, "Failed to add user to the host database: (#{response})"
+                onError()
             )
 
         getLogs: (data, onDiagMessage) =>
             $http.post(@address + "/api/get_diag/", data)
             .success(onDiagMessage)
             .error( (response, status) =>
-                ErrorService.errorHappened "Couldn't get diag messages! " + JSON.stringify(data) + " response: " + response
+                ErrorService.errorHappened status, "Failed to get log messages. (#{response})"
                 onDiagMessage []
             )
 
@@ -79,7 +252,6 @@ app.factory 'ServerConnector', ['$http', 'ErrorService', '$q', ($http, ErrorServ
         cancelRequest: (id) =>
             canceler = @pendingRequestIds[id]
             if canceler?
-                console.warn "Cancel request: " + id
                 canceler.resolve "Request outdated"
                 delete @pendingRequestIds[id]
 

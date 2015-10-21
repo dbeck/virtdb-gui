@@ -1,29 +1,74 @@
 div.container
+    .row
+        ul.breadcrumb
+            li.breadcrumb-icon
+                i.fa.fa-caret-right
+            li
+                a(href="/#/") home
+            li.active settings
+        .row
+            .header.col-md-3
+                h3 Components
+            .header.col-md-6
+                h3 Settings
+            .header.col-md-3
+                h3 Endpoints
     div.row
-        div.col-md-2
-            h3 Components
-            div.list-group
-                a.list-group-item(
+        div.col-md-3
+            table.table.table-bordered.component-list
+                tbody
+                    tr(
                     ng-repeat='component in componentList'
-                    ng-click="$parent.selectedComponent = component"
-                    ng-class="{active: $parent.selectedComponent === component}") {{component}}
+                    ng-click="selectComponent(component)")
+                        td.btn-success.btn-component(ng-class="{'selected-component': $parent.selectedComponent === component}")
+                            span.glyphicon.glyphicon-hdd
+                            span(text="{{component}}")  {{component}}
         div.col-md-6
-            h3 Configuration
-            dov.row(ng-repeat="item in componentConfig")
-                div.col-md-6
-                    {{item.Data.Scope.Value[0]}}/{{item.Name}}
-                div.col-md-6
-                    input(type="text" ng-model="item.Data.Value.Value[0]")
-            button.btn.btn-default(ng-click="endpointController.sendConfig()") Save
+            div(ng-if="componentConfig.length > 0 && (!Features.Security || user.isAdmin)")
+                h4 Configuration
+                table.table.settings(ng-if="componentConfig !== null")
+                    tr(ng-repeat="item in componentConfig")
+                        td
+                            span.strong {{ item.Data.Scope.Value[0] }} / {{ item.Name }}
+                            span.strong(ng-if="isRequired(item)") *
+                            span.small(ng-if="isRange(item)") ( Range: {{getMinimum(item)}} - {{getMaximum(item)}} )
+                        td
+                            input(type="number" name="{{item.Name}}" ng-if="isNumber(item)" ng-model="item.Data.Value.Value[0]" ng-required="isRequired(item)" ng-change="clearConfigSaveStatus()")
+                            input(type="text" name="{{item.Name}}" ng-if="!isNumber(item) && !isPassword(item) && !isBool(item)" ng-model="item.Data.Value.Value[0]" ng-required="isRequired(item)" ng-change="clearConfigSaveStatus()")
+                            input(type="password" name="{{item.Name}}" ng-if="isPassword(item)" ng-model="item.Data.Value.Value[0]" ng-required="isRequired(item)" ng-change="clearConfigSaveStatus()")
+                            div.switch(ng-if="isBool(item)")
+                                input.cmn-toggle.cmn-toggle-round-flat(type="checkbox" id="switch_{{item.Name}}" ng-model="item.Data.Value.Value[0]" ng-change="clearConfigSaveStatus()")
+                                label(for="switch_{{item.Name}}")
+                div
+                    button.btn.btn-save.btn-sm(ng-click="endpointController.sendConfig()" ng-class="{'btn-success': !configSaveFailure, 'btn-danger': configSaveFailure}")
+                        span Save
+                        i.pull-right.fa-right.fa.fa-refresh.fa-spin(ng-if="configSaving == true")
+                        i.pull-right.fa-right.fa.fa-check(ng-if="configSaveSuccess == true")
+                        i.pull-right.fa-right.fa.fa-times(ng-if="configSaveFailure == true")
 
-        div.col-md-4
-            h3 Endpoints
-            table.table
-                tr
-                    th Service type
-                    th Socket type
-                    th Addresses
-                tr(ng-repeat='infoRow in componentInfo')
-                    td {{infoRow.SvcType}}
-                    td {{infoRow.SocketType}}
-                    td {{infoRow.Address}}
+            div(ng-if="credentialTemplate.length > 0 && Features.Security")
+                h4 Credential
+                table.table
+                    tr(ng-repeat="field in credentialTemplate")
+                        td
+                            span.strong {{ field.Name }}
+                        td
+                            input(type="text" ng-if="field.Type === 'STRING'" ng-model="field.Value" ng-required="true" ng-change="clearCredSaveStatus()")
+                            input(type="email" ng-if="field.Type === 'EMAIL'" ng-model="field.Value" ng-required="true" ng-change="clearCredSaveStatus()")
+                            input(type="password" ng-if="field.Type === 'PASSWORD'" ng-model="field.Value" ng-required="true" ng-change="clearCredSaveStatus()")
+                            div.switch(ng-if="field.Type === 'BOOLEAN'")
+                                input.cmn-toggle.cmn-toggle-round-flat(type="checkbox" id="switch_{{field.Name}}" ng-model="field.Value" ng-true-value="true" ng-false-value="false" ng-change="clearCredSaveStatus()")
+                                label(for="switch_{{field.Name}}")
+                div
+                    button.btn-sm(ng-click="endpointController.sendCredential()" ng-class="{'btn-success': !credSaveFailure, 'btn-danger': credSaveFailure}")
+                        span Send credentials
+                        i.pull-right.fa-right.fa.fa-refresh.fa-spin(ng-if="credSaving == true")
+                        i.pull-right.fa-right.fa.fa-check(ng-if="credSaveSuccess == true")
+                        i.pull-right.fa-right.fa.fa-times(ng-if="credSaveFailure == true")
+
+        div.col-md-3
+            div.list-group
+                div.small.list-group-item(ng-repeat='infoRow in componentInfo')
+                    h6 {{infoRow.SvcType}}
+                    div {{infoRow.SocketType}}
+                    div {{infoRow.Address}}
